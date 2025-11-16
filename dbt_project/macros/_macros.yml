@@ -1,0 +1,8 @@
+version: 2
+
+macros:
+  - name: cents_to_dollars
+    description: Macro to converts values in cents to dollars
+    arguments:
+      - name: column_name
+        description: A column that contains values in cents

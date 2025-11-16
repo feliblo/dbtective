@@ -1,0 +1,34 @@
+[package]
+name = "dbtective"
+version = "0.1.0"
+edition = "2021"
+description = "A Rust-powered linter and detective for dbt metadata best practices"
+license = "MIT"
+repository = "https://github.com/Felix-Blom/dbtective"
+keywords = ["dbt", "linter", "data", "metadata", "analytics"]
+categories = ["command-line-utilities", "development-tools"]
+authors = ["Felix Blom"]
+
+[lints.clippy]
+all = { level = "deny", priority = -1 }
+pedantic = { level = "deny", priority = -1 }
+nursery = { level = "deny", priority = -1 }
+cargo = { level = "deny", priority = -1 }
+multiple_crate_versions = "allow"
+module_name_repetitions = "allow"
+
+[lints.rust]
+unused_imports = "deny"
+warnings = "deny"
+
+[dependencies]
+anyhow = "1.0.100"
+clap = { version = "4.5.48", features = ["derive"] }
+colored = "3.0.0"
+config = { version = "0.15.18", features = ["toml"] }
+dotenv = "0.15.0"
+env_logger = "0.11.8"
+log = "0.4.28"
+
+[dev-dependencies]
+serial_test = "3.0"

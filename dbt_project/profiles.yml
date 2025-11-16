@@ -1,0 +1,7 @@
+dbtective:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: ./dbt.duckdb
+      threads: 8

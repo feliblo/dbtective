@@ -1,0 +1,48 @@
+name: 🛠️ Rust CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+env:
+  RUSTFLAGS: "-Dwarnings"
+
+jobs:
+  clippy_check:
+    name: 🔍 Lint Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: 🦀 Run Clippy
+        run: cargo clippy --all-targets --all-features
+
+  test:
+    name: 🚀 Run Test Suite
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📦 Checkout Repository
+        uses: actions/checkout@v5
+
+      - name: 🦀 Setup Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: 📂 Cache Cargo Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: 🔧 Build Project
+        run: cargo build --verbose
+
+      - name: 🧪 Run All Tests
+        run: cargo test --verbose
+
+      - name: ✅ Test Success
+        run: echo "🎉 All tests passed successfully!"
