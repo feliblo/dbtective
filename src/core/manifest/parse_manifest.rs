@@ -59,14 +59,14 @@ pub struct Manifest {
 #[allow(dead_code)]
 pub fn load_manifest(manifest_path: &Path) -> Result<Manifest> {
     let file = File::open(manifest_path).context(format!(
-        "Unable to open manifest, expected at {:?}",
-        manifest_path
+        "Unable to open manifest, expected at {}",
+        manifest_path.display()
     ))?;
 
     let reader = BufReader::new(file);
     let manifest: Manifest = serde_json::from_reader(reader).context(format!(
-        "Unable to parse manifest JSON, delete it from {:?} and regenerate using 'dbt run'\nSee: \x1b]8;;https://docs.getdbt.com/reference/artifacts/manifest-json\x1b\\dbt manifest documentation\x1b]8;;\x1b\\",
-        manifest_path
+        "Unable to parse manifest JSON, delete it from {} and regenerate using 'dbt run'\nSee: \x1b]8;;https://docs.getdbt.com/reference/artifacts/manifest-json\x1b\\dbt manifest documentation\x1b]8;;\x1b\\",
+        manifest_path.display()
     ))?;
 
     Ok(manifest)
@@ -109,7 +109,7 @@ mod tests {
         let reader = BufReader::new(file);
         let _manifest: Manifest = serde_json::from_reader(reader).unwrap();
         let typed_duration = start.elapsed();
-        println!("Typed (Manifest struct): {:?}", typed_duration);
+        println!("Typed (Manifest struct): {typed_duration:?}");
 
         // Untyped deserialization (to serde_json::Value)
         let start = Instant::now();
@@ -117,7 +117,7 @@ mod tests {
         let reader = BufReader::new(file);
         let _value: serde_json::Value = serde_json::from_reader(reader).unwrap();
         let untyped_duration = start.elapsed();
-        println!("Untyped (serde_json::Value): {:?}", untyped_duration);
+        println!("Untyped (serde_json::Value): {untyped_duration:?}");
 
         println!(
             "Difference: {:?}",

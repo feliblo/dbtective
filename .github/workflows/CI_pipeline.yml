@@ -1,4 +1,4 @@
-name: 🛠️ Rust CI
+name: 🛠️ CI
 
 on:
   pull_request:
@@ -9,13 +9,41 @@ env:
   RUSTFLAGS: "-Dwarnings"
 
 jobs:
-  clippy_check:
-    name: 🔍 Lint Code Quality
+  lint:
+    name: 📝 Lint Rustfmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: 📦 Install Rustfmt
+        run: rustup component add rustfmt
+
+      - name: 🦀 Run Rustfmt
+        run: cargo fmt --all -- --check
+
+  clippy:
+    name: 🔍 Lint Clippy
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - name: 🦀 Run Clippy
-        run: cargo clippy --all-targets --all-features
+        run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
+
+  shear:
+    name: ✂️ Check Code Shearing (unwanted package dependencies)
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📦 Checkout Repository
+        uses: actions/checkout@v5
+
+      - name: 📦 Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@main
+
+      - name: ✂️ Install cargo-shear
+        run: cargo binstall --no-confirm cargo-shear
+
+      - name: 🔍 Run cargo shear
+        run: cargo shear
 
   test:
     name: 🚀 Run Test Suite

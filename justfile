@@ -1,5 +1,5 @@
 lint:
-    cargo clippy --fix --all-targets
+    cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
 
 run *arguments:
     cargo run -- {{arguments}}

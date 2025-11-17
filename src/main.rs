@@ -4,13 +4,12 @@ use crate::cli::commands::{Cli, Commands};
 use crate::core::config::parse_config;
 use clap::{CommandFactory, Parser};
 use colored::Colorize;
-use log::{debug, error, info};
+use log::{debug, info};
 
 fn main() {
     dotenv::dotenv().ok();
     colored::control::set_override(true);
 
-    let _debug_mode = cfg!(debug_assertions);
     let args = Cli::parse();
 
     match &args.command {
@@ -19,9 +18,7 @@ fn main() {
                 let config = parse_config(&options.pyproject_file, &options.config_file)
                     .expect("Failed to parse configuration");
 
-                error!("{:?}", config);
-
-                // Apply color to the text, not the emoji
+                debug!("{config:?}");
                 debug!("{} {}", "🕵️", "\t Starting dbt analysis...".red());
                 debug!("\n {options:#?}");
             }
@@ -34,7 +31,6 @@ fn main() {
             }
         }
         None => {
-            debug!(" HELLO ");
             info!(
                 "\n {}",
                 r"

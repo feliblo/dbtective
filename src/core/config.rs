@@ -5,9 +5,7 @@ use std::path::Path;
 pub fn parse_config(pyproject_path: &str, dbtective_config_path: &str) -> Result<Config> {
     if !Path::new(pyproject_path).exists() && !Path::new(dbtective_config_path).exists() {
         return Err(anyhow::anyhow!(
-            "pyproject.toml [{}] or dbtective configuration [{}] not found. \n Please ensure at least one is available.",
-            pyproject_path,
-            dbtective_config_path
+            "pyproject.toml [{pyproject_path}] or dbtective configuration [{dbtective_config_path}] not found. \n Please ensure at least one is available.",
         ));
     }
 

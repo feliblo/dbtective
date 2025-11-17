@@ -192,7 +192,7 @@ mod tests {
             options: RunOptions {
                 entry_point: "./".to_string(),
                 pyproject_file: "pyproject.toml".to_string(),
-                config_file: "".to_string(),
+                config_file: String::new(),
                 output_file: None,
                 limit: None,
             },
