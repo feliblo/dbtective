@@ -8,6 +8,27 @@ use std::path::Path;
 
 use serde::Deserialize;
 
+enum AllowedManifestVersions {
+    V12,
+}
+impl AllowedManifestVersions {
+    fn from_str(version: &str) -> Option<Self> {
+        match version {
+            "https://schemas.getdbt.com/dbt/manifest/v12.json" => Some(Self::V12),
+            _ => None,
+        }
+    }
+}
+
+pub fn check_manifest_version(dbt_schema_version: &str) -> Result<bool> {
+    match AllowedManifestVersions::from_str(dbt_schema_version)  {
+        Some(_) => Ok(true),
+        None => anyhow::bail!(
+            "Unsupported manifest schema version: {dbt_schema_version}, expected version 12. Please regenerate the manifest using 'dbt run' with dbt version 1.10.0 or higher see: \x1b]8;;https://docs.getdbt.com/reference/artifacts/manifest-json\x1b\\dbt manifest documentation\x1b]8;;\x1b\\."
+        ),
+    }
+}
+
 #[derive(Debug, Deserialize)]
 #[allow(dead_code)]
 pub struct ManifestMetadata {
@@ -68,7 +89,8 @@ pub fn load_manifest(manifest_path: &Path) -> Result<Manifest> {
         "Unable to parse manifest JSON, delete it from {} and regenerate using 'dbt run'\nSee: \x1b]8;;https://docs.getdbt.com/reference/artifacts/manifest-json\x1b\\dbt manifest documentation\x1b]8;;\x1b\\",
         manifest_path.display()
     ))?;
-
+    check_manifest_version(&manifest.metadata.dbt_schema_version)
+        .expect("Unsupported manifest version");
     Ok(manifest)
 }
 
@@ -95,6 +117,18 @@ mod tests {
             .unwrap()
             .to_string()
             .contains("Unable to open manifest"));
+    }
+
+    #[test]
+    fn test_invalid_manifest_version() {
+        let invalid_version = "https://schemas.getdbt.com/dbt/manifest/v10.json";
+        let result = check_manifest_version(invalid_version);
+        assert!(result.is_err());
+        assert!(result
+            .err()
+            .unwrap()
+            .to_string()
+            .contains("Unsupported manifest schema version"));
     }
 
     #[test]
