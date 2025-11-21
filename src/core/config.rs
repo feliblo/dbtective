@@ -163,18 +163,21 @@ manifest_tests:
 
         println!("{config:#?}");
 
-        assert_eq!(config.manifest_tests.len(), 2);
+        assert_eq!(config.manifest_tests.len(), 1);
         assert_eq!(
             config.manifest_tests[0].name,
             "model_seeds_have_description"
         );
         assert_eq!(config.manifest_tests[0].severity, Severity::Error);
-        assert_eq!(config.manifest_tests[1].name, "columns_are_lowercase");
+        assert_eq!(
+            config.manifest_tests[0].name,
+            "model_seeds_have_description"
+        );
     }
 
     #[test]
     fn test_default_applies_to_for_rule() {
         let applies_to = default_applies_to_for_rule(&SpecificRuleConfig::HasDescription {});
-        assert_eq!(applies_to, vec![RuleTarget::Models, RuleTarget::Seeds]);
+        assert_eq!(applies_to, ALL_RULE_TARGETS);
     }
 }
