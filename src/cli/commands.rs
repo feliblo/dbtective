@@ -52,7 +52,7 @@ pub struct InitOptions {}
 #[derive(Args, Debug)]
 pub struct RunOptions {
     /// Path to dbt project root directory
-    #[arg(long, default_value = "./")]
+    #[arg(long, default_value = ".")]
     pub entry_point: String,
 
     /// Path to pyproject.toml file
