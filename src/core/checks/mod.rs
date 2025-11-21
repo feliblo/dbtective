@@ -1,5 +1,5 @@
+pub mod common;
 pub mod manifest;
-
 use crate::core::config::Severity;
 
 pub struct RuleResult {

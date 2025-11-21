@@ -1,7 +1,8 @@
 mod cli;
 mod core;
 use crate::cli::commands::{Cli, Commands};
-use crate::core::checks::manifest::node_checks::apply_node_checks;
+use crate::cli::table::print_result_table;
+pub use crate::core::checks::manifest::node_checks::apply_node_checks;
 use crate::core::config::Config;
 use crate::core::manifest::Manifest;
 use clap::{CommandFactory, Parser};
@@ -9,15 +10,6 @@ use log::{debug, info};
 use owo_colors::OwoColorize;
 use std::process::exit;
 use std::time::Instant;
-use tabled::settings::Style;
-use tabled::{Table, Tabled};
-
-#[derive(Tabled)]
-struct RuleResultDisplay {
-    status: &'static str,
-    node_type: String,
-    message: String,
-}
 
 fn main() {
     let args = Cli::parse();
@@ -52,34 +44,16 @@ fn main() {
                     }
                 };
 
-            let results = apply_node_checks(&manifest, &config);
-            if results.is_empty() {
-                println!("{}", "All checks passed successfully!".green());
-            } else {
-                let display_rows: Vec<RuleResultDisplay> = results
-                    .into_iter()
-                    .filter(|rule_result| rule_result.code != 0)
-                    .map(|rule_result| RuleResultDisplay {
-                        status: rule_result.severity.as_str(),
-                        node_type: rule_result.node_type,
-                        message: rule_result.message,
-                    })
-                    .collect();
-                if display_rows.is_empty() {
-                    println!(
-                        "{}",
-                        "🕵️  All checks passed successfully! — dbtective is off the case!".green()
-                    );
-                } else {
-                    let mut table = Table::new(display_rows);
-                    table.with(Style::modern());
-                    println!("{table}");
-                }
-            }
+            let node_checks_results = apply_node_checks(&manifest, &config);
 
-            let duration = start.elapsed();
-            println!("Analysis completed in: {duration:?}");
+            print_result_table(node_checks_results);
+
+            if args.verbose {
+                let duration = start.elapsed();
+                println!("Analysis completed in: {duration:?}");
+            }
         }
+
         Some(Commands::Init { options }) => {
             if args.verbose {
                 debug!("Initializing dbtective project...");

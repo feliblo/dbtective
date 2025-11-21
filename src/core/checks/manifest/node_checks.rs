@@ -1,8 +1,9 @@
-pub mod has_description;
+use crate::core::checks::common::has_description;
 use crate::core::checks::RuleResult;
 use crate::core::config::Config;
 use crate::core::config::SpecificRuleConfig::HasDescription;
 use crate::core::manifest::Manifest;
+use crate::core::traits::Descriptable;
 
 pub fn apply_node_checks(manifest: &Manifest, config: &Config) -> Vec<RuleResult> {
     let mut results = Vec::new();

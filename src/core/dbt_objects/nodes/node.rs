@@ -1,9 +1,9 @@
 use super::super::column::Column;
 use super::super::{Meta, Tags};
-use crate::core::config::RuleTarget;
-use serde::Deserialize;
-// use super::super::NodeDocs
 use super::{Analysis, HookNode, Model, Seed, Snapshot, SqlOperation, Test};
+use crate::core::config::RuleTarget;
+use crate::core::traits::Descriptable;
+use serde::Deserialize;
 use std::collections::HashMap;
 
 #[derive(Debug, Deserialize)]
@@ -25,9 +25,15 @@ pub enum Node {
     #[serde(rename = "sql_operation")]
     SqlOperation(SqlOperation),
 }
-impl Node {
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn ruletarget(&self) -> RuleTarget {
+
+impl Descriptable for Node {
+    fn description(&self) -> Option<&String> {
+        self.get_base().description.as_ref()
+    }
+    fn original_file_path(&self) -> &String {
+        &self.get_base().original_file_path
+    }
+    fn ruletarget(&self) -> RuleTarget {
         match self {
             Self::Model(_) => RuleTarget::Models,
             Self::Seed(_) => RuleTarget::Seeds,
@@ -38,6 +44,21 @@ impl Node {
             Self::SqlOperation(_) => RuleTarget::SqlOperations,
         }
     }
+}
+
+impl Descriptable for &Node {
+    fn description(&self) -> Option<&String> {
+        (*self).description()
+    }
+    fn original_file_path(&self) -> &String {
+        (*self).original_file_path()
+    }
+    fn ruletarget(&self) -> RuleTarget {
+        (*self).ruletarget()
+    }
+}
+
+impl Node {
     #[allow(clippy::missing_const_for_fn)]
     pub fn get_base(&self) -> &NodeBase {
         match self {
@@ -49,10 +70,6 @@ impl Node {
             Self::HookNode(h) => &h.base,
             Self::SqlOperation(s) => &s.base,
         }
-    }
-
-    pub fn get_description(&self) -> Option<&String> {
-        self.get_base().description.as_ref()
     }
 
     pub fn original_file_path(&self) -> &String {
