@@ -62,7 +62,6 @@ impl Descriptable for Node {
     }
 
     fn get_object_string(&self) -> String {
-        // e.g. Model 'name'
         self.get_name().to_string()
     }
 }
