@@ -1,15 +1,28 @@
 mod cli;
 mod core;
 use crate::cli::commands::{Cli, Commands};
+use crate::core::checks::common::has_description::CheckRow;
 pub use crate::core::checks::manifest::node_checks::apply_node_checks;
-use crate::core::config::Config;
+use crate::core::config::{Config, Severity};
 use crate::core::manifest::Manifest;
 use clap::{CommandFactory, Parser};
 use log::{debug, info};
 use owo_colors::OwoColorize;
 use std::process::exit;
 use std::time::Instant;
+use tabled::{
+    settings::{location::Locator, Color, Style},
+    Table,
+};
+fn print_node_checks_table(results: &[(CheckRow, &Severity)]) {
+    let mut table = Table::new(results.iter().map(|(row, _)| row));
+    table
+        .with(Style::rounded())
+        .modify(Locator::content("FAIL"), Color::BG_RED)
+        .modify(Locator::content("WARN"), Color::BG_YELLOW);
 
+    println!("{table}");
+}
 fn main() {
     let args = Cli::parse();
 
@@ -45,17 +58,23 @@ fn main() {
 
             let node_checks_results = apply_node_checks(&manifest, &config);
 
-            if node_checks_results != 0 {
-                info!("{}", "Some checks have failed.".red());
-                exit(1);
+            let results = &node_checks_results;
+            if results.iter().any(|&(_, severity)| severity.as_code() != 0) {
+                println!("{}", "🕵️  dbtective detected some issues:".red());
             } else {
-                info!("{}", "All checks passed successfully!".green());
+                println!(
+                    "{} 🕵️",
+                    "All checks passed successfully! - dbtective off the case.".green(),
+                );
             }
+
+            print_node_checks_table(&node_checks_results);
 
             if args.verbose {
                 let duration = start.elapsed();
                 println!("Analysis completed in: {duration:?}");
             }
+            exit(0);
         }
 
         Some(Commands::Init { options }) => {

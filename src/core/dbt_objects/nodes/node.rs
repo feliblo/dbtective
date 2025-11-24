@@ -26,7 +26,7 @@ pub enum Node {
     SqlOperation(SqlOperation),
 }
 impl Node {
-    pub fn as_str(&self) -> &str {
+    pub const fn as_str(&self) -> &str {
         match self {
             Self::Analysis(_) => "Analysis",
             Self::Seed(_) => "Seed",
@@ -37,10 +37,10 @@ impl Node {
             Self::SqlOperation(_) => "SqlOperation",
         }
     }
-    fn get_name(&self) -> &String {
+    pub const fn get_name(&self) -> &String {
         &self.get_base().name
     }
-    pub fn ruletarget(&self) -> RuleTarget {
+    pub const fn ruletarget(&self) -> RuleTarget {
         match self {
             Self::Model(_) => RuleTarget::Models,
             Self::Seed(_) => RuleTarget::Seeds,
@@ -57,8 +57,13 @@ impl Descriptable for Node {
         self.get_base().description.as_ref()
     }
 
+    fn get_object_type(&self) -> String {
+        self.as_str().to_string()
+    }
+
     fn get_object_string(&self) -> String {
-        format!("{} '{}'", self.as_str(), &self.get_name())
+        // e.g. Model 'name'
+        self.get_name().to_string()
     }
 }
 
@@ -67,14 +72,17 @@ impl Descriptable for &Node {
         (*self).description()
     }
 
+    fn get_object_type(&self) -> String {
+        (*self).get_object_type()
+    }
+
     fn get_object_string(&self) -> String {
         (*self).get_object_string()
     }
 }
 
 impl Node {
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn get_base(&self) -> &NodeBase {
+    pub const fn get_base(&self) -> &NodeBase {
         match self {
             Self::Analysis(a) => &a.base,
             Self::Seed(s) => &s.base,
@@ -86,11 +94,11 @@ impl Node {
         }
     }
 
-    pub fn original_file_path(&self) -> &String {
+    pub const fn original_file_path(&self) -> &String {
         &self.get_base().original_file_path
     }
 
-    pub fn get_package_name(&self) -> &String {
+    pub const fn get_package_name(&self) -> &String {
         &self.get_base().package_name
     }
 }

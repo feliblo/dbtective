@@ -1,6 +1,7 @@
 use crate::core::checks::common::has_description;
-use crate::core::config::Config;
+use crate::core::checks::common::has_description::CheckRow;
 use crate::core::config::SpecificRuleConfig::HasDescription;
+use crate::core::config::{Config, Severity};
 use crate::core::manifest::Manifest;
 
 /// Applies node checks to the manifest.
@@ -12,28 +13,28 @@ use crate::core::manifest::Manifest;
 ///
 /// # Panics
 /// This function will panic if `applies_to` is `None` for any rule.
-pub fn apply_node_checks(manifest: &Manifest, config: &Config) -> i32 {
+#[must_use]
+pub fn apply_node_checks<'a>(
+    manifest: &'a Manifest,
+    config: &'a Config,
+) -> Vec<(CheckRow, &'a Severity)> {
     let mut results = Vec::new();
-    for rule in &config.manifest_tests {
-        for node in manifest.nodes.values() {
-            if rule
-                .applies_to
-                .as_ref()
-                .unwrap()
-                .contains(&node.ruletarget())
-            {
-                match rule.rule {
-                    HasDescription {} => {
-                        let result = has_description::check_node_description(node, rule);
-                        results.push(result);
+
+    for node in manifest.nodes.values() {
+        for rule in &config.manifest_tests {
+            if let Some(applies) = &rule.applies_to {
+                if applies.contains(&node.ruletarget()) {
+                    let check_row_result = match &rule.rule {
+                        HasDescription {} => has_description::check_node_description(node, rule),
+                    };
+
+                    if let Ok(check_row) = check_row_result {
+                        results.push((check_row, &rule.severity));
                     }
                 }
             }
         }
     }
-    if results.iter().any(|&r| r != 0) {
-        1
-    } else {
-        0
-    }
+
+    results
 }
