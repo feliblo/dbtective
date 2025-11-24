@@ -4,10 +4,10 @@ version = "0.1.0"
 edition = "2021"
 description = "A Rust-powered linter and detective for dbt metadata best practices"
 license = "MIT"
-repository = "https://github.com/Felix-Blom/dbtective"
+repository = "https://github.com/feliblo/dbtective"
 keywords = ["dbt", "linter", "data", "metadata", "analytics"]
 categories = ["command-line-utilities", "development-tools"]
-authors = ["Felix Blom"]
+authors = ["feliblo"]
 
 [lints.clippy]
 all = { level = "deny", priority = -1 }

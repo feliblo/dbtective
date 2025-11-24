@@ -26,7 +26,7 @@ Thank you for your interest in contributing to dbtective! We're excited to have 
 3. **Set up the upstream remote**:
 
    ```bash
-   git remote add upstream https://github.com/Felix-Blom/dbtective.git
+   git remote add upstream https://github.com/feliblo/dbtective.git
    ```
 
 4. **Install dependencies and build**:
