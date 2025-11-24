@@ -1,52 +1,31 @@
 # 🕵️ dbtective
 
-On the case for your dbt best practices.
+dbtective is a Rust-powered 'detective' for `dbt metadata` best practices. As your dbt project grows, keeping metadata consistent and high-quality can become a real challenge.
 
-**dbt-tective** is a **Rust-powered** linter and "detective" for **dbt metadata best practictes**
+**dbtective** makes it easy to spot and fix common issues, examples:
 
-> ( •*•)>⌐■-■ dbtective  
-> (⌐■*■) Case solved!
+- **Missing descriptions:** Does every model and seed have a description?
+- **Column types:** Are all columns explicitly typed?
+- **Ownership:** Do all sources have an owner?
+- **Naming conventions:** Are all marts following your team's naming standards?
 
-## What is dbttective?
+We detect and enforce these rules in your `pre-commit` and `CI/CD` pipeline, so fast you will barely notice🕵️
 
-[dbt](https://www.getdbt.com/) (Data Build Tool) is a powerful framework for building, testing, and documenting data models in your data warehouse. As teams scale, dbt projects accumulate a wealth of metadata: documentation, tests, ownership, access controls, column types, constraints, and more. Managing the consistency and quality of this metadata at scale can become overwhelming.
-
-**dbt-tective** helps teams uncover inconsistencies, enforce best practices, and maintain high-quality metadata across their dbt projects. By programmatically defining and enforcing rules, dbtective makes it easier to keep your dbt project organized, documented, and production-ready.
-
-## Features
-
-- [ ] **Lint dbt metadata**: Analyze your models, sources, and snapshots for documentation, ownership, tests, and other best practices.
-- [ ] **Customizable rules**: Define your own rules or use built-in ones to match your team's standards.
-- [ ] **Scalable & Fast**: Built in Rust for blazing speed and reliability, even on large dbt projects.
-- [ ] **Actionable output**: Get clear, actionable feedback for every dbt resource.
-- [ ] **Gamified scoring**: Assigns "maturity scores" to your dbt entities, making metadata improvements trackable and fun.
-- [ ] **CI/CD ready**: Integrate with your continuous integration workflows to prevent metadata drift.
-
-## Why dbtective?
-
-As dbt projects grow, ensuring high-quality, consistent metadata becomes a detective job of its own. dbtective shines a light on the mysteries in your dbt project, helping your team spot issues before they become problems.
-
-## Documentation
-
-Full documentation is coming soon!
-
-For now, usage examples, rule configuration, and contributing guidelines will be available in the [docs directory](./docs/) and on the project's website.
+## Quickstart
+todo!()
 
 ## Contributing
 
 We welcome contributions! Whether you're fixing bugs, adding features, or improving documentation, your help makes dbtective better for everyone.
 
 **Quick start:**
+Install [just](https://github.com/casey/just) command line runner & take a look at the commands in the justfile.
 
+To build and run on the example project (`./dbt_project` using config `./dbt_project/dbtective.yml`) use:
 ```bash
-# Debug mode (includes debug logs and timing)
-cargo run
-
-# Release mode (optimized, clean output)
-cargo run --release
-
-# Run with arguments
-cargo run -- --help
+just run
+just run-verbose
 ```
 
 For detailed contributing guidelines, development setup, and coding standards, please see [CONTRIBUTING.md](./CONTRIBUTING.md).
+

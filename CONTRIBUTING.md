@@ -8,7 +8,10 @@ Thank you for your interest in contributing to dbtective! We're excited to have 
 
 - [Rust](https://rustup.rs/) (latest stable version)
 - [Git](https://git-scm.com/)
-- [just](https://github.com/casey/just) (optional, for convenient task running)
+- [just](https://github.com/casey/just) (optional, all relevant commands are shown in the `justfile`).
+- For running documentation locally:
+   - [golang](https://go.dev/doc/install)
+   - [hugo](https://gohugo.io/installation/)
 
 ### Setting up your development environment
 
@@ -34,33 +37,13 @@ Thank you for your interest in contributing to dbtective! We're excited to have 
 
 5. **Run the application**:
 
+Use the commands shown in the `justfile` or install [just](https://github.com/casey/just) and run:
+
    ```bash
-   # Debug mode (includes debug logs and timing)
-   cargo run
-
-   # Release mode (optimized, clean output)
-   cargo run --release
-
-   # With arguments
-   cargo run -- --help
-   cargo run -- run --verbose
+   just run
+   just run-verbose
    ```
 
-### Using just (optional)
-
-If you have [just](https://github.com/casey/just) installed, you can use these convenient commands:
-
-```bash
-# Run in debug mode
-just run
-
-# Run in release mode
-just run-release
-
-# Run with arguments
-just run --verbose
-just run-release run --help
-```
 
 ## Development Workflow
 
@@ -98,140 +81,49 @@ Before starting work, please:
 
 #### Testing
 
-- Write unit tests for new functionality
+- Write unit tests in the corresponding file.
+- Write integration tests in the test folder.
 - Ensure all tests pass: `cargo test`
 - Add integration tests where appropriate
 
-#### Logging
-
-- Use appropriate log levels:
-  - `debug!()` for verbose/debug messages
-  - `info!()` for general information
-  - `warn!()` for warnings
-  - `error!()` for errors
-
-#### Error Handling
-
-- Use `Result<T, E>` for fallible operations
-- Provide meaningful error messages
-- Use `anyhow` for error handling where appropriate
 
 ### 4. Commit Guidelines
 
-We use [gitmoji](https://gitmoji.dev/) or [howmoji](https://github.com/Felix-Blom/howmoji) for expressive commit messages. This makes the commit history more readable and fun!
+Please use [commitizen](https://commitizen-tools.github.io/commitizen/) or use the same style to write informative commit messages using traditional format.
 
-**Examples:**
-
-```
-✨ feat: add YAML configuration parsing
-
-- Implement ConfigParser for dbtective.yml
-- Add validation for rule definitions
-- Include error handling for malformed configs
-
-Closes #123
-```
-
-```
-🐛 fix: resolve logging timestamp format issue
-
-- Fix timestamp format in verbose mode
-- Ensure consistent time display across log levels
-
-Fixes #456
-```
-
-**Example gitmoji/howmoji:**
-
-- ✨ `:sparkles:` for new features
-- 🐛 `:bug:` for bug fixes
-- 📝 `:memo:` for documentation changes
-
-**Tools to help:**
-
-- [Gitmoji CLI](https://github.com/carloscuesta/gitmoji-cli): `npm i -g gitmoji-cli`
-- [Howmoji](https://github.com/Felix-Blom/howmoji): Felix's own gitmoji tool!
-
-**Traditional format (also acceptable):**
-
-- `feat:` for new features
-- `fix:` for bug fixes
-- `docs:` for documentation changes
-- `style:` for formatting changes
-- `refactor:` for code refactoring
-- `test:` for adding tests
-- `chore:` for maintenance tasks
 
 ### 5. Pull Request Process
 
 1. **Update your branch** with the latest main:
 
    ```bash
-   git checkout main
-   git pull upstream main
-   git checkout your-feature-branch
-   git rebase main
+   git rebase -i  origin/main
    ```
 
 2. **Run the full test suite**:
 
+Use the commands shown in the `justfile` or install [just](https://github.com/casey/just) and run:
    ```bash
-   cargo test
-   cargo clippy
-   cargo fmt --check
+   just test
+   just lint
+   just fmt
    ```
 
-3. **Create a Pull Request** with:
+3. **Create a Pull Request** 
 
-   - Clear title describing the change
-   - Detailed description of what was changed and why
-   - Reference to related issues (e.g., "Closes #123")
-   - Screenshots for UI changes (if applicable)
+4. **Code Review**
 
-4. **Respond to feedback** promptly and make requested changes
+5. **Merge!**
 
-## Project Structure
+## Documentation
 
-```
-dbtective/
-├── src/
-│   ├── main.rs           # Application entry point
-│   ├── cli/              # Command-line interface
-│   │   ├── mod.rs
-│   │   └── commands.rs   # CLI command definitions
-│   └── core/             # Core functionality
-│       ├── mod.rs
-│       ├── logging.rs    # Logging configuration
-│       ├── parse_config.rs
-│       └── parse_pyproject.rs
-├── tests/                # Integration tests
-├── Cargo.toml           # Rust package configuration
-├── justfile             # Task runner commands
-└── README.md
+To update documentation please refer to the `/docs/content` folder and apply markdown changes.
+Use the commands shown in the `justfile` or install [just](https://github.com/casey/just) and run:
+
+```bash
+just docs
 ```
 
-## Areas for Contribution
-
-### High Priority
-
-- [ ] dbt manifest parsing and analysis
-- [ ] Rule engine implementation
-- [ ] Configuration file parsing (YAML)
-- [ ] Output formatters (JSON, markdown, HTML)
-
-### Medium Priority
-
-- [ ] Performance optimizations
-- [ ] Additional linting rules
-- [ ] Documentation improvements
-- [ ] CI/CD pipeline enhancements
-
-### Good First Issues
-
-- [ ] Improve error messages
-- [ ] Add more unit tests
-- [ ] Documentation updates
-- [ ] Code cleanup and refactoring
 
 ## Code of Conduct
 
@@ -246,12 +138,7 @@ This project follows the [Rust Code of Conduct](https://www.rust-lang.org/polici
 ## Recognition
 
 Contributors will be recognized in:
-
-- The project's README
 - Release notes for significant contributions
-- The project's website (coming soon!)
-
----
 
 **Happy detecting!** 🕵️‍♀️🔍
 

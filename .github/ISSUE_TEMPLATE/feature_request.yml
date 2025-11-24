@@ -1,0 +1,29 @@
+name: "💡 Feature Request"
+description: Create a new ticket for a new feature request
+title: "💡 [REQUEST] - <title>"
+labels: ["question"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: "Summary"
+      description: Provide a brief explanation of the feature
+      placeholder: Describe in a few lines your feature request
+    validations:
+      required: true
+  - type: textarea
+    id: basic_example
+    attributes:
+      label: "Basic Example"
+      description: Indicate here some basic examples of your feature.
+      placeholder: A few specific words about your feature request.
+    validations:
+      required: true
+  - type: checkboxes
+    id: willing_to_contribute
+    attributes:
+      label: "Are you willing to contribute?"
+      description: |
+        Please read our [CONTRIBUTING guide](../../CONTRIBUTING.md).
+      options:
+        - label: "I am willing and able to submit a pull request to implement this feature."
