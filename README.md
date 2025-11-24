@@ -2,6 +2,10 @@
 
 dbtective is a Rust-powered 'detective' for `dbt metadata` best practices. As your dbt project grows, keeping metadata consistent and high-quality can become a real challenge.
 
+> [!WARNING]  
+> dbtective is currently in very early stages.
+> Issues and commits are welcome, but don't rely on us yet!
+
 **dbtective** makes it easy to spot and fix common issues, examples:
 
 - **Missing descriptions:** Does every model and seed have a description?
