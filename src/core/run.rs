@@ -1,6 +1,7 @@
 use crate::cli::commands::RunOptions;
 use crate::cli::table::show_results;
 use crate::core::checks::manifest::node_checks::apply_node_checks;
+use crate::core::checks::manifest::source_checks::apply_source_checks;
 use crate::core::config::Config;
 use crate::core::manifest::Manifest;
 use log::debug;
@@ -33,6 +34,7 @@ pub fn run(options: &RunOptions, verbose: bool) {
         }
     };
 
-    let node_checks_results = apply_node_checks(&manifest, &config, verbose);
-    show_results(&node_checks_results, verbose, Some(start.elapsed()));
+    let mut findings = apply_node_checks(&manifest, &config, verbose);
+    findings.extend(apply_source_checks(&manifest, &config, verbose));
+    show_results(&findings, verbose, Some(start.elapsed()));
 }

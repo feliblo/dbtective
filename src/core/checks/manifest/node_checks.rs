@@ -35,7 +35,7 @@ pub fn apply_node_checks<'a>(
                     }
                     let check_row_result = match &rule.rule {
                         SpecificRuleConfig::HasDescription {} => {
-                            has_description::check_node_description(node, rule)
+                            has_description::has_description(node, rule)
                         }
                     };
 

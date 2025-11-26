@@ -2,6 +2,8 @@
 // use super::column::Column;
 // use super::{Meta, Tags};
 use serde::Deserialize;
+
+use crate::core::traits::Descriptable;
 // use std::collections::HashMap;
 
 #[derive(Debug, Deserialize)]
@@ -40,4 +42,24 @@ pub struct Source {
     // pub unrendered_database: Option<String>,
     // pub unrendered_schema: Option<String>,
     // pub doc_blocks: Option<Vec<String>>,
+}
+
+impl Source {
+    pub const fn get_name(&self) -> &String {
+        &self.name
+    }
+}
+
+impl Descriptable for Source {
+    fn description(&self) -> Option<&String> {
+        self.description.as_ref()
+    }
+
+    fn get_object_type(&self) -> &'static str {
+        "Source"
+    }
+
+    fn get_object_string(&self) -> &str {
+        self.get_name()
+    }
 }

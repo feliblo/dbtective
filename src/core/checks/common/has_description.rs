@@ -2,11 +2,12 @@ use crate::cli::table::CheckRow;
 use crate::core::config::parse_config::ManifestRule;
 use crate::core::traits::Descriptable;
 
-pub fn check_node_description<T: Descriptable>(
+pub fn has_description<T: Descriptable>(
     descriptable: &T,
     rule: &ManifestRule,
 ) -> Result<CheckRow, ()> {
-    match descriptable.description() {
+    let description = descriptable.description();
+    match description {
         Some(desc) if !desc.trim().is_empty() => Err(()),
         _ => Ok(CheckRow::new(
             &rule.severity,
@@ -19,7 +20,6 @@ pub fn check_node_description<T: Descriptable>(
         )),
     }
 }
-
 #[cfg(test)]
 mod tests {
     use crate::core::config::{
@@ -63,9 +63,9 @@ mod tests {
             name: "TestNode2".to_string(),
             description: None,
         };
-        assert_eq!(check_node_description(&node_with_desc, &rule), Err(()));
+        assert_eq!(has_description(&node_with_desc, &rule), Err(()));
         assert_eq!(
-            check_node_description(&node_without_desc, &rule),
+            has_description(&node_without_desc, &rule),
             Ok(CheckRow::new(
                 &Severity::Warning,
                 "TestNode",
@@ -91,9 +91,9 @@ mod tests {
             name: "TestNode4".to_string(),
             description: None,
         };
-        assert_eq!(check_node_description(&node_with_desc, &rule), Err(()));
+        assert_eq!(has_description(&node_with_desc, &rule), Err(()));
         assert_eq!(
-            check_node_description(&node_without_desc, &rule),
+            has_description(&node_without_desc, &rule),
             Ok(CheckRow::new(
                 &Severity::Error,
                 "TestNode",
@@ -116,9 +116,6 @@ mod tests {
             name: "TestNode5".to_string(),
             description: Some("This is a valid description".to_string()),
         };
-        assert_eq!(
-            check_node_description(&node_with_empty_desc, &rule),
-            Err(())
-        );
+        assert_eq!(has_description(&node_with_empty_desc, &rule), Err(()));
     }
 }
