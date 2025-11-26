@@ -18,13 +18,21 @@ use crate::core::manifest::Manifest;
 pub fn apply_node_checks<'a>(
     manifest: &'a Manifest,
     config: &'a Config,
+    verbose: bool,
 ) -> Vec<(CheckRow, &'a Severity)> {
     let mut results = Vec::new();
 
     for node in manifest.nodes.values() {
         for rule in &config.manifest_tests {
             if let Some(applies) = &rule.applies_to {
-                if applies.contains(&node.ruletarget()) {
+                if applies.node_objects.contains(&node.ruletarget()) {
+                    if verbose {
+                        println!(
+                            "Applying rule '{}' to node '{}'",
+                            rule.get_name(),
+                            node.get_name()
+                        );
+                    }
                     let check_row_result = match &rule.rule {
                         SpecificRuleConfig::HasDescription {} => {
                             has_description::check_node_description(node, rule)

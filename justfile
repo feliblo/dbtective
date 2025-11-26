@@ -6,10 +6,8 @@ run:
 run-verbose:
     cargo run run --verbose --entry-point ./dbt_project --verbose
 
-build-run-verbose:
-    cargo build --release
-    just run-verbose
-
+run-release:
+    cargo run --release run --verbose --entry-point ./dbt_project
 
 fmt:
     cargo fmt

@@ -22,7 +22,9 @@ pub fn check_node_description<T: Descriptable>(
 
 #[cfg(test)]
 mod tests {
-    use crate::core::config::{parse_config::SpecificRuleConfig, severity::Severity};
+    use crate::core::config::{
+        applies_to::AppliesTo, parse_config::SpecificRuleConfig, severity::Severity,
+    };
 
     use super::*;
 
@@ -50,7 +52,7 @@ mod tests {
             name: Some("has_description".to_string()),
             severity: Severity::Warning,
             description: None,
-            applies_to: None,
+            applies_to: Some(AppliesTo::empty()),
             rule: SpecificRuleConfig::HasDescription {},
         };
         let node_with_desc = TestNode {

@@ -1,3 +1,4 @@
+use owo_colors::OwoColorize;
 use tabled::Tabled;
 use tabled::{
     settings::{location::Locator, Color, Style},
@@ -35,12 +36,28 @@ impl CheckRow {
     }
 }
 
-pub fn print_node_checks_table(results: &[(CheckRow, &Severity)]) {
-    let mut table = Table::new(results.iter().map(|(row, _)| row));
-    table
-        .with(Style::modern())
-        .modify(Locator::content("FAIL"), Color::BG_RED)
-        .modify(Locator::content("WARN"), Color::BG_YELLOW);
-
-    println!("{table}");
+pub fn show_results(
+    results: &[(CheckRow, &Severity)],
+    verbose: bool,
+    duration: Option<std::time::Duration>,
+) {
+    if results.iter().any(|&(_, severity)| severity.as_code() != 0) {
+        println!("{}", "🕵️  dbtective detected some issues:".red());
+        let mut table = Table::new(results.iter().map(|(row, _)| row));
+        table
+            .with(Style::modern())
+            .modify(Locator::content("FAIL"), Color::BG_RED)
+            .modify(Locator::content("WARN"), Color::BG_YELLOW);
+        println!("{table}");
+    } else {
+        println!(
+            "{} 🕵️",
+            "All checks passed successfully! - dbtective off the case.".green(),
+        );
+    }
+    if verbose {
+        if let Some(duration) = duration {
+            println!("Analysis completed in: {duration:?}");
+        }
+    }
 }

@@ -8,10 +8,20 @@ use log::{debug, info};
 use owo_colors::OwoColorize;
 
 fn main() {
+    if cfg!(debug_assertions) {
+        std::env::set_var("RUST_LOG", "debug");
+    } else {
+        std::env::set_var("RUST_LOG", "info");
+    }
+    env_logger::init();
     let args = Cli::parse();
 
     match &args.command {
         Some(Commands::Run { options }) => {
+            if args.verbose {
+                debug!("Running dbtective analysis...");
+                debug!("{options:#?}");
+            }
             run(options, args.verbose);
         }
         Some(Commands::Init { options }) => {

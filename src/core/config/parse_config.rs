@@ -5,8 +5,8 @@ use std::path::Path;
 use strum::IntoEnumIterator;
 use strum_macros::{AsRefStr, EnumIter, EnumString};
 
-use crate::core::config::rule_targets::{
-    applies_to_options_for_rule, default_applies_to_for_rule, RuleTarget,
+use crate::core::config::applies_to::{
+    applies_to_options_for_rule, default_applies_to_for_rule, AppliesTo,
 };
 use crate::core::config::severity::Severity;
 
@@ -42,9 +42,25 @@ pub struct ManifestRule {
     #[serde(default = "default_severity")]
     pub severity: Severity,
     pub description: Option<String>,
-    pub applies_to: Option<Vec<RuleTarget>>,
+    pub applies_to: Option<AppliesTo>,
     #[serde(flatten)]
     pub rule: SpecificRuleConfig,
+}
+
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
+pub enum NodeRuleTarget {
+    Models,
+    Seeds,
+    Sources,
+    Macros,
+}
+
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
+pub enum RootManifestRuleTarget {
+    Tests,
+    Snapshots,
 }
 
 impl ManifestRule {
@@ -56,20 +72,39 @@ impl ManifestRule {
 
     pub fn validate_applies_to(&self) -> Result<()> {
         let options = applies_to_options_for_rule(&self.rule);
-        if let Some(applies_to) = &self.applies_to {
-            for target in applies_to {
-                if !options.contains(target) {
-                    let valid_options: Vec<&str> =
-                        options.iter().map(RuleTarget::as_snake_case).collect();
-                    return Err(anyhow::anyhow!(
-                        "Invalid applies_to target '{}' for rule type '{}'. Valid options are: {:?}",
-                        target.as_snake_case(),
-                        self.rule.as_str(),
-                        valid_options
-                    ));
+        let mut invalid_targets = Vec::new();
+        let applies_to = self.applies_to.as_ref().unwrap();
+
+        let pairs = [
+            (&applies_to.node_objects, &options.node_objects),
+            (&applies_to.source_objects, &options.source_objects),
+            (&applies_to.test_objects, &options.test_objects),
+            (&applies_to.macro_objects, &options.macro_objects),
+            (&applies_to.exposure_objects, &options.exposure_objects),
+        ];
+
+        for (targets, valid) in pairs {
+            for target in targets {
+                if !valid.contains(target) {
+                    invalid_targets.push(target.as_snake_case());
                 }
             }
         }
+
+        if !invalid_targets.is_empty() {
+            let valid_options: Vec<String> = pairs
+                .iter()
+                .flat_map(|(_, valid)| valid.iter().map(|t| t.as_snake_case().to_string()))
+                .collect();
+
+            return Err(anyhow::anyhow!(
+                "Invalid applies_to targets: {:?} for rule type '{}'. Valid options are: {:?}",
+                invalid_targets,
+                self.rule.as_str(),
+                valid_options
+            ));
+        }
+
         Ok(())
     }
 }
@@ -102,7 +137,7 @@ impl Config {
     pub fn apply_default_applies_to(&mut self) {
         for rule in &mut self.manifest_tests {
             if rule.applies_to.is_none() {
-                rule.applies_to = Some(default_applies_to_for_rule(&rule.rule).to_vec());
+                rule.applies_to = Some(default_applies_to_for_rule(&rule.rule));
             }
         }
     }
