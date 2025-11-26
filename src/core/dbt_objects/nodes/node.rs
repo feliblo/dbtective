@@ -1,7 +1,7 @@
 use super::super::column::Column;
 use super::super::{Meta, Tags};
 use super::{Analysis, HookNode, Model, Seed, Snapshot, SqlOperation, Test};
-use crate::core::config::RuleTarget;
+use crate::core::config::rule_targets::RuleTarget;
 use crate::core::traits::Descriptable;
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -40,6 +40,8 @@ impl Node {
     pub const fn get_name(&self) -> &String {
         &self.get_base().name
     }
+
+    // Match config rule target names to node types
     pub const fn ruletarget(&self) -> RuleTarget {
         match self {
             Self::Model(_) => RuleTarget::Models,

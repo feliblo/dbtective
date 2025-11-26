@@ -1,9 +1,10 @@
-use crate::core::config::Severity;
 use tabled::Tabled;
 use tabled::{
     settings::{location::Locator, Color, Style},
     Table,
 };
+
+use crate::core::config::severity::Severity;
 
 #[derive(Tabled, PartialEq, Eq, Debug)]
 pub struct CheckRow {

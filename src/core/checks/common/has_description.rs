@@ -1,5 +1,5 @@
 use crate::cli::table::CheckRow;
-use crate::core::config::ManifestRule;
+use crate::core::config::parse_config::ManifestRule;
 use crate::core::traits::Descriptable;
 
 pub fn check_node_description<T: Descriptable>(
@@ -21,9 +21,10 @@ pub fn check_node_description<T: Descriptable>(
 
 #[cfg(test)]
 mod tests {
+    use crate::core::config::{parse_config::SpecificRuleConfig, severity::Severity};
+
     use super::*;
-    use crate::core::config::{ManifestRule, Severity, SpecificRuleConfig};
-    use crate::core::traits::Descriptable;
+
     struct TestNode {
         name: String,
         description: Option<String>,
