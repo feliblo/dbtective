@@ -1,7 +1,8 @@
 use crate::cli::table::CheckRow;
 use crate::core::checks::common::has_description;
-use crate::core::config::SpecificRuleConfig::HasDescription;
-use crate::core::config::{Config, Severity};
+use crate::core::config::parse_config::SpecificRuleConfig;
+use crate::core::config::severity::Severity;
+use crate::core::config::Config;
 use crate::core::manifest::Manifest;
 
 /// Applies node checks to the manifest.
@@ -25,7 +26,9 @@ pub fn apply_node_checks<'a>(
             if let Some(applies) = &rule.applies_to {
                 if applies.contains(&node.ruletarget()) {
                     let check_row_result = match &rule.rule {
-                        HasDescription {} => has_description::check_node_description(node, rule),
+                        SpecificRuleConfig::HasDescription {} => {
+                            has_description::check_node_description(node, rule)
+                        }
                     };
 
                     if let Ok(check_row) = check_row_result {
