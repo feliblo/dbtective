@@ -3,7 +3,7 @@ title: 🕵️ About dbtective
 type: about
 ---
 
-dbtective is a Rust-powered linter and "detective" for dbt metadata best practices.  
+dbtective is a Rust-powered linter and "detective" for dbt metadata best practices.
 Our mission: help teams keep their dbt projects organized, documented, and production-ready.
 
 ## What does dbtective do?

@@ -8,8 +8,6 @@ sidebar:
 
 dbtective's node checks apply rules to so-called dbt nodes. You might not be familiar with the term, you have probably worked with nodes!
 
-
-
 In dbt, a **node** is any resource defined in your project that participates in your data pipeline.  [documentation](https://docs.getdbt.com/reference/node-selection/syntax)
 Nodes include:
 
@@ -20,6 +18,5 @@ Nodes include:
 - **snapshots** track slowly changing dimensions over time
 - **exposures** document downstream uses like dashboards or apps
 - **analyses** store ad-hoc queries and reports
-
 
 ## Overview of Node checks

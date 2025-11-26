@@ -4,4 +4,3 @@ next: first-page
 ---
 
 {{% include "docs/checks/_index.md" %}}
-

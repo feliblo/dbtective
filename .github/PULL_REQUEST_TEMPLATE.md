@@ -4,7 +4,7 @@ Please fill out this template to help us review your pull request.
 -->
 
 ## Description
-Closes: 
+Closes:
 
 <!--
 - Clear title describing the change

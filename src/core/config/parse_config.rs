@@ -126,7 +126,7 @@ manifest_tests:
     fn test_validate_manifest_test_type() {
         let invalid_rule = r#"
 manifest_tests:
-   - type: "has_descriptio"
+   - type: "has_description"
     severity: "error"
 "#;
         let temp_file = create_temp_file_from_str(invalid_rule);
