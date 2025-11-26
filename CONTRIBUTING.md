@@ -8,10 +8,11 @@ Thank you for your interest in contributing to dbtective! We're excited to have 
 
 - [Rust](https://rustup.rs/) (latest stable version)
 - [Git](https://git-scm.com/)
+- [prek](https://github.com/j178/prek) Rust-based fast pre-commit runner
 - [just](https://github.com/casey/just) (optional, all relevant commands are shown in the `justfile`).
 - For running documentation locally:
-   - [golang](https://go.dev/doc/install)
-   - [hugo](https://gohugo.io/installation/)
+  - [golang](https://go.dev/doc/install)
+  - [hugo](https://gohugo.io/installation/)
 
 ### Setting up your development environment
 
@@ -44,7 +45,6 @@ Use the commands shown in the `justfile` or install [just](https://github.com/ca
    just run-verbose
    ```
 
-
 ## Development Workflow
 
 ### 1. Create an Issue
@@ -74,6 +74,7 @@ Before starting work, please:
 
 #### Code Style
 
+- Install prek on the repository using `prek install` to enable pre-commit checks.
 - Follow Rust conventions and use `cargo fmt` to format code
 - Run `cargo clippy` to catch common mistakes
 - Write clear, self-documenting code with meaningful variable names
@@ -86,11 +87,9 @@ Before starting work, please:
 - Ensure all tests pass: `cargo test`
 - Add integration tests where appropriate
 
-
 ### 4. Commit Guidelines
 
 Please use [commitizen](https://commitizen-tools.github.io/commitizen/) or use the same style to write informative commit messages using traditional format.
-
 
 ### 5. Pull Request Process
 
@@ -102,14 +101,15 @@ Please use [commitizen](https://commitizen-tools.github.io/commitizen/) or use t
 
 2. **Run the full test suite**:
 
-Use the commands shown in the `justfile` or install [just](https://github.com/casey/just) and run:
+   Use the commands shown in the `justfile` or install [just](https://github.com/casey/just) and run:
+
    ```bash
    just test
    just lint
    just fmt
    ```
 
-3. **Create a Pull Request** 
+3. **Create a Pull Request**
 
 4. **Code Review**
 
@@ -124,7 +124,6 @@ Use the commands shown in the `justfile` or install [just](https://github.com/ca
 just docs
 ```
 
-
 ## Code of Conduct
 
 This project follows the [Rust Code of Conduct](https://www.rust-lang.org/policies/code-of-conduct). Please be respectful and inclusive in all interactions.
@@ -138,6 +137,7 @@ This project follows the [Rust Code of Conduct](https://www.rust-lang.org/polici
 ## Recognition
 
 Contributors will be recognized in:
+
 - Release notes for significant contributions
 
 **Happy detecting!** 🕵️‍♀️🔍

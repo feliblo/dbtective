@@ -4,7 +4,7 @@ use clap::{Args, Parser, Subcommand, ValueEnum};
 pub enum LimitOptions {
     /// Analyze dbt models
     Models,
-    /// Analyze dbt tests  
+    /// Analyze dbt tests
     Tests,
     /// Analyze dbt sources
     Sources,

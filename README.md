@@ -4,7 +4,7 @@ dbtective is a Rust-powered 'detective' for `dbt metadata` best practices. As yo
 
 Explore the [full documentation](https://feliblo.github.io/dbtective/).
 
-> [!WARNING]  
+> [!WARNING]
 > dbtective is currently in very early stages.
 > Issues and commits are welcome, but don't rely on us yet!
 
@@ -18,10 +18,11 @@ Explore the [full documentation](https://feliblo.github.io/dbtective/).
 We detect and enforce these rules in your `pre-commit` and `CI/CD` pipeline, so fast you will barely notice🕵️
 
 ## Quickstart
+
 All possible checks can be found in the [checks documentation](https://feliblo.github.io/dbtective/docs/). Information about configuring `dbtective` is shown at the [config documentation](https://feliblo.github.io/dbtective/docs/config)
 
-
 ### Example
+
 todo!()
 
 ## Contributing
@@ -32,10 +33,10 @@ We welcome contributions! Whether you're fixing bugs, adding features, or improv
 Install [just](https://github.com/casey/just) command line runner & take a look at the commands in the justfile.
 
 To build and run on the example project (`./dbt_project` using config `./dbt_project/dbtective.yml`) use:
+
 ```bash
 just run
 just run-verbose
 ```
 
 For detailed contributing guidelines, development setup, and coding standards, please see [CONTRIBUTING.md](./CONTRIBUTING.md).
-

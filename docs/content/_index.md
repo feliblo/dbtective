@@ -4,9 +4,10 @@ toc: false
 ---
 
 <br>
+
 On the case for your dbt best practices.
 
-dbtective is a Rust-powered linter and "detective" for dbt metadata best practices.  
+dbtective is a Rust-powered linter and "detective" for dbt metadata best practices.
 Keep your dbt project organized, documented, and production-ready.
 
 ## Explore
