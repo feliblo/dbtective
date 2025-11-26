@@ -3,6 +3,7 @@ use serde::Deserialize;
 use std::fs::File;
 use std::path::Path;
 
+use crate::core::config::error_handling::handle_config_error;
 use crate::core::config::rule_targets::{default_applies_to_for_rule, RuleTarget};
 use crate::core::config::severity::Severity;
 
@@ -29,13 +30,22 @@ const fn default_severity() -> Severity {
 #[derive(Debug, Deserialize)]
 #[allow(dead_code)]
 pub struct ManifestRule {
-    pub name: String,
+    pub name: Option<String>,
     #[serde(default = "default_severity")]
     pub severity: Severity,
     pub description: Option<String>,
     pub applies_to: Option<Vec<RuleTarget>>,
     #[serde(flatten)]
     pub rule: SpecificRuleConfig,
+}
+
+impl ManifestRule {
+    pub fn get_name(&self) -> String {
+        match &self.name {
+            Some(name) => name.clone(),
+            None => self.rule.as_str().to_string(),
+        }
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -51,11 +61,15 @@ impl Config {
         let file = File::open(path)
             .context(format!("Unable to open config file at {}", path.display()))?;
 
-        let mut config: Self =
-            serde_yaml::from_reader(file).context("Failed to parse configuration")?;
+        let config: std::result::Result<Self, serde_yaml::Error> = serde_yaml::from_reader(file);
 
-        config.apply_default_applies_to();
-        Ok(config)
+        match config {
+            Ok(mut cfg) => {
+                cfg.apply_default_applies_to();
+                Ok(cfg)
+            }
+            Err(err) => Err(handle_config_error(err)),
+        }
     }
 
     pub fn apply_default_applies_to(&mut self) {
@@ -104,13 +118,13 @@ manifest_tests:
 
         assert_eq!(config.manifest_tests.len(), 1);
         assert_eq!(
-            config.manifest_tests[0].name,
-            "model_seeds_have_description"
+            config.manifest_tests[0].name.as_deref(),
+            Some("model_seeds_have_description")
         );
         assert_eq!(config.manifest_tests[0].severity, Severity::Error);
         assert_eq!(
             config.manifest_tests[0].name,
-            "model_seeds_have_description"
+            Some("model_seeds_have_description".to_string())
         );
     }
 
@@ -118,8 +132,7 @@ manifest_tests:
     fn test_validate_manifest_test_type() {
         let invalid_rule = r#"
 manifest_tests:
-  - name: "has_descriptio"
-    type: "unknown_type"
+   - type: "has_descriptio"
     severity: "error"
 "#;
         let temp_file = create_temp_file_from_str(invalid_rule);

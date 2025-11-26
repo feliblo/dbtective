@@ -11,6 +11,7 @@ pub fn check_node_description<T: Descriptable>(
         _ => Ok(CheckRow::new(
             &rule.severity,
             descriptable.get_object_type(),
+            &rule.get_name(),
             format!(
                 "{} is missing a description.",
                 descriptable.get_object_string()
@@ -42,10 +43,11 @@ mod tests {
             &self.name
         }
     }
+
     #[test]
     fn test_check_warning() {
         let rule = ManifestRule {
-            name: "has_description".to_string(),
+            name: Some("has_description".to_string()),
             severity: Severity::Warning,
             description: None,
             applies_to: None,
@@ -65,6 +67,7 @@ mod tests {
             Ok(CheckRow::new(
                 &Severity::Warning,
                 "TestNode",
+                "has_description",
                 "TestNode2 is missing a description."
             ))
         );
@@ -72,7 +75,7 @@ mod tests {
     #[test]
     fn test_check_error() {
         let rule = ManifestRule {
-            name: "has_description".to_string(),
+            name: Some("has_description".to_string()),
             severity: Severity::Error,
             description: None,
             applies_to: None,
@@ -92,6 +95,7 @@ mod tests {
             Ok(CheckRow::new(
                 &Severity::Error,
                 "TestNode",
+                "has_description",
                 "TestNode4 is missing a description."
             ))
         );
@@ -100,7 +104,7 @@ mod tests {
     #[test]
     fn test_check_nonempty_description() {
         let rule = ManifestRule {
-            name: "has_description".to_string(),
+            name: Some("has_description".to_string()),
             severity: Severity::Warning,
             description: None,
             applies_to: None,
