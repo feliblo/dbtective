@@ -1,32 +1,6 @@
+use crate::cli::table::CheckRow;
 use crate::core::config::ManifestRule;
-use crate::core::config::Severity;
 use crate::core::traits::Descriptable;
-use tabled::Tabled;
-
-#[derive(Tabled, PartialEq, Eq, Debug)]
-pub struct CheckRow {
-    #[tabled(rename = "Severity")]
-    pub severity: String,
-    #[tabled(rename = "Object")]
-    pub object_type: String,
-    #[tabled(rename = "Message")]
-    pub message: String,
-}
-
-impl CheckRow {
-    pub fn new(
-        severity: &Severity,
-        object_type: impl Into<String>,
-        message: impl Into<String>,
-    ) -> Self {
-        let sev_str = severity.as_str().to_string();
-        Self {
-            severity: sev_str,
-            object_type: object_type.into(),
-            message: message.into(),
-        }
-    }
-}
 
 pub fn check_node_description<T: Descriptable>(
     descriptable: &T,
