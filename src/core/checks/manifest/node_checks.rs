@@ -1,5 +1,5 @@
+use crate::cli::table::CheckRow;
 use crate::core::checks::common::has_description;
-use crate::core::checks::common::has_description::CheckRow;
 use crate::core::config::SpecificRuleConfig::HasDescription;
 use crate::core::config::{Config, Severity};
 use crate::core::manifest::Manifest;
