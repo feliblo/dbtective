@@ -5,8 +5,9 @@ use std::path::Path;
 use strum::IntoEnumIterator;
 use strum_macros::{AsRefStr, EnumIter, EnumString};
 
-use crate::core::config::error_handling::handle_config_error;
-use crate::core::config::rule_targets::{default_applies_to_for_rule, RuleTarget};
+use crate::core::config::rule_targets::{
+    applies_to_options_for_rule, default_applies_to_for_rule, RuleTarget,
+};
 use crate::core::config::severity::Severity;
 
 #[allow(dead_code)]
@@ -52,6 +53,25 @@ impl ManifestRule {
             .as_ref()
             .map_or_else(|| self.rule.as_str().to_string(), Clone::clone)
     }
+
+    pub fn validate_applies_to(&self) -> Result<()> {
+        let options = applies_to_options_for_rule(&self.rule);
+        if let Some(applies_to) = &self.applies_to {
+            for target in applies_to {
+                if !options.contains(target) {
+                    let valid_options: Vec<&str> =
+                        options.iter().map(RuleTarget::as_snake_case).collect();
+                    return Err(anyhow::anyhow!(
+                        "Invalid applies_to target '{}' for rule type '{}'. Valid options are: {:?}",
+                        target.as_snake_case(),
+                        self.rule.as_str(),
+                        valid_options
+                    ));
+                }
+            }
+        }
+        Ok(())
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -72,18 +92,26 @@ impl Config {
         match config {
             Ok(mut cfg) => {
                 cfg.apply_default_applies_to();
+                cfg.validate()?;
                 Ok(cfg)
             }
-            Err(err) => Err(handle_config_error(&err)),
+            Err(err) => Err(anyhow::anyhow!("Error parsing config file: {err}")),
         }
     }
 
     pub fn apply_default_applies_to(&mut self) {
         for rule in &mut self.manifest_tests {
             if rule.applies_to.is_none() {
-                rule.applies_to = Some(default_applies_to_for_rule(&rule.rule));
+                rule.applies_to = Some(default_applies_to_for_rule(&rule.rule).to_vec());
             }
         }
+    }
+
+    pub fn validate(&self) -> Result<()> {
+        for rule in &self.manifest_tests {
+            rule.validate_applies_to()?;
+        }
+        Ok(())
     }
 }
 
@@ -132,5 +160,53 @@ manifest_tests:
         let temp_file = create_temp_file_from_str(invalid_rule);
         let result = Config::from_file(temp_file.path());
         result.expect_err("Should fail for unknown rule type");
+    }
+
+    #[test]
+    fn test_valid_applies_to() {
+        let valid_rule = r#"
+manifest_tests:
+  - type: "has_description"
+    severity: "error"
+    applies_to:
+      - "models"
+      - "seeds"
+"#;
+        let temp_file = create_temp_file_from_str(valid_rule);
+        let result = Config::from_file(temp_file.path());
+        assert!(result.is_ok(), "Should pass for valid applies_to targets");
+    }
+
+    #[test]
+    fn test_not_available_applies_to() {
+        let invalid_rule = r#"
+manifest_tests:
+    - type: has_description
+      severity: "error"
+      applies_to: ["hook_nodes"]
+
+"#;
+        let temp_file = create_temp_file_from_str(invalid_rule);
+        let result = Config::from_file(temp_file.path());
+        assert!(
+            result.is_err(),
+            "Should fail for invalid applies_to for specific rule"
+        );
+    }
+
+    #[test]
+    fn completely_invalid_applies_to() {
+        let invalid_rule = r#"
+manifest_tests:
+    - type: has_description
+      severity: "error"
+      applies_to: ["invalid_target"]
+"#;
+        let temp_file = create_temp_file_from_str(invalid_rule);
+        let result = Config::from_file(temp_file.path());
+        assert!(
+            result.is_err(),
+            "Should fail for completely invalid applies_to targets"
+        );
     }
 }
