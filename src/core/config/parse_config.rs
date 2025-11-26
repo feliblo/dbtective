@@ -2,13 +2,16 @@ use anyhow::{Context, Result};
 use serde::Deserialize;
 use std::fs::File;
 use std::path::Path;
+use strum::IntoEnumIterator;
+use strum_macros::{AsRefStr, EnumIter, EnumString};
 
 use crate::core::config::error_handling::handle_config_error;
 use crate::core::config::rule_targets::{default_applies_to_for_rule, RuleTarget};
 use crate::core::config::severity::Severity;
 
 #[allow(dead_code)]
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, EnumIter, AsRefStr, EnumString)]
+#[strum(serialize_all = "snake_case")]
 #[serde(tag = "type")]
 pub enum SpecificRuleConfig {
     #[serde(rename = "has_description")]
@@ -16,10 +19,14 @@ pub enum SpecificRuleConfig {
 }
 
 impl SpecificRuleConfig {
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            Self::HasDescription {} => "has_description",
-        }
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
+    pub fn get_all_variants() -> Vec<Self> {
+        Self::iter().collect()
+    }
+    pub fn get_all_as_str() -> Vec<String> {
+        Self::iter().map(|rule| rule.as_ref().to_string()).collect()
     }
 }
 
@@ -41,10 +48,9 @@ pub struct ManifestRule {
 
 impl ManifestRule {
     pub fn get_name(&self) -> String {
-        match &self.name {
-            Some(name) => name.clone(),
-            None => self.rule.as_str().to_string(),
-        }
+        self.name
+            .as_ref()
+            .map_or_else(|| self.rule.as_str().to_string(), Clone::clone)
     }
 }
 
@@ -68,7 +74,7 @@ impl Config {
                 cfg.apply_default_applies_to();
                 Ok(cfg)
             }
-            Err(err) => Err(handle_config_error(err)),
+            Err(err) => Err(handle_config_error(&err)),
         }
     }
 
@@ -78,15 +84,6 @@ impl Config {
                 rule.applies_to = Some(default_applies_to_for_rule(&rule.rule));
             }
         }
-    }
-
-    pub fn validate(&self) -> Result<()> {
-        for rule in &self.manifest_tests {
-            match &rule.rule {
-                SpecificRuleConfig::HasDescription {} => { /* always valid */ }
-            }
-        }
-        Ok(())
     }
 }
 
@@ -113,9 +110,6 @@ manifest_tests:
 "#;
         let temp_file = create_temp_file_from_str(simple_rule);
         let config = Config::from_file(temp_file.path()).expect("Failed to parse config");
-
-        println!("{config:#?}");
-
         assert_eq!(config.manifest_tests.len(), 1);
         assert_eq!(
             config.manifest_tests[0].name.as_deref(),
@@ -137,9 +131,6 @@ manifest_tests:
 "#;
         let temp_file = create_temp_file_from_str(invalid_rule);
         let result = Config::from_file(temp_file.path());
-        print!("{:?}", result);
-        // result
-        //     .validate()
-        //     .expect_err("'invalid_rule_type' should fail validation");
+        result.expect_err("Should fail for unknown rule type");
     }
 }

@@ -11,7 +11,7 @@ pub fn check_node_description<T: Descriptable>(
         _ => Ok(CheckRow::new(
             &rule.severity,
             descriptable.get_object_type(),
-            &rule.get_name(),
+            rule.get_name(),
             format!(
                 "{} is missing a description.",
                 descriptable.get_object_string()

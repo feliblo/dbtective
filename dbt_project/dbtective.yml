@@ -1,5 +1,5 @@
 manifest_tests:
   - name: "models_must_have_description"
-    type: "has_description"
+    type: "has_descriptio"
     severity: "error"
     description: "All nodes must have a description."
