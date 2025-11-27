@@ -18,20 +18,13 @@ This check ensures that every dbt node (model, seed, source, macro, etc.) has a 
 ---
 
 **Configuration**
-<details>
-<summary>Common Check Config</summary>
-
-- **name**: Human-readable name of the check
-- **severity**: `"error"` (fail) or `"warning"` (warn only).
-  - *(optional, defaults to `"error"` if not specified)*
-- **description**: Human-readable explanation of the rule.
-- **applies_to**: *(optional)* List of node types to check.
-  - If omitted, defaults to `["models", "seeds", "sources", "macros"]`.
-  - Options: `TODO`
-
-</details>
 
 - **type**: Must be `has_description`.
+- **applies_to**: *(optional)* List of node types to check.
+  - Default: `["models", "sources", "seeds", "exposures", "snapshots"]`
+  - Options: `models`, `sources`, `seeds`, `exposures`, `snapshots`
+
+{{< include-markdown "content/snippets/common_check_config.md" >}}
 
 **Example Config**
 
@@ -41,7 +34,10 @@ manifest_tests:
     type: "has_description"
     description: "All nodes must have a description."
     # severity: "warning"  (optional)
-    # applies_to: ['models', 'seeds'] (optional)
+    # applies_to: ['models', 'seeds'] (optional
+    # includes: ["path/to/include/*"]
+    # excludes: ["path/to/exclude/*"]
+
 ```
 
 <details closed>
