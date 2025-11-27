@@ -2,10 +2,14 @@ use crate::core::checks::common::has_description;
 use crate::{
     cli::table::CheckRow,
     core::{
-        config::{parse_config::SpecificRuleConfig, severity::Severity, Config},
+        config::{
+            includes_excludes::should_run_test, parse_config::SpecificRuleConfig,
+            severity::Severity, Config,
+        },
         manifest::Manifest,
     },
 };
+use owo_colors::OwoColorize;
 
 pub fn apply_source_checks<'a>(
     manifest: &'a Manifest,
@@ -13,16 +17,30 @@ pub fn apply_source_checks<'a>(
     verbose: bool,
 ) -> Vec<(CheckRow, &'a Severity)> {
     let mut results = Vec::new();
-
     for source in manifest.sources.values() {
         for rule in &config.manifest_tests {
-            if verbose {
-                println!(
-                    "Applying rule '{}' to source '{}'",
-                    rule.get_name(),
-                    source.get_name()
-                );
+            if !should_run_test(&source, rule.includes.as_ref(), rule.excludes.as_ref()) {
+                if verbose {
+                    println!(
+                        "{}",
+                        format!(
+                            "Skipping rule '{}' for source '{}' due to include/exclude filters",
+                            rule.get_name(),
+                            source.get_name()
+                        )
+                        .blue()
+                    );
+                }
+                continue;
             }
+
+            // applies_to: object based filtering
+            if let Some(applies) = &rule.applies_to {
+                if !applies.source_objects.contains(&source.ruletarget()) {
+                    continue;
+                }
+            }
+
             let check_row_result = match &rule.rule {
                 SpecificRuleConfig::HasDescription {} => {
                     has_description::has_description(source, rule)

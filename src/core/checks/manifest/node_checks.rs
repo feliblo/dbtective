@@ -1,10 +1,11 @@
 use crate::cli::table::CheckRow;
 use crate::core::checks::common::has_description;
 use crate::core::config::parse_config::SpecificRuleConfig;
-use crate::core::config::severity::Severity;
-use crate::core::config::Config;
-use crate::core::manifest::Manifest;
 
+use crate::core::config::severity::Severity;
+use crate::core::config::{includes_excludes::should_run_test, Config};
+use crate::core::manifest::Manifest;
+use owo_colors::OwoColorize;
 /// Applies node checks to the manifest.
 ///
 /// # Errors
@@ -25,6 +26,22 @@ pub fn apply_node_checks<'a>(
     for node in manifest.nodes.values() {
         for rule in &config.manifest_tests {
             if let Some(applies) = &rule.applies_to {
+                if !should_run_test(&node, rule.includes.as_ref(), rule.excludes.as_ref()) {
+                    if verbose {
+                        println!(
+                            "{}",
+                            format!(
+                                "Skipping rule '{}' for node '{}' due to include/exclude filters",
+                                rule.get_name(),
+                                node.get_name()
+                            )
+                            .blue()
+                        );
+                    }
+                    continue;
+                }
+
+                // applies_to: object based filtering
                 if applies.node_objects.contains(&node.ruletarget()) {
                     if verbose {
                         println!(

@@ -95,7 +95,7 @@ impl fmt::Display for RuleTarget {
 pub fn default_applies_to_for_rule(rule_type: &SpecificRuleConfig) -> AppliesTo {
     match rule_type {
         SpecificRuleConfig::HasDescription {} => AppliesTo {
-            node_objects: vec![RuleTarget::Models, RuleTarget::Seeds, RuleTarget::Macros],
+            node_objects: vec![RuleTarget::Models, RuleTarget::Seeds, RuleTarget::Snapshots],
             source_objects: vec![RuleTarget::Sources],
             test_objects: vec![],
             macro_objects: vec![],
@@ -107,7 +107,7 @@ pub fn default_applies_to_for_rule(rule_type: &SpecificRuleConfig) -> AppliesTo 
 pub fn applies_to_options_for_rule(rule_type: &SpecificRuleConfig) -> AppliesTo {
     match rule_type {
         SpecificRuleConfig::HasDescription {} => AppliesTo {
-            node_objects: vec![RuleTarget::Models, RuleTarget::Seeds, RuleTarget::Macros],
+            node_objects: vec![RuleTarget::Models, RuleTarget::Seeds, RuleTarget::Snapshots],
             source_objects: vec![RuleTarget::Sources],
             test_objects: vec![],
             macro_objects: vec![],

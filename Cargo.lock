@@ -140,6 +140,7 @@ dependencies = [
  "env_logger",
  "log",
  "owo-colors",
+ "regex",
  "serde",
  "serde_json",
  "serde_yaml",

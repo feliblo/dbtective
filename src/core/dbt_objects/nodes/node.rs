@@ -2,6 +2,7 @@ use super::super::column::Column;
 use super::super::{Meta, Tags};
 use super::{Analysis, HookNode, Model, Seed, Snapshot, SqlOperation, Test};
 use crate::core::config::applies_to::RuleTarget;
+use crate::core::config::includes_excludes::IncludeExcludable;
 use crate::core::traits::Descriptable;
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -54,6 +55,19 @@ impl Node {
         }
     }
 }
+
+impl IncludeExcludable for Node {
+    fn get_path(&self) -> &String {
+        &self.get_base().original_file_path
+    }
+}
+
+impl IncludeExcludable for &Node {
+    fn get_path(&self) -> &String {
+        (*self).get_path()
+    }
+}
+
 impl Descriptable for Node {
     fn description(&self) -> Option<&String> {
         self.get_base().description.as_ref()

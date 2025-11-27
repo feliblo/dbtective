@@ -72,6 +72,27 @@ impl ManifestRule {
             .map_or_else(|| self.rule.as_str().to_string(), Clone::clone)
     }
 
+    pub fn normalize_includes_excludes(&mut self) {
+        self.includes = self.includes.take().map(|v| {
+            v.into_iter()
+                .map(|s| {
+                    s.trim_start_matches("./")
+                        .trim_start_matches('/')
+                        .to_string()
+                })
+                .collect()
+        });
+        self.excludes = self.excludes.take().map(|v| {
+            v.into_iter()
+                .map(|s| {
+                    s.trim_start_matches("./")
+                        .trim_start_matches('/')
+                        .to_string()
+                })
+                .collect()
+        });
+    }
+
     pub fn validate_applies_to(&self) -> Result<()> {
         let options = applies_to_options_for_rule(&self.rule);
         let mut invalid_targets = Vec::new();
@@ -128,7 +149,7 @@ impl Config {
 
         match config {
             Ok(mut cfg) => {
-                cfg.apply_default_applies_to();
+                cfg.clean_config();
                 cfg.validate()?;
                 Ok(cfg)
             }
@@ -136,11 +157,14 @@ impl Config {
         }
     }
 
-    pub fn apply_default_applies_to(&mut self) {
+    // 1. Apply default applies_to if not specified
+    // 2. Normalize the includes/excludes paths
+    pub fn clean_config(&mut self) {
         for rule in &mut self.manifest_tests {
             if rule.applies_to.is_none() {
                 rule.applies_to = Some(default_applies_to_for_rule(&rule.rule));
             }
+            rule.normalize_includes_excludes();
         }
     }
 

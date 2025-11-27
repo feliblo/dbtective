@@ -2,5 +2,9 @@ manifest_tests:
   - name: "models_must_have_description"
     type: "has_description"
     severity: "error"
-    applies_to: ["models", "sources"]
+    applies_to: ["models"]
+    description: "All nodes must have a description."
+
+  - name: "defaults_must_have_description"
+    type: "has_description"
     description: "All nodes must have a description."

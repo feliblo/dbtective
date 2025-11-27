@@ -3,7 +3,10 @@
 // use super::{Meta, Tags};
 use serde::Deserialize;
 
-use crate::core::traits::Descriptable;
+use crate::core::{
+    config::{applies_to::RuleTarget, includes_excludes::IncludeExcludable},
+    traits::Descriptable,
+};
 // use std::collections::HashMap;
 
 #[derive(Debug, Deserialize)]
@@ -17,7 +20,7 @@ pub struct Source {
     // pub resource_type: String,
     // pub package_name: String,
     // pub path: String,
-    // pub original_file_path: String,
+    pub original_file_path: String,
     // pub unique_id: String,
     // pub fqn: Vec<String>,
     // pub source_name: String,
@@ -48,9 +51,40 @@ impl Source {
     pub const fn get_name(&self) -> &String {
         &self.name
     }
+
+    #[allow(clippy::unused_self)]
+    pub const fn ruletarget(&self) -> RuleTarget {
+        RuleTarget::Sources
+    }
+}
+
+impl IncludeExcludable for Source {
+    fn get_path(&self) -> &String {
+        &self.original_file_path
+    }
+}
+
+impl IncludeExcludable for &Source {
+    fn get_path(&self) -> &String {
+        (*self).get_path()
+    }
 }
 
 impl Descriptable for Source {
+    fn description(&self) -> Option<&String> {
+        self.description.as_ref()
+    }
+
+    fn get_object_type(&self) -> &'static str {
+        "Source"
+    }
+
+    fn get_object_string(&self) -> &str {
+        self.get_name()
+    }
+}
+
+impl Descriptable for &Source {
     fn description(&self) -> Option<&String> {
         self.description.as_ref()
     }
