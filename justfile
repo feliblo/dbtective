@@ -9,6 +9,9 @@ run-verbose:
 run-release:
     cargo run --release run --verbose --entry-point ./dbt_project
 
+install:
+    cargo install --path .
+
 fmt:
     cargo fmt
 
