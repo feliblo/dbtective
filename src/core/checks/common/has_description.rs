@@ -53,6 +53,8 @@ mod tests {
             severity: Severity::Warning,
             description: None,
             applies_to: Some(AppliesTo::empty()),
+            includes: None,
+            excludes: None,
             rule: SpecificRuleConfig::HasDescription {},
         };
         let node_with_desc = TestNode {
@@ -81,6 +83,8 @@ mod tests {
             severity: Severity::Error,
             description: None,
             applies_to: None,
+            includes: None,
+            excludes: None,
             rule: SpecificRuleConfig::HasDescription {},
         };
         let node_with_desc = TestNode {
@@ -109,6 +113,8 @@ mod tests {
             name: Some("has_description".to_string()),
             severity: Severity::Warning,
             description: None,
+            includes: None,
+            excludes: None,
             applies_to: None,
             rule: SpecificRuleConfig::HasDescription {},
         };

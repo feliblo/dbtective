@@ -43,6 +43,8 @@ pub struct ManifestRule {
     pub severity: Severity,
     pub description: Option<String>,
     pub applies_to: Option<AppliesTo>,
+    pub includes: Option<Vec<String>>,
+    pub excludes: Option<Vec<String>>,
     #[serde(flatten)]
     pub rule: SpecificRuleConfig,
 }
