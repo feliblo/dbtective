@@ -1,7 +1,7 @@
 ---
 title: Description
 type: docs
-prev: docs/node_checks
+prev: docs/checks
 sidebar:
   open: true
 ---
