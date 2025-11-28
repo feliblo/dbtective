@@ -4,7 +4,7 @@ run:
     cargo run run --verbose --entry-point ./dbt_project
 
 run-verbose:
-    cargo run run --verbose --entry-point ./dbt_project --verbose
+    cargo run run --verbose --entry-point ./dbt_project
 
 run-release:
     cargo run --release run --verbose --entry-point ./dbt_project
