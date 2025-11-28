@@ -37,5 +37,10 @@ pub fn run(options: &RunOptions, verbose: bool) -> i32 {
     let mut findings = apply_node_checks(&manifest, &config, verbose);
     findings.extend(apply_source_checks(&manifest, &config, verbose));
 
-    show_results(&findings, verbose, Some(start.elapsed()))
+    show_results(
+        &findings,
+        verbose,
+        options.entry_point.as_ref(),
+        Some(start.elapsed()),
+    )
 }

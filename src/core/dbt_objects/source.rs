@@ -4,9 +4,8 @@
 use serde::Deserialize;
 
 use crate::core::{
-    checks::common::name_convention::NameAble,
+    checks::common::{has_description::Descriptable, name_convention::NameAble},
     config::{applies_to::RuleTarget, includes_excludes::IncludeExcludable},
-    traits::Descriptable,
 };
 // use std::collections::HashMap;
 
@@ -19,7 +18,7 @@ pub struct Source {
     pub name: String,
     pub description: Option<String>,
     // pub resource_type: String,
-    // pub package_name: String,
+    pub package_name: String,
     // pub path: String,
     pub original_file_path: String,
     // pub unique_id: String,
@@ -58,20 +57,28 @@ impl Source {
         RuleTarget::Sources
     }
 
+    pub const fn get_package_name(&self) -> &String {
+        &self.package_name
+    }
+
     pub const fn get_object_type() -> &'static str {
         "Source"
     }
-}
 
-impl IncludeExcludable for Source {
-    fn get_path(&self) -> &String {
+    pub const fn get_relative_path(&self) -> &String {
         &self.original_file_path
     }
 }
 
+impl IncludeExcludable for Source {
+    fn get_relative_path(&self) -> &String {
+        self.get_relative_path()
+    }
+}
+
 impl IncludeExcludable for &Source {
-    fn get_path(&self) -> &String {
-        (*self).get_path()
+    fn get_relative_path(&self) -> &String {
+        (*self).get_relative_path()
     }
 }
 
@@ -100,5 +107,9 @@ impl NameAble for Source {
 
     fn get_object_string(&self) -> &str {
         self.get_name()
+    }
+
+    fn get_relative_path(&self) -> Option<&String> {
+        Some(self.get_relative_path())
     }
 }

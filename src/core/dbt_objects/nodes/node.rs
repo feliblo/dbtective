@@ -1,10 +1,10 @@
 use super::super::column::Column;
 use super::super::{Meta, Tags};
 use super::{Analysis, HookNode, Model, Seed, Snapshot, SqlOperation, Test};
+use crate::core::checks::common::has_description::Descriptable;
 use crate::core::checks::common::name_convention::NameAble;
 use crate::core::config::applies_to::RuleTarget;
 use crate::core::config::includes_excludes::IncludeExcludable;
-use crate::core::traits::Descriptable;
 use serde::Deserialize;
 use std::collections::HashMap;
 
@@ -85,6 +85,10 @@ impl Node {
     pub const fn get_object_type(&self) -> &str {
         self.as_str()
     }
+
+    pub const fn get_relative_path(&self) -> &String {
+        &self.get_base().original_file_path
+    }
 }
 
 impl NameAble for Node {
@@ -99,17 +103,21 @@ impl NameAble for Node {
     fn get_object_string(&self) -> &str {
         self.get_object_string()
     }
+
+    fn get_relative_path(&self) -> Option<&String> {
+        Some(self.get_relative_path())
+    }
 }
 
 impl IncludeExcludable for Node {
-    fn get_path(&self) -> &String {
+    fn get_relative_path(&self) -> &String {
         &self.get_base().original_file_path
     }
 }
 
 impl IncludeExcludable for &Node {
-    fn get_path(&self) -> &String {
-        (*self).get_path()
+    fn get_relative_path(&self) -> &String {
+        (*self).get_relative_path()
     }
 }
 
@@ -125,6 +133,10 @@ impl Descriptable for Node {
     fn get_object_string(&self) -> &str {
         self.get_object_string()
     }
+
+    fn get_relative_path(&self) -> Option<&String> {
+        Some(self.get_relative_path())
+    }
 }
 
 impl Descriptable for &Node {
@@ -138,6 +150,10 @@ impl Descriptable for &Node {
 
     fn get_object_string(&self) -> &str {
         (*self).get_object_string()
+    }
+
+    fn get_relative_path(&self) -> Option<&String> {
+        Some((*self).get_relative_path())
     }
 }
 

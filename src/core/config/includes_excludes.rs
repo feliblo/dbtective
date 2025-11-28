@@ -1,7 +1,7 @@
 use regex::Regex;
 
 pub trait IncludeExcludable {
-    fn get_path(&self) -> &String;
+    fn get_relative_path(&self) -> &String;
 }
 
 pub fn should_run_test<T: IncludeExcludable>(
@@ -9,7 +9,7 @@ pub fn should_run_test<T: IncludeExcludable>(
     includes: Option<&Vec<String>>,
     excludes: Option<&Vec<String>>,
 ) -> bool {
-    let path = object.get_path();
+    let path = object.get_relative_path();
     // 1. Exact exclude -> always exclude
     if let Some(ex) = excludes {
         if ex.iter().any(|p| !p.contains('*') && p == path) {
@@ -59,7 +59,7 @@ mod tests {
         path: String,
     }
     impl IncludeExcludable for TestObject {
-        fn get_path(&self) -> &String {
+        fn get_relative_path(&self) -> &String {
             &self.path
         }
     }

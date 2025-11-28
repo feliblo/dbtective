@@ -2,17 +2,20 @@ pub trait NameAble {
     fn name(&self) -> &str;
     fn get_object_type(&self) -> &str;
     fn get_object_string(&self) -> &str;
+    fn get_relative_path(&self) -> Option<&String> {
+        None
+    }
 }
 
 use regex::Regex;
 
-use crate::{cli::table::CheckRow, core::config::parse_config::ManifestRule};
+use crate::{cli::table::RuleResult, core::config::parse_config::ManifestRule};
 
 pub fn check_name_convention<T: NameAble>(
     item: &T,
     rule: &ManifestRule,
     pattern: &str,
-) -> Result<CheckRow, ()> {
+) -> Result<RuleResult, ()> {
     // Match the string or assume it is a regex pattern
     let (regex, convention) = match pattern {
         "snake_case" | "snakecase" => (r"^[a-z][a-z0-9_]*$", "snake_case"),
@@ -28,7 +31,7 @@ pub fn check_name_convention<T: NameAble>(
     if re.is_match(item.name()) {
         Err(())
     } else {
-        Ok(CheckRow::new(
+        Ok(RuleResult::new(
             &rule.severity,
             NameAble::get_object_type(item),
             rule.rule.as_str(),
@@ -37,6 +40,7 @@ pub fn check_name_convention<T: NameAble>(
                 NameAble::get_object_string(item),
                 convention
             ),
+            item.get_relative_path().cloned(),
         ))
     }
 }
@@ -87,11 +91,12 @@ mod tests {
         };
         assert_eq!(
             check_name_convention(&item_invalid, &rule, "snake_case"),
-            Ok(CheckRow::new(
+            Ok(RuleResult::new(
                 &rule.severity,
                 NameAble::get_object_type(&item_invalid),
                 rule.rule.as_str(),
                 "TestItem does not follow the snake_case naming convention.".to_string(),
+                item_invalid.get_relative_path().cloned(),
             ))
         );
     }
@@ -118,11 +123,12 @@ mod tests {
         };
         assert_eq!(
             check_name_convention(&item_invalid, &rule, "PascalCase"),
-            Ok(CheckRow::new(
+            Ok(RuleResult::new(
                 &rule.severity,
                 NameAble::get_object_type(&item_invalid),
                 rule.rule.as_str(),
                 "test_item does not follow the PascalCase naming convention.".to_string(),
+                item_invalid.get_relative_path().cloned(),
             ))
         );
     }
@@ -149,11 +155,12 @@ mod tests {
         };
         assert_eq!(
             check_name_convention(&item_invalid, &rule, "kebab-case"),
-            Ok(CheckRow::new(
+            Ok(RuleResult::new(
                 &rule.severity,
                 NameAble::get_object_type(&item_invalid),
                 rule.rule.as_str(),
                 "TestItem does not follow the kebab-case naming convention.".to_string(),
+                item_invalid.get_relative_path().cloned(),
             ))
         );
     }
@@ -180,11 +187,12 @@ mod tests {
         };
         assert_eq!(
             check_name_convention(&item_invalid, &rule, "camelCase"),
-            Ok(CheckRow::new(
+            Ok(RuleResult::new(
                 &rule.severity,
                 NameAble::get_object_type(&item_invalid),
                 rule.rule.as_str(),
                 "Test_Item does not follow the camelCase naming convention.".to_string(),
+                item_invalid.get_relative_path().cloned(),
             ))
         );
     }
@@ -214,11 +222,12 @@ mod tests {
         };
         assert_eq!(
             check_name_convention(&item_invalid, &rule, r"^[A-Z]{3}-[0-9]{4}$"),
-            Ok(CheckRow::new(
+            Ok(RuleResult::new(
                 &rule.severity,
                 NameAble::get_object_type(&item_invalid),
                 rule.rule.as_str(),
                 "AB-123 does not follow the ^[A-Z]{3}-[0-9]{4}$ naming convention.".to_string(),
+                item_invalid.get_relative_path().cloned(),
             ))
         );
     }

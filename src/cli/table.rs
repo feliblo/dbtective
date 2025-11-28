@@ -6,9 +6,10 @@ use tabled::{
 };
 
 use crate::core::config::severity::Severity;
+use std::path::Path;
 
-#[derive(Tabled, PartialEq, Eq, Debug)]
-pub struct CheckRow {
+#[derive(Tabled, PartialEq, Eq, Debug, Clone)]
+pub struct RuleResult {
     #[tabled(rename = "Severity")]
     pub severity: String,
     #[tabled(rename = "Object")]
@@ -17,14 +18,17 @@ pub struct CheckRow {
     pub rule_name: String,
     #[tabled(rename = "Finding")]
     pub message: String,
+    #[tabled(skip)]
+    pub relative_path: Option<String>,
 }
 
-impl CheckRow {
+impl RuleResult {
     pub fn new(
         severity: &Severity,
         object_type: impl Into<String>,
         rule_name: impl Into<String>,
         message: impl Into<String>,
+        relative_path: Option<String>,
     ) -> Self {
         let sev_str = severity.as_str().to_string();
         Self {
@@ -32,13 +36,15 @@ impl CheckRow {
             object_type: object_type.into(),
             rule_name: rule_name.into(),
             message: message.into(),
+            relative_path,
         }
     }
 }
 
 pub fn show_results(
-    results: &[(CheckRow, &Severity)],
+    results: &[(RuleResult, &Severity)],
     verbose: bool,
+    entry_point: &str,
     duration: Option<std::time::Duration>,
 ) -> i32 {
     let mut exit_code = 0;
@@ -49,7 +55,32 @@ pub fn show_results(
         );
     } else {
         println!("\n {}", "🕵️  dbtective detected some issues:".red());
-        let mut table = Table::new(results.iter().map(|(row, _)| row));
+        let clickable_rows: Vec<RuleResult> = results
+            .iter()
+            .map(|(row, _)| {
+                let mut new_row = row.clone();
+                if let Some(ref path) = row.relative_path {
+                    let entry = entry_point.trim_end_matches('/');
+                    let path = path.trim_start_matches('/');
+                    let full_path = format!("{entry}/{path}");
+
+                    let abs_path = Path::new(&full_path)
+                        .canonicalize()
+                        .map(|p| p.to_string_lossy().into_owned())
+                        .unwrap_or(full_path);
+                    let file_url = format!("file://{abs_path}");
+
+                    new_row.message = format!(
+                        "\x1b]8;;{url}\x1b\\{text}\x1b]8;;\x1b\\",
+                        url = file_url,
+                        text = row.message
+                    );
+                }
+                new_row
+            })
+            .collect();
+
+        let mut table = Table::new(&clickable_rows);
         table
             .with(Style::modern())
             .modify(Locator::content("FAIL"), Color::BG_RED)

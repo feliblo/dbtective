@@ -1,4 +1,4 @@
-use crate::cli::table::CheckRow;
+use crate::cli::table::RuleResult;
 use crate::core::checks::common::{has_description, name_convention};
 use crate::core::config::parse_config::SpecificRuleConfig;
 
@@ -21,7 +21,7 @@ pub fn apply_node_checks<'a>(
     manifest: &'a Manifest,
     config: &'a Config,
     verbose: bool,
-) -> Vec<(CheckRow, &'a Severity)> {
+) -> Vec<(RuleResult, &'a Severity)> {
     let mut results = Vec::new();
 
     for node in manifest.nodes.values() {

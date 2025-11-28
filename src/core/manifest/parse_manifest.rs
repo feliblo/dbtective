@@ -74,6 +74,9 @@ impl Manifest {
             manifest
                 .nodes
                 .retain(|_, node| node.get_package_name() == project_name.as_str());
+            manifest
+                .sources
+                .retain(|_, source| source.get_package_name() == project_name.as_str());
         }
 
         Ok(manifest)

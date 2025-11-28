@@ -1,15 +1,23 @@
-use crate::cli::table::CheckRow;
+use crate::cli::table::RuleResult;
 use crate::core::config::parse_config::ManifestRule;
-use crate::core::traits::Descriptable;
+
+pub trait Descriptable {
+    fn description(&self) -> Option<&String>;
+    fn get_object_type(&self) -> &str;
+    fn get_object_string(&self) -> &str;
+    fn get_relative_path(&self) -> Option<&String> {
+        None
+    }
+}
 
 pub fn has_description<T: Descriptable>(
     descriptable: &T,
     rule: &ManifestRule,
-) -> Result<CheckRow, ()> {
+) -> Result<RuleResult, ()> {
     let description = descriptable.description();
     match description {
         Some(desc) if !desc.trim().is_empty() => Err(()),
-        _ => Ok(CheckRow::new(
+        _ => Ok(RuleResult::new(
             &rule.severity,
             Descriptable::get_object_type(descriptable),
             rule.get_name(),
@@ -17,6 +25,7 @@ pub fn has_description<T: Descriptable>(
                 "{} is missing a description.",
                 Descriptable::get_object_string(descriptable)
             ),
+            descriptable.get_relative_path().cloned(),
         )),
     }
 }
@@ -68,11 +77,12 @@ mod tests {
         assert_eq!(has_description(&node_with_desc, &rule), Err(()));
         assert_eq!(
             has_description(&node_without_desc, &rule),
-            Ok(CheckRow::new(
+            Ok(RuleResult::new(
                 &Severity::Warning,
                 "TestNode",
                 "has_description",
-                "TestNode2 is missing a description."
+                "TestNode2 is missing a description.",
+                node_without_desc.get_relative_path().cloned(),
             ))
         );
     }
@@ -98,11 +108,12 @@ mod tests {
         assert_eq!(has_description(&node_with_desc, &rule), Err(()));
         assert_eq!(
             has_description(&node_without_desc, &rule),
-            Ok(CheckRow::new(
+            Ok(RuleResult::new(
                 &Severity::Error,
                 "TestNode",
                 "has_description",
-                "TestNode4 is missing a description."
+                "TestNode4 is missing a description.",
+                node_without_desc.get_relative_path().cloned(),
             ))
         );
     }

@@ -1,6 +1,6 @@
 use crate::core::checks::common::{has_description, name_convention};
 use crate::{
-    cli::table::CheckRow,
+    cli::table::RuleResult,
     core::{
         config::{
             includes_excludes::should_run_test, parse_config::SpecificRuleConfig,
@@ -15,7 +15,7 @@ pub fn apply_source_checks<'a>(
     manifest: &'a Manifest,
     config: &'a Config,
     verbose: bool,
-) -> Vec<(CheckRow, &'a Severity)> {
+) -> Vec<(RuleResult, &'a Severity)> {
     let mut results = Vec::new();
     for source in manifest.sources.values() {
         for rule in &config.manifest_tests {
