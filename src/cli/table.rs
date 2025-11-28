@@ -40,24 +40,29 @@ pub fn show_results(
     results: &[(CheckRow, &Severity)],
     verbose: bool,
     duration: Option<std::time::Duration>,
-) {
-    if results.iter().any(|&(_, severity)| severity.as_code() != 0) {
-        println!("{}", "🕵️  dbtective detected some issues:".red());
+) -> i32 {
+    let mut exit_code = 0;
+    if results.is_empty() {
+        println!(
+            "{} 🕵️",
+            "All checks passed successfully! - dbtective off the case.".green(),
+        );
+    } else {
+        println!("\n {}", "🕵️  dbtective detected some issues:".red());
         let mut table = Table::new(results.iter().map(|(row, _)| row));
         table
             .with(Style::modern())
             .modify(Locator::content("FAIL"), Color::BG_RED)
             .modify(Locator::content("WARN"), Color::BG_YELLOW);
         println!("{table}");
-    } else {
-        println!(
-            "{} 🕵️",
-            "All checks passed successfully! - dbtective off the case.".green(),
-        );
+        exit_code = 1;
     }
+
     if verbose {
         if let Some(duration) = duration {
             println!("Analysis completed in: {duration:?}");
         }
     }
+
+    exit_code
 }

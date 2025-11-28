@@ -22,7 +22,7 @@ fn main() {
                 debug!("Running dbtective analysis...");
                 debug!("{options:#?}");
             }
-            run(options, args.verbose);
+            std::process::exit(run(options, args.verbose));
         }
         Some(Commands::Init { options }) => {
             if args.verbose {
