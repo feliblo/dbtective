@@ -4,6 +4,7 @@ manifest_tests:
     severity: "error"
     description: "All nodes must have a description."
 
-  - name: "defaults_must_have_description"
-    type: "has_description"
-    description: "All nodes must have a description."
+  - name: "naming_convention"
+    type: "name_convention"
+    description: "All nodes must follow the naming convention."
+    pattern: "pascal_case"

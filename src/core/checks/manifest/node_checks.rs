@@ -1,11 +1,12 @@
 use crate::cli::table::CheckRow;
-use crate::core::checks::common::has_description;
+use crate::core::checks::common::{has_description, name_convention};
 use crate::core::config::parse_config::SpecificRuleConfig;
 
 use crate::core::config::severity::Severity;
 use crate::core::config::{includes_excludes::should_run_test, Config};
 use crate::core::manifest::Manifest;
 use owo_colors::OwoColorize;
+
 /// Applies node checks to the manifest.
 ///
 /// # Errors
@@ -53,6 +54,9 @@ pub fn apply_node_checks<'a>(
                     let check_row_result = match &rule.rule {
                         SpecificRuleConfig::HasDescription {} => {
                             has_description::has_description(node, rule)
+                        }
+                        SpecificRuleConfig::NameConvention { pattern } => {
+                            name_convention::check_name_convention(node, rule, pattern)
                         }
                     };
 

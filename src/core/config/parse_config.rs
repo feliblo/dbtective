@@ -17,6 +17,8 @@ use crate::core::config::severity::Severity;
 pub enum SpecificRuleConfig {
     #[serde(rename = "has_description")]
     HasDescription {},
+    #[serde(rename = "name_convention")]
+    NameConvention { pattern: String },
 }
 
 impl SpecificRuleConfig {

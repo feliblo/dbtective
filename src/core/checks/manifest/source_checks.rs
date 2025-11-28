@@ -1,4 +1,4 @@
-use crate::core::checks::common::has_description;
+use crate::core::checks::common::{has_description, name_convention};
 use crate::{
     cli::table::CheckRow,
     core::{
@@ -44,6 +44,9 @@ pub fn apply_source_checks<'a>(
             let check_row_result = match &rule.rule {
                 SpecificRuleConfig::HasDescription {} => {
                     has_description::has_description(source, rule)
+                }
+                SpecificRuleConfig::NameConvention { pattern } => {
+                    name_convention::check_name_convention(source, rule, pattern)
                 }
             };
 
