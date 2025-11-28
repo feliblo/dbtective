@@ -101,6 +101,18 @@ pub fn default_applies_to_for_rule(rule_type: &SpecificRuleConfig) -> AppliesTo 
             macro_objects: vec![],
             exposure_objects: vec![RuleTarget::Exposures],
         },
+        SpecificRuleConfig::NameConvention { .. } => AppliesTo {
+            node_objects: vec![
+                RuleTarget::Models,
+                RuleTarget::Seeds,
+                RuleTarget::Snapshots,
+                RuleTarget::Analyses,
+            ],
+            source_objects: vec![RuleTarget::Sources],
+            test_objects: vec![RuleTarget::Tests],
+            macro_objects: vec![RuleTarget::Macros],
+            exposure_objects: vec![RuleTarget::Exposures],
+        },
     }
 }
 
@@ -111,6 +123,18 @@ pub fn applies_to_options_for_rule(rule_type: &SpecificRuleConfig) -> AppliesTo 
             source_objects: vec![RuleTarget::Sources],
             test_objects: vec![],
             macro_objects: vec![],
+            exposure_objects: vec![RuleTarget::Exposures],
+        },
+        SpecificRuleConfig::NameConvention { .. } => AppliesTo {
+            node_objects: vec![
+                RuleTarget::Models,
+                RuleTarget::Seeds,
+                RuleTarget::Snapshots,
+                RuleTarget::Analyses,
+            ],
+            source_objects: vec![RuleTarget::Sources],
+            test_objects: vec![RuleTarget::Tests],
+            macro_objects: vec![RuleTarget::Macros],
             exposure_objects: vec![RuleTarget::Exposures],
         },
     }

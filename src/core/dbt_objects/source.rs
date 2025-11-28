@@ -4,6 +4,7 @@
 use serde::Deserialize;
 
 use crate::core::{
+    checks::common::name_convention::NameAble,
     config::{applies_to::RuleTarget, includes_excludes::IncludeExcludable},
     traits::Descriptable,
 };
@@ -56,6 +57,10 @@ impl Source {
     pub const fn ruletarget(&self) -> RuleTarget {
         RuleTarget::Sources
     }
+
+    pub const fn get_object_type() -> &'static str {
+        "Source"
+    }
 }
 
 impl IncludeExcludable for Source {
@@ -76,7 +81,7 @@ impl Descriptable for Source {
     }
 
     fn get_object_type(&self) -> &'static str {
-        "Source"
+        Self::get_object_type()
     }
 
     fn get_object_string(&self) -> &str {
@@ -84,13 +89,13 @@ impl Descriptable for Source {
     }
 }
 
-impl Descriptable for &Source {
-    fn description(&self) -> Option<&String> {
-        self.description.as_ref()
+impl NameAble for Source {
+    fn name(&self) -> &str {
+        self.get_name()
     }
 
-    fn get_object_type(&self) -> &'static str {
-        "Source"
+    fn get_object_type(&self) -> &str {
+        Self::get_object_type()
     }
 
     fn get_object_string(&self) -> &str {

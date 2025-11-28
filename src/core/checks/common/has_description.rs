@@ -11,11 +11,11 @@ pub fn has_description<T: Descriptable>(
         Some(desc) if !desc.trim().is_empty() => Err(()),
         _ => Ok(CheckRow::new(
             &rule.severity,
-            descriptable.get_object_type(),
+            Descriptable::get_object_type(descriptable),
             rule.get_name(),
             format!(
                 "{} is missing a description.",
-                descriptable.get_object_string()
+                Descriptable::get_object_string(descriptable)
             ),
         )),
     }

@@ -1,6 +1,7 @@
 use super::super::column::Column;
 use super::super::{Meta, Tags};
 use super::{Analysis, HookNode, Model, Seed, Snapshot, SqlOperation, Test};
+use crate::core::checks::common::name_convention::NameAble;
 use crate::core::config::applies_to::RuleTarget;
 use crate::core::config::includes_excludes::IncludeExcludable;
 use crate::core::traits::Descriptable;
@@ -56,46 +57,6 @@ impl Node {
     }
 }
 
-impl IncludeExcludable for Node {
-    fn get_path(&self) -> &String {
-        &self.get_base().original_file_path
-    }
-}
-
-impl IncludeExcludable for &Node {
-    fn get_path(&self) -> &String {
-        (*self).get_path()
-    }
-}
-
-impl Descriptable for Node {
-    fn description(&self) -> Option<&String> {
-        self.get_base().description.as_ref()
-    }
-
-    fn get_object_type(&self) -> &str {
-        self.as_str()
-    }
-
-    fn get_object_string(&self) -> &str {
-        self.get_name()
-    }
-}
-
-impl Descriptable for &Node {
-    fn description(&self) -> Option<&String> {
-        (*self).description()
-    }
-
-    fn get_object_type(&self) -> &str {
-        (*self).get_object_type()
-    }
-
-    fn get_object_string(&self) -> &str {
-        (*self).get_object_string()
-    }
-}
-
 impl Node {
     pub const fn get_base(&self) -> &NodeBase {
         match self {
@@ -115,6 +76,68 @@ impl Node {
 
     pub const fn get_package_name(&self) -> &String {
         &self.get_base().package_name
+    }
+
+    pub fn get_object_string(&self) -> &str {
+        self.get_name()
+    }
+
+    pub const fn get_object_type(&self) -> &str {
+        self.as_str()
+    }
+}
+
+impl NameAble for Node {
+    fn name(&self) -> &str {
+        self.get_name()
+    }
+
+    fn get_object_type(&self) -> &str {
+        self.get_object_type()
+    }
+
+    fn get_object_string(&self) -> &str {
+        self.get_object_string()
+    }
+}
+
+impl IncludeExcludable for Node {
+    fn get_path(&self) -> &String {
+        &self.get_base().original_file_path
+    }
+}
+
+impl IncludeExcludable for &Node {
+    fn get_path(&self) -> &String {
+        (*self).get_path()
+    }
+}
+
+impl Descriptable for Node {
+    fn description(&self) -> Option<&String> {
+        self.get_base().description.as_ref()
+    }
+
+    fn get_object_type(&self) -> &str {
+        self.get_object_type()
+    }
+
+    fn get_object_string(&self) -> &str {
+        self.get_object_string()
+    }
+}
+
+impl Descriptable for &Node {
+    fn description(&self) -> Option<&String> {
+        (*self).description()
+    }
+
+    fn get_object_type(&self) -> &str {
+        (*self).get_object_type()
+    }
+
+    fn get_object_string(&self) -> &str {
+        (*self).get_object_string()
     }
 }
 
