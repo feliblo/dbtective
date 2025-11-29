@@ -7,11 +7,11 @@ sidebar:
 ---
 
 
-### Check: `naming_convention`
+### Check: `name_convention`
 
 <br>
 <details open>
-<summary>naming_convention details</summary>
+<summary>name_convention details</summary>
 <br>
 This check ensures that a dbt object's name applies to naming conventions given in the arguments.
 
@@ -19,7 +19,7 @@ This check ensures that a dbt object's name applies to naming conventions given 
 
 **Configuration**
 
-- **type**: Must be `naming_convention`.
+- **type**: Must be `name_convention`.
 - **applies_to**: *(optional)* List of node types to check.
   - Default: `["models", "sources", "seeds", "exposures", "snapshots", "analyses", "macros", "tests"]`
   - Options: `models`, `sources`, `seeds`, `exposures`, `snapshots`, `analyses`, `macros`, `tests`
@@ -38,13 +38,13 @@ This check ensures that a dbt object's name applies to naming conventions given 
 ```yaml
 manifest_tests:
   - name: "all_objects_snake_case"
-    type: "naming_convention"
+    type: "name_convention"
     description: "All dbt dbt objects must be snake_case."
     pattern: "snake_case"
     # severity: "warning"  (optional)
-    # applies_to: ['models', 'seeds'] (optional
-    # includes: ["path/to/include/*"]
-    # excludes: ["path/to/exclude/*"]
+    # applies_to: ['models', 'seeds'] (optional)
+    # includes: ["path/to/include/*"] (optional)
+    # excludes: ["path/to/exclude/*"] (optional)
 
 ```
 

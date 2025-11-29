@@ -34,5 +34,5 @@ changelog:
     auto-changelog --hide-credit
 
 release VERSION:
-    git tag "$VERSION"
-    git push origin "$VERSION"
+    git tag {{VERSION}}
+    git push origin "{{VERSION}}"
