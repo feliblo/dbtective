@@ -20,8 +20,12 @@ impl AllowedManifestVersions {
     }
 }
 
+// Check if the manifest version is supported
+/// Returns Ok(true) if supported, Err otherwise
+/// # Errors
+/// Returns an error if the manifest version is not supported
 pub fn check_manifest_version(dbt_schema_version: &str) -> Result<bool> {
-    match AllowedManifestVersions::from_str(dbt_schema_version)  {
+    match AllowedManifestVersions::from_str(dbt_schema_version) {
         Some(_) => Ok(true),
         None => anyhow::bail!(
             "Unsupported manifest schema version: {dbt_schema_version}, expected version 12. Please regenerate the manifest using 'dbt run' with dbt version 1.10.0 or higher see: \x1b]8;;https://docs.getdbt.com/reference/artifacts/manifest-json\x1b\\dbt manifest documentation\x1b]8;;\x1b\\."
@@ -52,6 +56,14 @@ pub struct Manifest {
 }
 
 impl Manifest {
+    /// Reads a manifest from a file and parses it into a `Manifest`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The file does not exist or cannot be opened.
+    /// - The file contents cannot be read as UTF-8.
+    /// - The manifest format is invalid.
     pub fn from_file<P: AsRef<Path>>(manifest_path: P) -> Result<Self> {
         let manifest_path = manifest_path.as_ref();
 

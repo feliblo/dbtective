@@ -9,6 +9,7 @@ use owo_colors::OwoColorize;
 use std::process::exit;
 use std::time::Instant;
 
+#[must_use]
 pub fn run(options: &RunOptions, verbose: bool) -> i32 {
     let start = Instant::now();
     let manifest_path =
@@ -34,8 +35,21 @@ pub fn run(options: &RunOptions, verbose: bool) -> i32 {
         }
     };
 
-    let mut findings = apply_node_checks(&manifest, &config, verbose);
-    findings.extend(apply_source_checks(&manifest, &config, verbose));
+    let mut findings = match apply_node_checks(&manifest, &config, verbose) {
+        Ok(f) => f,
+        Err(err) => {
+            eprintln!("{}", err.to_string().red());
+            exit(1);
+        }
+    };
+
+    match apply_source_checks(&manifest, &config, verbose) {
+        Ok(source_findings) => findings.extend(source_findings),
+        Err(err) => {
+            eprintln!("{}", err.to_string().red());
+            exit(1);
+        }
+    }
 
     show_results(
         &findings,

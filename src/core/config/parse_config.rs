@@ -95,10 +95,16 @@ impl ManifestRule {
         });
     }
 
+    /// Validate that the `applies_to` targets are valid for the specific rule
+    /// # Errors
+    /// Returns an error if any target in `applies_to` is not valid for the rule type
     pub fn validate_applies_to(&self) -> Result<()> {
         let options = applies_to_options_for_rule(&self.rule);
         let mut invalid_targets = Vec::new();
-        let applies_to = self.applies_to.as_ref().unwrap();
+        let applies_to = self
+            .applies_to
+            .as_ref()
+            .context("applies_to must be set before validation, so this should never happen")?;
 
         let pairs = [
             (&applies_to.node_objects, &options.node_objects),
@@ -141,6 +147,9 @@ pub struct Config {
 }
 
 impl Config {
+    /// Load and parse the configuration from a YAML file
+    /// # Errors
+    /// Returns an error if the file cannot be opened or if the YAML is invalid
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
         let path = path.as_ref();
 
@@ -169,7 +178,12 @@ impl Config {
             rule.normalize_includes_excludes();
         }
     }
-
+    // Validate each manifest rule's applies_to targets
+    //  # Errors
+    // Returns an error if any rule has invalid `applies_to` targets for that specific rule
+    ///
+    /// # Errors
+    /// Returns an error if any rule has invalid `applies_to` targets for that specific rule
     pub fn validate(&self) -> Result<()> {
         for rule in &self.manifest_tests {
             rule.validate_applies_to()?;
