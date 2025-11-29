@@ -1,0 +1,22 @@
+[workspace]
+members = ["cargo:."]
+
+[dist]
+cargo-dist-version = "0.30.2"
+unix-archive = ".tar.gz"
+ci = "github"
+pr-run-mode = "plan"
+github-release = "announce"
+publish-prereleases = false
+installers = ["shell", "powershell"]
+targets = [
+    "aarch64-apple-darwin",
+    "aarch64-unknown-linux-gnu",
+    "x86_64-apple-darwin",
+    "x86_64-unknown-linux-gnu",
+    "x86_64-pc-windows-msvc",
+]
+post-announce-jobs = ["./pages"]
+github-custom-job-permissions = { pages = { contents = "read", pages = "write", id-token = "write" } }
+install-updater = false
+install-path = "CARGO_HOME"

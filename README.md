@@ -17,6 +17,30 @@ Explore the [full documentation](https://feliblo.github.io/dbtective/).
 
 We detect and enforce these rules in your `pre-commit` and `CI/CD` pipeline, so fast you will barely notice🕵️
 
+## Installation
+
+### Shell installer (macOS/Linux)
+
+```bash
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/feliblo/dbtective/releases/latest/download/dbtective-installer.sh | sh
+```
+
+### PowerShell installer (Windows)
+
+```powershell
+irm https://github.com/feliblo/dbtective/releases/latest/download/dbtective-installer.ps1 | iex
+```
+
+### Cargo
+
+```bash
+cargo install dbtective
+```
+
+### Download binaries
+
+Pre-built binaries for Linux, macOS, and Windows are available on the [releases page](https://github.com/feliblo/dbtective/releases).
+
 ## Quickstart
 
 All possible checks can be found in the [checks documentation](https://feliblo.github.io/dbtective/docs/). Information about configuring `dbtective` is shown at the [config documentation](https://feliblo.github.io/dbtective/docs/config)
