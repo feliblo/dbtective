@@ -222,6 +222,20 @@ mod tests {
     }
 
     #[test]
+    fn include_excludes_all_others() {
+        let obj = TestObject {
+            path: "dbt_project/models/my_model.sql".to_string(),
+        };
+        let includes = Some(vec![
+            "dbt_project/some_other_dir/some_other_model.sql".to_string()
+        ]);
+        assert!(
+            !should_run_test(&obj, includes.as_ref(), None),
+            "File should not be included"
+        );
+    }
+
+    #[test]
     fn wildcard_exclude_overrides_wildcard_include() {
         let obj = TestObject {
             path: "dbt_project/models/my_model.sql".to_string(),

@@ -9,6 +9,10 @@ keywords = ["dbt", "linter", "data", "metadata", "analytics"]
 categories = ["command-line-utilities", "development-tools"]
 authors = ["feliblo"]
 
+[[bin]]
+name = "dbtective"
+path = "src/main.rs"
+
 [lints.clippy]
 all = { level = "deny", priority = -1 }
 pedantic = { level = "deny", priority = -1 }
@@ -17,6 +21,7 @@ cargo = { level = "deny", priority = -1 }
 multiple_crate_versions = "allow"
 struct_field_names = "allow"
 module_name_repetitions = "allow"
+must_use_candidate = "allow"
 
 [lints.rust]
 unused_imports = "deny"

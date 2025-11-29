@@ -11,11 +11,15 @@ use crate::{
 };
 use owo_colors::OwoColorize;
 
+/// Applies source checks to the manifest.
+///
+/// # Errors
+/// Returns an error if a rule has invalid configuration (e.g., invalid regex pattern).
 pub fn apply_source_checks<'a>(
     manifest: &'a Manifest,
     config: &'a Config,
     verbose: bool,
-) -> Vec<(RuleResult, &'a Severity)> {
+) -> anyhow::Result<Vec<(RuleResult, &'a Severity)>> {
     let mut results = Vec::new();
     for source in manifest.sources.values() {
         for rule in &config.manifest_tests {
@@ -46,15 +50,15 @@ pub fn apply_source_checks<'a>(
                     has_description::has_description(source, rule)
                 }
                 SpecificRuleConfig::NameConvention { pattern } => {
-                    name_convention::check_name_convention(source, rule, pattern)
+                    name_convention::check_name_convention(source, rule, pattern)?
                 }
             };
 
-            if let Ok(check_row) = check_row_result {
+            if let Some(check_row) = check_row_result {
                 results.push((check_row, &rule.severity));
             }
         }
     }
 
-    results
+    Ok(results)
 }

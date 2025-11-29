@@ -10,18 +10,12 @@ use owo_colors::OwoColorize;
 /// Applies node checks to the manifest.
 ///
 /// # Errors
-/// This function may return an error if rule `applies_to` section is missing or if rule application fails.
-/// However this would never happen as default `applies_to` are set when parsing the config.
-/// And config checks are done prior to this function being called.
-///
-/// # Panics
-/// This function will panic if `applies_to` is `None` for any rule.
-#[must_use]
+/// Returns an error if a rule has invalid configuration (e.g., invalid regex pattern).
 pub fn apply_node_checks<'a>(
     manifest: &'a Manifest,
     config: &'a Config,
     verbose: bool,
-) -> Vec<(RuleResult, &'a Severity)> {
+) -> anyhow::Result<Vec<(RuleResult, &'a Severity)>> {
     let mut results = Vec::new();
 
     for node in manifest.nodes.values() {
@@ -56,11 +50,11 @@ pub fn apply_node_checks<'a>(
                             has_description::has_description(node, rule)
                         }
                         SpecificRuleConfig::NameConvention { pattern } => {
-                            name_convention::check_name_convention(node, rule, pattern)
+                            name_convention::check_name_convention(node, rule, pattern)?
                         }
                     };
 
-                    if let Ok(check_row) = check_row_result {
+                    if let Some(check_row) = check_row_result {
                         results.push((check_row, &rule.severity));
                     }
                 }
@@ -68,5 +62,5 @@ pub fn apply_node_checks<'a>(
         }
     }
 
-    results
+    Ok(results)
 }

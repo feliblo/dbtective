@@ -13,11 +13,10 @@ pub trait Descriptable {
 pub fn has_description<T: Descriptable>(
     descriptable: &T,
     rule: &ManifestRule,
-) -> Result<RuleResult, ()> {
-    let description = descriptable.description();
-    match description {
-        Some(desc) if !desc.trim().is_empty() => Err(()),
-        _ => Ok(RuleResult::new(
+) -> Option<RuleResult> {
+    match descriptable.description() {
+        Some(desc) if !desc.trim().is_empty() => None,
+        _ => Some(RuleResult::new(
             &rule.severity,
             Descriptable::get_object_type(descriptable),
             rule.get_name(),
@@ -29,6 +28,7 @@ pub fn has_description<T: Descriptable>(
         )),
     }
 }
+
 #[cfg(test)]
 mod tests {
     use crate::core::config::{
@@ -74,10 +74,10 @@ mod tests {
             name: "TestNode2".to_string(),
             description: None,
         };
-        assert_eq!(has_description(&node_with_desc, &rule), Err(()));
+        assert_eq!(has_description(&node_with_desc, &rule), None);
         assert_eq!(
             has_description(&node_without_desc, &rule),
-            Ok(RuleResult::new(
+            Some(RuleResult::new(
                 &Severity::Warning,
                 "TestNode",
                 "has_description",
@@ -105,10 +105,10 @@ mod tests {
             name: "TestNode4".to_string(),
             description: None,
         };
-        assert_eq!(has_description(&node_with_desc, &rule), Err(()));
+        assert_eq!(has_description(&node_with_desc, &rule), None);
         assert_eq!(
             has_description(&node_without_desc, &rule),
-            Ok(RuleResult::new(
+            Some(RuleResult::new(
                 &Severity::Error,
                 "TestNode",
                 "has_description",
@@ -133,6 +133,6 @@ mod tests {
             name: "TestNode5".to_string(),
             description: Some("This is a valid description".to_string()),
         };
-        assert_eq!(has_description(&node_with_empty_desc, &rule), Err(()));
+        assert_eq!(has_description(&node_with_empty_desc, &rule), None);
     }
 }
