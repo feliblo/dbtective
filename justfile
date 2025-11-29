@@ -30,6 +30,9 @@ setup-docs:
 docs:
     hugo server --logLevel debug --disableFastRender -p 1313 -s docs
 
+changelog:
+    auto-changelog --hide-credit
+
 release VERSION:
-    git tag {{VERSION}}
-    git push origin {{VERSION}}
+    git tag "$VERSION"
+    git push origin "$VERSION"
