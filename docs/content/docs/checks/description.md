@@ -30,9 +30,9 @@ This check ensures that every dbt node (model, seed, source, macro, etc.) has a 
 
 ```yaml
 manifest_tests:
-  - name: "models_must_have_description"
+  - name: "everything_has_description"
     type: "has_description"
-    description: "All nodes must have a description."
+    description: "Everything must have a description."
     # severity: "warning"  (optional)
     # applies_to: ['models', 'seeds'] (optional
     # includes: ["path/to/include/*"]
