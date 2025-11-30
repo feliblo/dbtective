@@ -30,10 +30,11 @@ setup-docs:
 docs:
     hugo server --logLevel debug --disableFastRender -p 1313 -s docs
 
-changelog:
-    auto-changelog --hide-credit
 
 bump:
     cz bump --increment PATCH
+    auto-changelog --hide-credit
+    git add CHANGELOG.md
+    git commit --amend --no-edit
     git push origin main --tags
     just changelog

@@ -29,5 +29,7 @@ local-artifacts-jobs = ["./build-binaries"]
 # Publish jobs to run in CI
 publish-jobs = ["./publish", "homebrew"]
 post-announce-jobs = ["./pages"]
+# Custom permissions for GitHub Actions jobs
+github-custom-job-permissions = { "pages" = { contents = "read", pages = "write", id-token = "write" } }
 # Whether to install an updater program
 install-updater = false
