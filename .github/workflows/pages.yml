@@ -2,6 +2,10 @@ name: Deploy Hugo site to Pages
 
 on:
   workflow_call:
+    inputs:
+      plan:
+        required: true
+        type: string
 
 permissions:
   contents: read

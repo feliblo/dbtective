@@ -1,0 +1,39 @@
+# Build Python wheels for all platforms
+#
+# Assumed to run as a subworkflow of .github/workflows/release.yml; specifically, as a local-artifacts job
+# within `cargo-dist`.
+name: "Build Binaries"
+
+on:
+  pull_request:
+    paths:
+    - pyproject.toml
+    - .github/workflows/build-binaries.yml
+  workflow_call:
+    inputs:
+      plan:
+        required: true
+        type: string
+
+jobs:
+  build-wheels:
+    name: Build wheels on ${{ matrix.platform || matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-13, macos-14, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Build wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          args: --release --out dist
+          manylinux: auto
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}
+          path: dist
