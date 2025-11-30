@@ -1,4 +1,4 @@
-use crate::core::checks::common::{has_description, name_convention};
+use crate::core::checks::common::{check_name_convention, has_description, has_tags};
 use crate::{
     cli::table::RuleResult,
     core::{
@@ -46,12 +46,14 @@ pub fn apply_source_checks<'a>(
             }
 
             let check_row_result = match &rule.rule {
-                SpecificRuleConfig::HasDescription {} => {
-                    has_description::has_description(source, rule)
-                }
+                SpecificRuleConfig::HasDescription {} => has_description(source, rule),
                 SpecificRuleConfig::NameConvention { pattern } => {
-                    name_convention::check_name_convention(source, rule, pattern)?
+                    check_name_convention(source, rule, pattern)?
                 }
+                SpecificRuleConfig::HasTags {
+                    required_tags,
+                    criteria,
+                } => has_tags(source, rule, required_tags, criteria),
             };
 
             if let Some(check_row) = check_row_result {

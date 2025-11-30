@@ -32,6 +32,8 @@ docs:
 
 
 bump:
+    git checkout main
+    git pull origin main
     cz bump --increment PATCH
     auto-changelog --hide-credit
     git add CHANGELOG.md
