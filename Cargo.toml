@@ -1,10 +1,14 @@
+[workspace]
+members = ["."]
+
 [package]
 name = "dbtective"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2021"
 description = "A Rust-powered linter and detective for dbt metadata best practices"
 license = "MIT"
 repository = "https://github.com/feliblo/dbtective"
+homepage = "https://github.com/feliblo/dbtective"
 keywords = ["dbt", "linter", "data", "metadata", "analytics"]
 categories = ["command-line-utilities", "development-tools"]
 authors = ["feliblo"]
