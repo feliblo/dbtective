@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+#### [v0.1.7](https://github.com/feliblo/dbtective/compare/v0.1.6...v0.1.7)
+
+> 30 November 2025
+
+- bump: version 0.1.5 → 0.1.6 [`c8478cd`](https://github.com/feliblo/dbtective/commit/c8478cd67387a80727ee57554287063fed982a63)
+- bump: version 0.1.6 → 0.1.7 [`794ade5`](https://github.com/feliblo/dbtective/commit/794ade55fd5d6e378a3dc8a592309f2982d47bd8)
+- docs(checks): improve has_description example [`587e7e6`](https://github.com/feliblo/dbtective/commit/587e7e6c7c0684c9ecd904cf1afb4d258c05a19d)
+
 #### [v0.1.6](https://github.com/feliblo/dbtective/compare/v0.1.5...v0.1.6)
 
 > 30 November 2025
