@@ -24,7 +24,10 @@ targets = [
 npm-scope = "@feliblo"
 # Path that installers should place binaries in
 install-path = "CARGO_HOME"
+# Local artifacts jobs to run in CI
+local-artifacts-jobs = ["./build-binaries"]
 # Publish jobs to run in CI
-publish-jobs = ["homebrew"]
+publish-jobs = ["./publish", "homebrew"]
+post-announce-jobs = ["./pages"]
 # Whether to install an updater program
 install-updater = false
