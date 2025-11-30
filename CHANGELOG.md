@@ -2,46 +2,13 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
-## v0.1.1 (2025-11-30)
+#### [v0.1.2](https://github.com/feliblo/dbtective/compare/v0.1.0-alpha...v0.1.2)
 
-### Feat
+> 30 November 2025
 
-- **table**: make table messages clickable
-- **checks**: add naming convention check
-- **cli**: make table clickable to go to files
-- **config**: implement includes/excludes arguments
-- **rules**: add includes/excludes for rule paths
-- **applies_to**: Add apply_source_tests using applies_to
-- **config**: handle valid applies to
-- **config**: intialize config rule hints
-
-### Fix
-
-- **cli**: show warnings in output table
-
-### Refactor
-
-- **release**: use cargo-dist for release pipeline
-- **anyhow**: propagate errors & impove/introduce (integration) testing
-- **AppliesTo**: change appliesto to work on all manifest objects
-- **config**: config module refactor into components
-
-#### [0.2.0](https://github.com/feliblo/dbtective/compare/v0.1.0-alpha...0.2.0)
-
-> 29 November 2025
-Tasks:
-
-- Add test apply to `sources`
-- Add `name_convention` tests
-- General refactors/cleaning
-- Add integration_tests
-
-Pull requests:
-
-- refactor(release): use cargo-dist for release pipeline [`ec2a269`](https://github.com/feliblo/dbtective/commit/ec2a269e3ac4bfd113595f70d2425bace7bf4539)
 - refactor(anyhow): propagate errors & impove/introduce (integration) testing [`ef9289a`](https://github.com/feliblo/dbtective/commit/ef9289a40b500286e887a96d8cda539e012a336d)
 - refactor(AppliesTo): change appliesto to work on all manifest objects [`8aa2e67`](https://github.com/feliblo/dbtective/commit/8aa2e67c4c7231a640aa4d86ca52e953a7a2ab5f)
-- refactor(anyhow): propagate errors & impove/introduce (integration) testing [`653721c`](https://github.com/feliblo/dbtective/commit/653721c5d7afd4c735b4839e39bac1e8dd3c1514)
+- refactor(release): use cargo-dist for release pipeline [`ec2a269`](https://github.com/feliblo/dbtective/commit/ec2a269e3ac4bfd113595f70d2425bace7bf4539)
 
 #### v0.1.0-alpha
 

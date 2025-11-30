@@ -36,3 +36,4 @@ changelog:
 bump:
     cz bump --increment PATCH
     git push origin main --tags
+    just changelog
