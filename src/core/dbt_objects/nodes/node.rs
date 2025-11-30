@@ -2,6 +2,7 @@ use super::super::column::Column;
 use super::super::{Meta, Tags};
 use super::{Analysis, HookNode, Model, Seed, Snapshot, SqlOperation, Test};
 use crate::core::checks::common::has_description::Descriptable;
+use crate::core::checks::common::has_tags::Tagable;
 use crate::core::checks::common::name_convention::NameAble;
 use crate::core::config::applies_to::RuleTarget;
 use crate::core::config::includes_excludes::IncludeExcludable;
@@ -68,10 +69,6 @@ impl Node {
             Self::HookNode(h) => &h.base,
             Self::SqlOperation(s) => &s.base,
         }
-    }
-
-    pub const fn original_file_path(&self) -> &String {
-        &self.get_base().original_file_path
     }
 
     pub const fn get_package_name(&self) -> &String {
@@ -142,6 +139,24 @@ impl Descriptable for Node {
 impl Descriptable for &Node {
     fn description(&self) -> Option<&String> {
         (*self).description()
+    }
+
+    fn get_object_type(&self) -> &str {
+        (*self).get_object_type()
+    }
+
+    fn get_object_string(&self) -> &str {
+        (*self).get_object_string()
+    }
+
+    fn get_relative_path(&self) -> Option<&String> {
+        Some((*self).get_relative_path())
+    }
+}
+
+impl Tagable for Node {
+    fn get_tags(&self) -> Option<&Tags> {
+        self.get_base().tags.as_ref()
     }
 
     fn get_object_type(&self) -> &str {

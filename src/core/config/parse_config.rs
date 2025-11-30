@@ -1,8 +1,8 @@
+use crate::core::config::check_config::HasTagsCriteria;
 use anyhow::{Context, Result};
 use serde::Deserialize;
 use std::fs::File;
 use std::path::Path;
-use strum::IntoEnumIterator;
 use strum_macros::{AsRefStr, EnumIter, EnumString};
 
 use crate::core::config::applies_to::{
@@ -13,23 +13,22 @@ use crate::core::config::severity::Severity;
 #[allow(dead_code)]
 #[derive(Debug, Deserialize, EnumIter, AsRefStr, EnumString)]
 #[strum(serialize_all = "snake_case")]
-#[serde(tag = "type")]
+#[serde(tag = "type", rename_all = "snake_case")]
 pub enum SpecificRuleConfig {
-    #[serde(rename = "has_description")]
     HasDescription {},
-    #[serde(rename = "name_convention")]
-    NameConvention { pattern: String },
+    NameConvention {
+        pattern: String,
+    },
+    HasTags {
+        required_tags: Vec<String>,
+        #[serde(default)]
+        criteria: HasTagsCriteria,
+    },
 }
 
 impl SpecificRuleConfig {
     pub fn as_str(&self) -> &str {
         self.as_ref()
-    }
-    pub fn get_all_variants() -> Vec<Self> {
-        Self::iter().collect()
-    }
-    pub fn get_all_as_str() -> Vec<String> {
-        Self::iter().map(|rule| rule.as_ref().to_string()).collect()
     }
 }
 

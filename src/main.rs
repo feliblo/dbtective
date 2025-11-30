@@ -1,7 +1,6 @@
 mod cli;
 mod core;
 use crate::cli::commands::{Cli, Commands};
-pub use crate::core::checks::manifest::node_checks::apply_node_checks;
 use crate::core::run::run;
 use clap::{CommandFactory, Parser};
 use log::debug;

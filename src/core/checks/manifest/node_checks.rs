@@ -1,5 +1,5 @@
 use crate::cli::table::RuleResult;
-use crate::core::checks::common::{has_description, name_convention};
+use crate::core::checks::common::{check_name_convention, has_description, has_tags};
 use crate::core::config::parse_config::SpecificRuleConfig;
 
 use crate::core::config::severity::Severity;
@@ -17,7 +17,6 @@ pub fn apply_node_checks<'a>(
     verbose: bool,
 ) -> anyhow::Result<Vec<(RuleResult, &'a Severity)>> {
     let mut results = Vec::new();
-
     for node in manifest.nodes.values() {
         for rule in &config.manifest_tests {
             if let Some(applies) = &rule.applies_to {
@@ -46,12 +45,14 @@ pub fn apply_node_checks<'a>(
                         );
                     }
                     let check_row_result = match &rule.rule {
-                        SpecificRuleConfig::HasDescription {} => {
-                            has_description::has_description(node, rule)
-                        }
+                        SpecificRuleConfig::HasDescription {} => has_description(node, rule),
                         SpecificRuleConfig::NameConvention { pattern } => {
-                            name_convention::check_name_convention(node, rule, pattern)?
+                            check_name_convention(node, rule, pattern)?
                         }
+                        SpecificRuleConfig::HasTags {
+                            required_tags,
+                            criteria,
+                        } => has_tags(node, rule, required_tags, criteria),
                     };
 
                     if let Some(check_row) = check_row_result {
