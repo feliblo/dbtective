@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+## v0.1.1 (2025-11-30)
+
+### Feat
+
+- **table**: make table messages clickable
+- **checks**: add naming convention check
+- **cli**: make table clickable to go to files
+- **config**: implement includes/excludes arguments
+- **rules**: add includes/excludes for rule paths
+- **applies_to**: Add apply_source_tests using applies_to
+- **config**: handle valid applies to
+- **config**: intialize config rule hints
+
+### Fix
+
+- **cli**: show warnings in output table
+
+### Refactor
+
+- **release**: use cargo-dist for release pipeline
+- **anyhow**: propagate errors & impove/introduce (integration) testing
+- **AppliesTo**: change appliesto to work on all manifest objects
+- **config**: config module refactor into components
+
 #### [0.2.0](https://github.com/feliblo/dbtective/compare/v0.1.0-alpha...0.2.0)
 
 > 29 November 2025
