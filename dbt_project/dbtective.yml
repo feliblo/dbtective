@@ -1,10 +1,18 @@
 manifest_tests:
-  - name: "models_must_have_description"
-    type: "has_description"
-    severity: "error"
-    description: "All nodes must have a description."
+  # - name: "models_must_have_description"
+  #   type: "has_description"
+  #   severity: "error"
+  #   description: "All nodes must have a description."
 
-  - name: "naming_convention"
-    type: "name_convention"
-    description: "All nodes must follow the naming convention."
-    pattern: "pascal_case"
+  # - name: "naming_convention"
+  #   type: "name_convention"
+  #   description: "All nodes must follow the naming convention."
+  #   pattern: "pascal_case"
+
+  - name: "models_must_have_tags"
+    type: "has_tags"
+    severity: "error"
+    required_tags:
+      - "tag1"
+    applies_to:
+      - "models"
