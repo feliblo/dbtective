@@ -15,3 +15,6 @@ Here you can find an overview of all possible checks. It's also possible to sear
 
 - [Naming Checks](/docs/checks/naming_convention)
   - `name_convention`: Check if objects name follows the given pattern
+
+- [Tag Checks](/docs/checks/tags)
+  - `has_tags`: Check if objects have the required tags.

@@ -1,12 +1,12 @@
 // Sources aren't being treated as nodes in dbt. They have their own structure.
 // use super::column::Column;
 // use super::{Meta, Tags};
-use serde::Deserialize;
-
+use super::tags::Tags;
 use crate::core::{
-    checks::common::{has_description::Descriptable, name_convention::NameAble},
+    checks::common::{has_description::Descriptable, has_tags::Tagable, name_convention::NameAble},
     config::{applies_to::RuleTarget, includes_excludes::IncludeExcludable},
 };
+use serde::Deserialize;
 // use std::collections::HashMap;
 
 #[derive(Debug, Deserialize)]
@@ -36,7 +36,7 @@ pub struct Source {
     // pub columns: Option<HashMap<String, Column>>,
     // pub meta: Option<Meta>,
     // pub source_meta: Option<Meta>,
-    // pub tags: Option<Tags>,
+    pub tags: Option<Tags>,
     // pub config: Option<serde_json::Value>,
     // pub patch_path: Option<String>,
     // pub unrendered_config: Option<serde_json::Value>,
@@ -102,6 +102,24 @@ impl NameAble for Source {
     }
 
     fn get_object_type(&self) -> &str {
+        Self::get_object_type()
+    }
+
+    fn get_object_string(&self) -> &str {
+        self.get_name()
+    }
+
+    fn get_relative_path(&self) -> Option<&String> {
+        Some(self.get_relative_path())
+    }
+}
+
+impl Tagable for Source {
+    fn get_tags(&self) -> Option<&Tags> {
+        self.tags.as_ref()
+    }
+
+    fn get_object_type(&self) -> &'static str {
         Self::get_object_type()
     }
 
