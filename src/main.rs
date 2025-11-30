@@ -4,7 +4,7 @@ use crate::cli::commands::{Cli, Commands};
 pub use crate::core::checks::manifest::node_checks::apply_node_checks;
 use crate::core::run::run;
 use clap::{CommandFactory, Parser};
-use log::{debug, info};
+use log::debug;
 use owo_colors::OwoColorize;
 
 fn main() {
@@ -32,8 +32,7 @@ fn main() {
             }
         }
         None => {
-            info!(
-                "\n {}",
+            println!(
                 r"
                 ██████╗ ██████╗ ████████╗███████╗ ██████╗████████╗██╗██╗   ██╗███████╗
                 ██╔══██╗██╔══██╗╚══██╔══╝██╔════╝██╔════╝╚══██╔══╝██║██║   ██║██╔════╝
@@ -44,7 +43,7 @@ fn main() {
 
                 "
             );
-            info!(
+            println!(
                 "{}",
                 "\t \t 🕵️ \t dbtective - On the case for your dbt best practices! \t 🕵️ \n".red()
             );
