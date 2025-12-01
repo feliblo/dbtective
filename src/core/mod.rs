@@ -1,3 +1,4 @@
+pub mod catalog;
 pub mod checks;
 pub mod config;
 pub mod manifest;

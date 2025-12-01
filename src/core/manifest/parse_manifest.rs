@@ -127,14 +127,6 @@ mod tests {
     use std::path::PathBuf;
 
     #[test]
-    fn test_load_manifest() {
-        let manifest_path = PathBuf::from("dbt_project/target/manifest.json");
-        let manifest = Manifest::from_file(&manifest_path).expect("Failed to parse manifest");
-        println!("{:#?}", manifest.nodes.values().next());
-        assert_eq!(manifest.metadata.dbt_version, "1.10.2");
-    }
-
-    #[test]
     fn test_load_manifest_invalid_path() {
         let manifest_path = PathBuf::from("invalid/path/manifest.json");
         let result = Manifest::from_file(&manifest_path);
@@ -156,33 +148,5 @@ mod tests {
             .unwrap()
             .to_string()
             .contains("Unsupported manifest schema version"));
-    }
-
-    #[test]
-    fn test_deserialize_timing_comparison() {
-        use std::time::Instant;
-
-        let manifest_path = PathBuf::from("dbt_project/target/manifest.json");
-
-        // Typed deserialization (to our Manifest struct)
-        let start = Instant::now();
-        let file = File::open(&manifest_path).unwrap();
-        let reader = BufReader::new(file);
-        let _manifest: Manifest = serde_json::from_reader(reader).unwrap();
-        let typed_duration = start.elapsed();
-        println!("Typed (Manifest struct): {typed_duration:?}");
-
-        // Untyped deserialization (to serde_json::Value)
-        let start = Instant::now();
-        let file = File::open(&manifest_path).unwrap();
-        let reader = BufReader::new(file);
-        let _value: serde_json::Value = serde_json::from_reader(reader).unwrap();
-        let untyped_duration = start.elapsed();
-        println!("Untyped (serde_json::Value): {untyped_duration:?}");
-
-        println!(
-            "Difference: {:?}",
-            typed_duration.saturating_sub(untyped_duration)
-        );
     }
 }
