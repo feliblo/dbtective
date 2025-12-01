@@ -60,19 +60,20 @@ pub struct RunOptions {
     pub pyproject_file: String,
 
     /// Path to config toml file
-    #[arg(long, short, default_value = "dbtective.yml")]
+    #[arg(long, short = 'c', default_value = "dbtective.yml")]
     pub config_file: String,
 
-    #[arg(long, short, default_value = "target/manifest.json")]
+    #[arg(long, short = 'm', default_value = "target/manifest.json")]
     pub manifest_file: String,
 
-    /// Optional output file with test results
-    #[arg(long, short)]
-    pub output_file: Option<String>,
+    #[arg(long, short = 'g', default_value = "target/catalog.json")]
+    pub catalog_file: String,
 
-    /// Only check for certain dbt object types
-    #[arg(long, short)]
-    pub limit: Option<LimitOptions>,
+    #[arg(long, default_value_t = true)]
+    pub only_manifest: bool,
+
+    #[arg(long, default_value_t = false)]
+    pub only_catalog: bool,
 }
 
 #[cfg(test)]
@@ -131,16 +132,15 @@ mod tests {
             entry_point: "./".to_string(),
             pyproject_file: "pyproject.toml".to_string(),
             config_file: "dbtective.toml".to_string(),
-            output_file: Some("output.json".to_string()),
-            limit: Some(LimitOptions::Models),
+            catalog_file: "target/catalog.json".to_string(),
+            only_catalog: false,
+            only_manifest: false,
         };
         let debug_str = format!("{options:?}");
         assert!(debug_str.contains("RunOptions"));
         assert!(debug_str.contains("entry_point"));
         assert!(debug_str.contains("pyproject"));
         assert!(debug_str.contains("config_file"));
-        assert!(debug_str.contains("output_file"));
-        assert!(debug_str.contains("limit"));
     }
 
     #[test]
@@ -151,14 +151,13 @@ mod tests {
             entry_point: "./".to_string(),
             pyproject_file: "pyproject.toml".to_string(),
             config_file: "dbtective.toml".to_string(),
-            output_file: None,
-            limit: None,
+            catalog_file: "target/catalog.json".to_string(),
+            only_catalog: false,
+            only_manifest: false,
         };
 
         assert_eq!(options.entry_point, "./");
         assert_eq!(options.pyproject_file, "pyproject.toml");
-        assert!(options.output_file.is_none());
-        assert!(options.limit.is_none());
     }
 
     #[test]
@@ -168,15 +167,16 @@ mod tests {
             entry_point: "/path/to/project".to_string(),
             pyproject_file: "custom_pyproject.toml".to_string(),
             config_file: "custom_config.toml".to_string(),
-            output_file: Some("results.json".to_string()),
-            limit: Some(LimitOptions::Tests),
+            catalog_file: "custom_catalog.json".to_string(),
+            only_catalog: true,
+            only_manifest: true,
         };
 
         assert_eq!(options.entry_point, "/path/to/project");
         assert_eq!(options.pyproject_file, "custom_pyproject.toml");
         assert_eq!(options.config_file, "custom_config.toml".to_string());
-        assert_eq!(options.output_file, Some("results.json".to_string()));
-        assert_eq!(format!("{:?}", options.limit), "Some(Tests)");
+        assert!(options.only_catalog);
+        assert!(options.only_manifest);
     }
 
     #[test]
@@ -200,8 +200,9 @@ mod tests {
                 entry_point: "./".to_string(),
                 pyproject_file: "pyproject.toml".to_string(),
                 config_file: String::new(),
-                output_file: None,
-                limit: None,
+                catalog_file: "target/catalog.json".to_string(),
+                only_catalog: false,
+                only_manifest: false,
             },
         };
 
@@ -245,9 +246,10 @@ mod tests {
                     manifest_file: "custom_manifest.json".to_string(),
                     entry_point: "./src".to_string(),
                     pyproject_file: "pyproject.toml".to_string(),
+                    catalog_file: "target/catalog.json".to_string(),
                     config_file: "config.toml".to_string(),
-                    output_file: Some("output.json".to_string()),
-                    limit: Some(LimitOptions::Models),
+                    only_catalog: false,
+                    only_manifest: false,
                 },
             }),
         };
@@ -259,8 +261,6 @@ mod tests {
                 assert_eq!(options.entry_point, "./src");
                 assert_eq!(options.pyproject_file, "pyproject.toml");
                 assert_eq!(options.config_file, "config.toml".to_string());
-                assert_eq!(options.output_file, Some("output.json".to_string()));
-                assert!(options.limit.is_some());
             }
             _ => panic!("Expected Run command"),
         }
@@ -280,8 +280,9 @@ mod tests {
                 entry_point: "./".to_string(),
                 pyproject_file: "pyproject.toml".to_string(),
                 config_file: "dbtective.toml".to_string(),
-                output_file: None,
-                limit: None,
+                catalog_file: "target/catalog.json".to_string(),
+                only_catalog: false,
+                only_manifest: false,
             },
         };
         let debug_str = format!("{run_cmd:?}");
