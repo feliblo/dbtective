@@ -21,8 +21,8 @@ This check ensures that every dbt node (model, seed, source, macro, etc.) has a 
 
 - **type**: Must be `has_description`.
 - **applies_to**: *(optional)* List of node types to check.
-  - Default: `["models", "sources", "seeds", "exposures", "snapshots"]`
-  - Options: `models`, `sources`, `seeds`, `exposures`, `snapshots`
+  - Default: `["models", "seeds", "snapshots", "sources", "unit_tests", "macros", "exposures", "semantic_models"]`
+  - Options: `models`, `seeds`, `snapshots`, `sources`, `unit_tests`, `macros`, `exposures`, `semantic_models`
 
 {{< include-markdown "content/snippets/common_check_config.md" >}}
 
