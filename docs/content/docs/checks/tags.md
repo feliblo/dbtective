@@ -21,15 +21,15 @@ This check ensures that every dbt node (model, seed, source, macro, etc.) contai
 
 - **type**: Must be `has_tags`.
 - **applies_to**: *(optional)* List of node types to check.
-  - Default: `["models", "sources", "seeds", "exposures", "snapshots"]`
-  - Options: `models`, `sources`, `seeds`, `exposures`, `snapshots`
+  - Default: `["models", "seeds", "snapshots", "analyses", "sources", "exposures"]`
+  - Options: `models`, `seeds`, `snapshots`, `analyses`, `sources`, `exposures`
 - **tags**: List of tags to check for.
 - **criteria**: Criteria for tag presence.
-    - Options:
-        - `all`: All specified tags must be present.
-        - `any`: At least one of the specified tags must be present.
-        - `one_of`: Exactly one of the specified tags must be present.
-    - Default: `all`
+  - Options:
+    - `all`: All specified tags must be present.
+    - `any`: At least one of the specified tags must be present.
+    - `one_of`: Exactly one of the specified tags must be present.
+  - Default: `all`
 
 {{< include-markdown "content/snippets/common_check_config.md" >}}
 

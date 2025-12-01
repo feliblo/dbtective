@@ -21,8 +21,8 @@ This check ensures that a dbt object's name applies to naming conventions given 
 
 - **type**: Must be `name_convention`.
 - **applies_to**: *(optional)* List of node types to check.
-  - Default: `["models", "sources", "seeds", "exposures", "snapshots", "analyses", "macros", "tests"]`
-  - Options: `models`, `sources`, `seeds`, `exposures`, `snapshots`, `analyses`, `macros`, `tests`
+  - Default: `["models", "seeds", "snapshots", "analyses", "sources", "unit_tests", "macros", "exposures", "semantic_models"]`
+  - Options: `models`, `seeds`, `snapshots`, `analyses`, `sources`, `unit_tests`, `macros`, `exposures`, `semantic_models`
 - **pattern**: The naming convention pattern to enforce. Can be one of the following presets or a custom regex pattern.
   - Presets:
     - `snake_case`: lowercase letters, numbers, and underscores (e.g., `my_model_name`)

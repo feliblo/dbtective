@@ -2,5 +2,9 @@
     "[markdown]": {
         "editor.formatOnSave": true,
         "editor.formatOnPaste": true
+    },
+    "markdownlint.config": {
+        "MD033": false,
+        "MD036": false
     }
 }
