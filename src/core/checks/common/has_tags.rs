@@ -2,7 +2,7 @@ use crate::{
     cli::table::RuleResult,
     core::{
         config::{check_config::HasTagsCriteria, parse_config::ManifestRule},
-        dbt_objects::Tags,
+        manifest::dbt_objects::Tags,
     },
 };
 pub trait Tagable {

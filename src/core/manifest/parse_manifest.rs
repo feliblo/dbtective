@@ -1,4 +1,4 @@
-use super::super::dbt_objects::{Node, Source};
+use super::dbt_objects::{Node, Source};
 use super::{Exposure, Group, Macro, Metric, SavedQuery, SemanticModel, UnitTest};
 use anyhow::{Context, Result};
 use std::collections::HashMap;
