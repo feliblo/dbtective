@@ -1,5 +1,10 @@
 use serde::Deserialize;
 
+use crate::core::{
+    checks::common::{has_description::Descriptable, name_convention::NameAble},
+    config::{applies_to::RuleTarget, includes_excludes::IncludeExcludable},
+};
+
 // #[derive(Debug, Deserialize)]
 // #[allow(dead_code)]
 // pub struct MacroDependsOn {
@@ -19,17 +24,84 @@ use serde::Deserialize;
 #[allow(dead_code)]
 pub struct Macro {
     pub name: String,
-    // pub package_name: String,
+    pub package_name: String,
     // pub path: String,
-    // pub original_file_path: String,
+    pub original_file_path: String,
     // pub unique_id: String,
     // pub macro_sql: String,
     // pub depends_on: MacroDependsOn,
-    // pub description: Option<String>,
+    pub description: Option<String>,
     // pub meta: Option<serde_json::Value>,
     // pub docs: Option<serde_json::Value>,
     // pub patch_path: Option<String>,
     // pub arguments: Option<Vec<MacroArgument>>,
     // pub created_at: Option<f64>,
     // pub supported_languages: Option<Vec<String>>,
+}
+
+impl Macro {
+    pub const fn get_name(&self) -> &String {
+        &self.name
+    }
+
+    #[allow(clippy::unused_self)]
+    pub const fn ruletarget(&self) -> RuleTarget {
+        RuleTarget::Macros
+    }
+
+    pub const fn get_package_name(&self) -> &String {
+        &self.package_name
+    }
+
+    pub const fn get_object_type() -> &'static str {
+        "Macro"
+    }
+
+    pub const fn get_relative_path(&self) -> &String {
+        &self.original_file_path
+    }
+}
+
+impl IncludeExcludable for Macro {
+    fn get_relative_path(&self) -> &String {
+        self.get_relative_path()
+    }
+}
+
+impl IncludeExcludable for &Macro {
+    fn get_relative_path(&self) -> &String {
+        (*self).get_relative_path()
+    }
+}
+
+impl Descriptable for Macro {
+    fn description(&self) -> Option<&String> {
+        self.description.as_ref()
+    }
+
+    fn get_object_type(&self) -> &'static str {
+        Self::get_object_type()
+    }
+
+    fn get_object_string(&self) -> &str {
+        self.get_name()
+    }
+}
+
+impl NameAble for Macro {
+    fn name(&self) -> &str {
+        self.get_name()
+    }
+
+    fn get_object_type(&self) -> &str {
+        Self::get_object_type()
+    }
+
+    fn get_object_string(&self) -> &str {
+        self.get_name()
+    }
+
+    fn get_relative_path(&self) -> Option<&String> {
+        Some(self.get_relative_path())
+    }
 }

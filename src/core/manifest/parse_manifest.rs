@@ -81,7 +81,7 @@ impl Manifest {
 
         check_manifest_version(&manifest.metadata.dbt_schema_version)?;
 
-        // Filter nodes to only those with package_name == project_name
+        // Filter all objects to only include those from the current project
         if let Some(project_name) = manifest.metadata.project_name.as_ref() {
             manifest
                 .nodes
@@ -89,6 +89,19 @@ impl Manifest {
             manifest
                 .sources
                 .retain(|_, source| source.get_package_name() == project_name.as_str());
+            manifest
+                .macros
+                .retain(|_, macro_obj| macro_obj.get_package_name() == project_name.as_str());
+            manifest
+                .exposures
+                .retain(|_, exposure| exposure.get_package_name() == project_name.as_str());
+
+            manifest
+                .semantic_models
+                .retain(|_, sm| sm.get_package_name() == project_name.as_str());
+            manifest
+                .unit_tests
+                .retain(|_, ut| ut.get_package_name() == project_name.as_str());
         }
 
         Ok(manifest)

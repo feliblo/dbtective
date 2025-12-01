@@ -39,9 +39,13 @@ pub fn apply_node_checks<'a>(
                 if applies.node_objects.contains(&node.ruletarget()) {
                     if verbose {
                         println!(
-                            "Applying rule '{}' to node '{}'",
-                            rule.get_name(),
-                            node.get_name()
+                            "{}",
+                            format!(
+                                "Applying rule '{}' to node '{}'",
+                                rule.get_name(),
+                                node.get_name()
+                            )
+                            .blue()
                         );
                     }
                     let check_row_result = match &rule.rule {

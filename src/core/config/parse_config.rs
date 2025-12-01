@@ -111,7 +111,7 @@ impl ManifestRule {
         let pairs = [
             (&applies_to.node_objects, &options.node_objects),
             (&applies_to.source_objects, &options.source_objects),
-            (&applies_to.test_objects, &options.test_objects),
+            (&applies_to.unit_test_objects, &options.unit_test_objects),
             (&applies_to.macro_objects, &options.macro_objects),
             (&applies_to.exposure_objects, &options.exposure_objects),
             (

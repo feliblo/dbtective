@@ -2,7 +2,7 @@ use crate::cli::commands::RunOptions;
 use crate::cli::table::show_results;
 use crate::core::catalog::parse_catalog::Catalog;
 use crate::core::checks::manifest::node_checks::apply_node_checks;
-use crate::core::checks::manifest::source_checks::apply_source_checks;
+use crate::core::checks::manifest::source_checks::apply_manifest_object_checks;
 use crate::core::config::Config;
 use crate::core::manifest::Manifest;
 use log::debug;
@@ -56,7 +56,7 @@ pub fn run(options: &RunOptions, verbose: bool) -> i32 {
             }
         }
 
-        match apply_source_checks(manifest, &config, verbose) {
+        match apply_manifest_object_checks(manifest, &config, verbose) {
             Ok(source_findings) => findings.extend(source_findings),
             Err(err) => {
                 eprintln!("{}", err.to_string().red());
