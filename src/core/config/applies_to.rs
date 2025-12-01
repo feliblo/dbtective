@@ -30,7 +30,7 @@ pub enum RuleTarget {
     Snapshots,
     HookNodes,
     SqlOperations,
-    Tests,
+    UnitTests,
     SavedQueries,
     SemanticModels,
     Macros,
@@ -51,7 +51,7 @@ impl RuleTarget {
             | Self::SqlOperations
             | Self::SavedQueries => RuleTargetType::Node,
             Self::Sources => RuleTargetType::Source,
-            Self::Tests => RuleTargetType::Test,
+            Self::UnitTests => RuleTargetType::Test,
             Self::Macros => RuleTargetType::Macro,
             Self::Exposures => RuleTargetType::Exposure,
             Self::SemanticModels => RuleTargetType::SemanticModel,
@@ -69,7 +69,7 @@ impl RuleTarget {
             Self::Exposures => "exposures",
             Self::SemanticModels => "semantic_models",
             Self::SavedQueries => "saved_queries",
-            Self::Tests => "tests",
+            Self::UnitTests => "unit_tests",
             Self::Analyses => "analyses",
             Self::Snapshots => "snapshots",
             Self::HookNodes => "hook_nodes",
@@ -96,7 +96,7 @@ impl fmt::Display for RuleTarget {
             Self::Exposures => "Exposure",
             Self::SemanticModels => "SemanticModel",
             Self::SavedQueries => "SavedQuery",
-            Self::Tests => "Test",
+            Self::UnitTests => "UnitTest",
             Self::Analyses => "Analysis",
             Self::Snapshots => "Snapshot",
             Self::HookNodes => "HookNode",
@@ -114,7 +114,7 @@ pub fn default_applies_to_for_rule(rule_type: &SpecificRuleConfig) -> AppliesTo 
         SpecificRuleConfig::HasDescription {} => AppliesTo {
             node_objects: vec![RuleTarget::Models, RuleTarget::Seeds, RuleTarget::Snapshots],
             source_objects: vec![RuleTarget::Sources],
-            test_objects: vec![RuleTarget::Tests],
+            unit_test_objects: vec![RuleTarget::UnitTests],
             macro_objects: vec![RuleTarget::Macros],
             exposure_objects: vec![RuleTarget::Exposures],
             semantic_model_objects: vec![RuleTarget::SemanticModels],
@@ -129,7 +129,7 @@ pub fn default_applies_to_for_rule(rule_type: &SpecificRuleConfig) -> AppliesTo 
                 RuleTarget::Analyses,
             ],
             source_objects: vec![RuleTarget::Sources],
-            test_objects: vec![RuleTarget::Tests],
+            unit_test_objects: vec![RuleTarget::UnitTests],
             macro_objects: vec![RuleTarget::Macros],
             exposure_objects: vec![RuleTarget::Exposures],
             semantic_model_objects: vec![RuleTarget::SemanticModels],
@@ -144,7 +144,7 @@ pub fn default_applies_to_for_rule(rule_type: &SpecificRuleConfig) -> AppliesTo 
                 RuleTarget::Analyses,
             ],
             source_objects: vec![RuleTarget::Sources],
-            test_objects: vec![],
+            unit_test_objects: vec![],
             macro_objects: vec![],
             exposure_objects: vec![RuleTarget::Exposures],
             semantic_model_objects: vec![],
@@ -160,7 +160,7 @@ pub fn applies_to_options_for_rule(rule_type: &SpecificRuleConfig) -> AppliesTo 
         SpecificRuleConfig::HasDescription {} => AppliesTo {
             node_objects: vec![RuleTarget::Models, RuleTarget::Seeds, RuleTarget::Snapshots],
             source_objects: vec![RuleTarget::Sources],
-            test_objects: vec![RuleTarget::Tests],
+            unit_test_objects: vec![RuleTarget::UnitTests],
             macro_objects: vec![RuleTarget::Macros],
             exposure_objects: vec![RuleTarget::Exposures],
             semantic_model_objects: vec![RuleTarget::SemanticModels],
@@ -175,7 +175,7 @@ pub fn applies_to_options_for_rule(rule_type: &SpecificRuleConfig) -> AppliesTo 
                 RuleTarget::Analyses,
             ],
             source_objects: vec![RuleTarget::Sources],
-            test_objects: vec![RuleTarget::Tests],
+            unit_test_objects: vec![RuleTarget::UnitTests],
             macro_objects: vec![RuleTarget::Macros],
             exposure_objects: vec![RuleTarget::Exposures],
             semantic_model_objects: vec![RuleTarget::SemanticModels],
@@ -190,7 +190,7 @@ pub fn applies_to_options_for_rule(rule_type: &SpecificRuleConfig) -> AppliesTo 
                 RuleTarget::Analyses,
             ],
             source_objects: vec![RuleTarget::Sources],
-            test_objects: vec![RuleTarget::Tests],
+            unit_test_objects: vec![RuleTarget::UnitTests],
             macro_objects: vec![],
             exposure_objects: vec![RuleTarget::Exposures],
             semantic_model_objects: vec![],
@@ -204,7 +204,7 @@ pub struct AppliesTo {
     pub node_objects: Vec<RuleTarget>,
     pub macro_objects: Vec<RuleTarget>,
     pub source_objects: Vec<RuleTarget>,
-    pub test_objects: Vec<RuleTarget>,
+    pub unit_test_objects: Vec<RuleTarget>,
     pub exposure_objects: Vec<RuleTarget>,
     pub semantic_model_objects: Vec<RuleTarget>,
     pub custom_objects: Vec<RuleTarget>,
@@ -218,7 +218,7 @@ impl<'de> Deserialize<'de> for AppliesTo {
         let items: Option<Vec<String>> = Option::deserialize(deserializer)?;
         let mut node_objects = Vec::new();
         let mut source_objects = Vec::new();
-        let mut test_objects = Vec::new();
+        let mut unit_test_objects = Vec::new();
         let mut macro_objects = Vec::new();
         let mut exposure_objects = Vec::new();
         let mut semantic_model_objects = Vec::new();
@@ -231,7 +231,7 @@ impl<'de> Deserialize<'de> for AppliesTo {
                     Ok(target) => match target.target_type() {
                         RuleTargetType::Node => node_objects.push(target),
                         RuleTargetType::Source => source_objects.push(target),
-                        RuleTargetType::Test => test_objects.push(target),
+                        RuleTargetType::Test => unit_test_objects.push(target),
                         RuleTargetType::Macro => macro_objects.push(target),
                         RuleTargetType::Exposure => exposure_objects.push(target),
                         RuleTargetType::Custom => custom_objects.push(target),
@@ -244,7 +244,7 @@ impl<'de> Deserialize<'de> for AppliesTo {
 
         if node_objects.is_empty()
             && source_objects.is_empty()
-            && test_objects.is_empty()
+            && unit_test_objects.is_empty()
             && macro_objects.is_empty()
             && exposure_objects.is_empty()
             && custom_objects.is_empty()
@@ -270,7 +270,7 @@ impl<'de> Deserialize<'de> for AppliesTo {
             node_objects,
             macro_objects,
             source_objects,
-            test_objects,
+            unit_test_objects,
             exposure_objects,
             semantic_model_objects,
             custom_objects,
@@ -284,7 +284,7 @@ impl AppliesTo {
         Self {
             node_objects: vec![],
             source_objects: vec![],
-            test_objects: vec![],
+            unit_test_objects: vec![],
             macro_objects: vec![],
             exposure_objects: vec![],
             semantic_model_objects: vec![],

@@ -49,7 +49,7 @@ impl Node {
         match self {
             Self::Model(_) => RuleTarget::Models,
             Self::Seed(_) => RuleTarget::Seeds,
-            Self::Test(_) => RuleTarget::Tests,
+            Self::Test(_) => RuleTarget::UnitTests,
             Self::Analysis(_) => RuleTarget::Analyses,
             Self::Snapshot(_) => RuleTarget::Snapshots,
             Self::HookNode(_) => RuleTarget::HookNodes,

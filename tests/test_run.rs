@@ -1,6 +1,6 @@
 use dbtective::cli::table::{show_results, RuleResult};
 use dbtective::core::checks::manifest::node_checks::apply_node_checks;
-use dbtective::core::checks::manifest::source_checks::apply_source_checks;
+use dbtective::core::checks::manifest::source_checks::apply_manifest_object_checks;
 use dbtective::core::config::severity::Severity;
 use dbtective::core::config::Config;
 use dbtective::core::manifest::Manifest;
@@ -48,7 +48,7 @@ impl TestEnvironment {
         let mut findings =
             apply_node_checks(&manifest, &config, verbose).expect("Failed to apply node checks");
         findings.extend(
-            apply_source_checks(&manifest, &config, verbose)
+            apply_manifest_object_checks(&manifest, &config, verbose)
                 .expect("Failed to apply source checks"),
         );
 
@@ -66,7 +66,7 @@ impl TestEnvironment {
         let mut findings =
             apply_node_checks(&manifest, &config, verbose).expect("Failed to apply node checks");
         findings.extend(
-            apply_source_checks(&manifest, &config, verbose)
+            apply_manifest_object_checks(&manifest, &config, verbose)
                 .expect("Failed to apply source checks"),
         );
 
