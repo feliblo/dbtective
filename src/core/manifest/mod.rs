@@ -19,3 +19,4 @@ pub use saved_query::SavedQuery;
 pub use parse_manifest::Manifest;
 pub use semantic_model::SemanticModel;
 pub use unit_test::UnitTest;
+pub mod dbt_objects;
