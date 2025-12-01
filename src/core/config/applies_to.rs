@@ -15,6 +15,8 @@ pub enum RuleTargetType {
     Macro,
     Source,
     Exposure,
+    SemanticModel,
+    Custom,
 }
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq, EnumIter, AsRefStr, EnumString)]
@@ -32,17 +34,28 @@ pub enum RuleTarget {
     SavedQueries,
     SemanticModels,
     Macros,
+    Custom,
     Sources,
     Exposures,
 }
 impl RuleTarget {
+    // Objects can be nodes or their own type
     pub const fn target_type(&self) -> RuleTargetType {
         match self {
+            Self::Models
+            | Self::Seeds
+            | Self::Metrics
+            | Self::Analyses
+            | Self::Snapshots
+            | Self::HookNodes
+            | Self::SqlOperations
+            | Self::SavedQueries => RuleTargetType::Node,
             Self::Sources => RuleTargetType::Source,
             Self::Tests => RuleTargetType::Test,
             Self::Macros => RuleTargetType::Macro,
             Self::Exposures => RuleTargetType::Exposure,
-            _ => RuleTargetType::Node,
+            Self::SemanticModels => RuleTargetType::SemanticModel,
+            Self::Custom => RuleTargetType::Custom,
         }
     }
 
@@ -61,6 +74,7 @@ impl RuleTarget {
             Self::Snapshots => "snapshots",
             Self::HookNodes => "hook_nodes",
             Self::SqlOperations => "sql_operations",
+            Self::Custom => "custom",
         }
     }
 
@@ -87,20 +101,26 @@ impl fmt::Display for RuleTarget {
             Self::Snapshots => "Snapshot",
             Self::HookNodes => "HookNode",
             Self::SqlOperations => "SqlOperation",
+            Self::Custom => "Custom",
         };
         write!(f, "{singular}")
     }
 }
 
+// defaults
 pub fn default_applies_to_for_rule(rule_type: &SpecificRuleConfig) -> AppliesTo {
     match rule_type {
+        // has_description
         SpecificRuleConfig::HasDescription {} => AppliesTo {
             node_objects: vec![RuleTarget::Models, RuleTarget::Seeds, RuleTarget::Snapshots],
             source_objects: vec![RuleTarget::Sources],
-            test_objects: vec![],
-            macro_objects: vec![],
+            test_objects: vec![RuleTarget::Tests],
+            macro_objects: vec![RuleTarget::Macros],
             exposure_objects: vec![RuleTarget::Exposures],
+            semantic_model_objects: vec![RuleTarget::SemanticModels],
+            custom_objects: vec![],
         },
+        // name_convention
         SpecificRuleConfig::NameConvention { .. } => AppliesTo {
             node_objects: vec![
                 RuleTarget::Models,
@@ -112,7 +132,10 @@ pub fn default_applies_to_for_rule(rule_type: &SpecificRuleConfig) -> AppliesTo 
             test_objects: vec![RuleTarget::Tests],
             macro_objects: vec![RuleTarget::Macros],
             exposure_objects: vec![RuleTarget::Exposures],
+            semantic_model_objects: vec![RuleTarget::SemanticModels],
+            custom_objects: vec![],
         },
+        // has_tags
         SpecificRuleConfig::HasTags { .. } => AppliesTo {
             node_objects: vec![
                 RuleTarget::Models,
@@ -124,19 +147,26 @@ pub fn default_applies_to_for_rule(rule_type: &SpecificRuleConfig) -> AppliesTo 
             test_objects: vec![],
             macro_objects: vec![],
             exposure_objects: vec![RuleTarget::Exposures],
+            semantic_model_objects: vec![],
+            custom_objects: vec![],
         },
     }
 }
 
+// options
 pub fn applies_to_options_for_rule(rule_type: &SpecificRuleConfig) -> AppliesTo {
     match rule_type {
+        // has_description
         SpecificRuleConfig::HasDescription {} => AppliesTo {
             node_objects: vec![RuleTarget::Models, RuleTarget::Seeds, RuleTarget::Snapshots],
             source_objects: vec![RuleTarget::Sources],
-            test_objects: vec![],
-            macro_objects: vec![],
+            test_objects: vec![RuleTarget::Tests],
+            macro_objects: vec![RuleTarget::Macros],
             exposure_objects: vec![RuleTarget::Exposures],
+            semantic_model_objects: vec![RuleTarget::SemanticModels],
+            custom_objects: vec![],
         },
+        // name_convention
         SpecificRuleConfig::NameConvention { .. } => AppliesTo {
             node_objects: vec![
                 RuleTarget::Models,
@@ -148,7 +178,10 @@ pub fn applies_to_options_for_rule(rule_type: &SpecificRuleConfig) -> AppliesTo 
             test_objects: vec![RuleTarget::Tests],
             macro_objects: vec![RuleTarget::Macros],
             exposure_objects: vec![RuleTarget::Exposures],
+            semantic_model_objects: vec![RuleTarget::SemanticModels],
+            custom_objects: vec![],
         },
+        // has_tags
         SpecificRuleConfig::HasTags { .. } => AppliesTo {
             node_objects: vec![
                 RuleTarget::Models,
@@ -157,9 +190,11 @@ pub fn applies_to_options_for_rule(rule_type: &SpecificRuleConfig) -> AppliesTo 
                 RuleTarget::Analyses,
             ],
             source_objects: vec![RuleTarget::Sources],
-            test_objects: vec![],
+            test_objects: vec![RuleTarget::Tests],
             macro_objects: vec![],
             exposure_objects: vec![RuleTarget::Exposures],
+            semantic_model_objects: vec![],
+            custom_objects: vec![],
         },
     }
 }
@@ -167,10 +202,12 @@ pub fn applies_to_options_for_rule(rule_type: &SpecificRuleConfig) -> AppliesTo 
 #[derive(Debug, Default)]
 pub struct AppliesTo {
     pub node_objects: Vec<RuleTarget>,
+    pub macro_objects: Vec<RuleTarget>,
     pub source_objects: Vec<RuleTarget>,
     pub test_objects: Vec<RuleTarget>,
-    pub macro_objects: Vec<RuleTarget>,
     pub exposure_objects: Vec<RuleTarget>,
+    pub semantic_model_objects: Vec<RuleTarget>,
+    pub custom_objects: Vec<RuleTarget>,
 }
 
 impl<'de> Deserialize<'de> for AppliesTo {
@@ -184,6 +221,8 @@ impl<'de> Deserialize<'de> for AppliesTo {
         let mut test_objects = Vec::new();
         let mut macro_objects = Vec::new();
         let mut exposure_objects = Vec::new();
+        let mut semantic_model_objects = Vec::new();
+        let mut custom_objects = Vec::new();
         let mut unknown_targets = Vec::new();
 
         if let Some(items) = items {
@@ -195,6 +234,8 @@ impl<'de> Deserialize<'de> for AppliesTo {
                         RuleTargetType::Test => test_objects.push(target),
                         RuleTargetType::Macro => macro_objects.push(target),
                         RuleTargetType::Exposure => exposure_objects.push(target),
+                        RuleTargetType::Custom => custom_objects.push(target),
+                        RuleTargetType::SemanticModel => semantic_model_objects.push(target),
                     },
                     Err(_) => unknown_targets.push(item),
                 }
@@ -206,6 +247,8 @@ impl<'de> Deserialize<'de> for AppliesTo {
             && test_objects.is_empty()
             && macro_objects.is_empty()
             && exposure_objects.is_empty()
+            && custom_objects.is_empty()
+            && semantic_model_objects.is_empty()
         {
             debug!("{unknown_targets:?}");
             let msg = if unknown_targets.is_empty() {
@@ -225,10 +268,12 @@ impl<'de> Deserialize<'de> for AppliesTo {
 
         Ok(Self {
             node_objects,
+            macro_objects,
             source_objects,
             test_objects,
-            macro_objects,
             exposure_objects,
+            semantic_model_objects,
+            custom_objects,
         })
     }
 }
@@ -242,6 +287,8 @@ impl AppliesTo {
             test_objects: vec![],
             macro_objects: vec![],
             exposure_objects: vec![],
+            semantic_model_objects: vec![],
+            custom_objects: vec![],
         }
     }
 }

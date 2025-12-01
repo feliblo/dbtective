@@ -105,14 +105,21 @@ impl ManifestRule {
             .as_ref()
             .context("applies_to must be set before validation, so this should never happen")?;
 
+        // Check each target in applies_to against the valid options for this rule
+        // All applies to that are nodes get the Node target here
+        // All other applies to get their own target type
         let pairs = [
             (&applies_to.node_objects, &options.node_objects),
             (&applies_to.source_objects, &options.source_objects),
             (&applies_to.test_objects, &options.test_objects),
             (&applies_to.macro_objects, &options.macro_objects),
             (&applies_to.exposure_objects, &options.exposure_objects),
+            (
+                &applies_to.semantic_model_objects,
+                &options.semantic_model_objects,
+            ),
+            (&applies_to.custom_objects, &options.custom_objects),
         ];
-
         for (targets, valid) in pairs {
             for target in targets {
                 if !valid.contains(target) {

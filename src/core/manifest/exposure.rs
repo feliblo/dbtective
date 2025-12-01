@@ -27,11 +27,11 @@ pub struct Exposure {
     // #[serde(rename = "type")]
     // pub exposure_type: String,
     // pub owner: ExposureOwner,
-    // pub description: Option<String>,
+    pub description: Option<String>,
     // pub label: Option<String>,
     // pub maturity: Option<String>,
     // pub meta: Option<serde_json::Value>,
-    // pub tags: Option<Vec<String>>,
+    pub tags: Option<Vec<String>>,
     // pub config: Option<serde_json::Value>,
     // pub unrendered_config: Option<serde_json::Value>,
     // pub url: Option<String>,
