@@ -6,39 +6,15 @@ weight: 3
 
 ## Installation
 
-Before using the CLI, make sure dbtective is installed. See the [README](https://github.com/feliblo/dbtective#installation) for installation instructions.
+See the [README](https://github.com/feliblo/dbtective#installation) for installation instructions.
 
 ## Global Options
 
-These options are available for all commands:
-
-### `--verbose` / `-v`
-
-Enable verbose logging output for debugging purposes.
-
-```bash
-dbtective --verbose run
-dbtective -v run
-```
-
-When enabled, dbtective will output debug-level logs showing detailed information about what it's doing.
-
-### `--help` / `-h`
-
-Display help information for dbtective or a specific command.
-
-```bash
-dbtective --help
-dbtective run --help
-```
-
-### `--version` / `-V`
-
-Display the version of dbtective.
-
-```bash
-dbtective --version
-```
+| Option | Description |
+|--------|-------------|
+| `--verbose`, `-v` | Enable verbose logging output |
+| `--help`, `-h` | Display help information |
+| `--version`, `-V` | Display version |
 
 ## Commands
 
@@ -46,138 +22,102 @@ dbtective --version
 
 Run dbtective analysis on your dbt project.
 
-**Usage:**
+**Usage:** `dbtective run [OPTIONS]`
 
-```bash
-dbtective run [OPTIONS]
-```
+**Important:**
+- Before running manifest-based checks, run `dbt compile`, `dbt build`, `dbt run` or any of the [documented commands](https://docs.getdbt.com/reference/artifacts/manifest-json) to ensure `manifest.json` is up to date.
+- Before running catalog-based checks, run `dbt docs generate` to ensure `catalog.json` is available.
 
-**Options:**
+#### Options
 
-#### `--entry-point <PATH>`
-
-Path to your dbt project root directory.
-
-- **Default:** `.` (current directory)
-- **Example:** `dbtective run --entry-point "my_dbt_project"`
-
-```bash
-dbtective run --entry-point /path/to/dbt/project
-```
-
-#### `--config-file` / `-c <PATH>`
-
-Path to the dbtective configuration file.
-
-- **Default:** `dbtective.yml`
-- **Example:** `dbtective run --config-file custom-config.yml`
-
-```bash
-dbtective run -c path/to/dbtective.yml
-```
-
-#### `--manifest-file` / `-m <PATH>`
-
-Path to the dbt manifest.json file.
-
-- **Default:** `target/manifest.json`
-- **Example:** `dbtective run --manifest-file custom/manifest.json`
-
-```bash
-dbtective run -m target/manifest.json
-```
-
-**Note:** Make sure to run `dbt compile` or another command like `dbt build` or `dbt run` before running dbtective to ensure the manifest.json file is up to date.
-
-#### `--pyproject-file` / `-p <PATH>`
-
-Not used currently.
-Path to the pyproject.toml file (for future use).
-
-- **Default:** `pyproject.toml`
-- **Example:** `dbtective run --pyproject-file custom-pyproject.toml`
-
-```bash
-dbtective run -p pyproject.toml
-```
-
-Run with default settings (current directory, default config):
-```bash
-dbtective run
-```
-
-Run with verbose output:
-```bash
-dbtective run --verbose
-```
-
-Run on a specific dbt project:
-```bash
-dbtective run --entry-point ./dbt_project
-```
-
-Run with custom configuration file:
-```bash
-dbtective run --config-file ./configs/dbtective.yml
-```
+| Option | Short | Default | Description |
+|--------|-------|---------|-------------|
+| `--entry-point <PATH>` | | `.` | Path to dbt project root |
+| `--config-file <PATH>` | `-c` | `dbtective.yml` | Path to dbtective configuration |
+| `--manifest-file <PATH>` | `-m` | `target/manifest.json` | Path to dbt manifest.json |
+| `--catalog-file <PATH>` | `-g` | `target/catalog.json` | Path to dbt catalog.json |
+| `--only-manifest` | | `true` | Run only manifest checks |
+| `--only-catalog` | | `false` | Run only catalog checks |
+| `--pyproject-file <PATH>` | `-p` | `pyproject.toml` | Path to pyproject.toml (reserved for future use) |
 
 ### `init`
 
-Initialize a new dbtective project (planned feature).
+Initialize a new dbtective project.
 
-**Usage:**
+**Usage:** `dbtective init [OPTIONS]`
 
-```bash
-dbtective init [OPTIONS]
-```
-
-**Status:** This command is currently a placeholder for future functionality. It will help generate a starter `dbtective.yml` configuration file.
+**Status:** Placeholder for future functionality to generate a starter `dbtective.yml` configuration.
 
 ## Exit Codes
 
-dbtective uses the following exit codes:
+| Code | Description |
+|------|-------------|
+| `0` | Success - all checks passed or only warnings found |
+| `1` | Failure - one or more checks failed with `severity: "error"` |
 
-- **0** - Success: All checks passed or only warnings were found
-- **1** - Failure: One or more checks failed with `severity: "error"`
+## Examples
 
-These exit codes make it easy to integrate dbtective into CI/CD pipelines:
+### Basic Usage
 
 ```bash
-# In CI/CD pipeline
+# Run with defaults (current directory, dbtective.yml, target/manifest.json)
+dbtective run
+
+# Run with verbose output
+dbtective run --verbose
+
+# Run on a specific dbt project
+dbtective run --entry-point ./dbt_project
+```
+
+### Custom Configuration
+
+```bash
+# Use custom config file
+dbtective run --config-file ./configs/custom.yml
+
+# Use custom manifest location
+dbtective run --manifest-file custom/path/manifest.json
+
+# Combine multiple options
+dbtective run --entry-point ./my_project --config-file config.yml --verbose
+```
+
+### Catalog Checks
+
+```bash
+# Run catalog checks (requires dbt docs generate)
+dbtective run --only-catalog
+
+# Run both manifest and catalog checks
+dbtective run --only-manifest=false --only-catalog=false
+```
+
+### CI/CD Integration
+
+```bash
+# In CI/CD pipeline - exit with error code on failures
+dbt compile
 dbtective run || exit 1
 ```
 
 ## Troubleshooting
 
-### Manifest not found
-
-If dbtective can't find the manifest.json:
-
+**Manifest not found:**
 ```bash
-# Make sure you've compiled your dbt project
 dbt compile
-
-# Or specify the manifest location explicitly
 dbtective run --manifest-file path/to/manifest.json
 ```
 
-### Configuration file not found
-
-If dbtective can't find the configuration file:
-
+**Configuration file not found:**
 ```bash
-# Check that dbtective.yml exists in your project root
 ls -la dbtective.yml
-
-# Or specify the entrypoint explicitly
 dbtective run --entry-point path/to/dbt/project
-
-# Or specify the config location explicitly
 dbtective run --config-file path/to/dbtective.yml
 ```
 
 ## Getting Help
 
-- **Command help:** Run `dbtective --help` or `dbtective run --help`
-- **Documentation:** Visit [https://feliblo.github.io/dbtective/](https://feliblo.github.io/dbtective/)
-- **Issues:** Report bugs or request features at [https://github.com/feliblo/dbtective/issues](https://github.com/feliblo/dbtective/issues)
+- Command help: `dbtective --help` or `dbtective run --help`
+- Documentation: [https://feliblo.github.io/dbtective/](https://feliblo.github.io/dbtective/)
+- Issues: [https://github.com/feliblo/dbtective/issues](https://github.com/feliblo/dbtective/issues)
