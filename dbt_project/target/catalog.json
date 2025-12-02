@@ -11,14 +11,19 @@
     "snapshot.dbtective_test_project.snapshot_orders": {
       "metadata": {
         "type": "BASE TABLE",
-        "schema": "dbt_pslattery",
+        "schema": "dbt_dbtective",
         "name": "snapshot_orders",
         "database": "dbt",
         "comment": null,
         "owner": null
       },
       "columns": {
-        "id": { "type": "INTEGER", "index": 1, "name": "id", "comment": null },
+        "id": {
+          "type": "INTEGER",
+          "index": 1,
+          "name": "id",
+          "comment": null
+        },
         "user_id": {
           "type": "INTEGER",
           "index": 2,
@@ -76,14 +81,19 @@
     "snapshot.dbtective_test_project.snapshot_orders_multiple_unique_keys": {
       "metadata": {
         "type": "BASE TABLE",
-        "schema": "dbt_pslattery",
+        "schema": "dbt_dbtective",
         "name": "snapshot_orders_multiple_unique_keys",
         "database": "dbt",
         "comment": null,
         "owner": null
       },
       "columns": {
-        "id": { "type": "INTEGER", "index": 1, "name": "id", "comment": null },
+        "id": {
+          "type": "INTEGER",
+          "index": 1,
+          "name": "id",
+          "comment": null
+        },
         "user_id": {
           "type": "INTEGER",
           "index": 2,
@@ -176,7 +186,12 @@
         "owner": null
       },
       "columns": {
-        "id": { "type": "INTEGER", "index": 1, "name": "id", "comment": null },
+        "id": {
+          "type": "INTEGER",
+          "index": 1,
+          "name": "id",
+          "comment": null
+        },
         "first_name": {
           "type": "VARCHAR",
           "index": 2,
@@ -211,7 +226,12 @@
         "owner": null
       },
       "columns": {
-        "id": { "type": "INTEGER", "index": 1, "name": "id", "comment": null },
+        "id": {
+          "type": "INTEGER",
+          "index": 1,
+          "name": "id",
+          "comment": null
+        },
         "user_id": {
           "type": "INTEGER",
           "index": 2,
@@ -252,7 +272,12 @@
         "owner": null
       },
       "columns": {
-        "id": { "type": "INTEGER", "index": 1, "name": "id", "comment": null },
+        "id": {
+          "type": "INTEGER",
+          "index": 1,
+          "name": "id",
+          "comment": null
+        },
         "order_id": {
           "type": "INTEGER",
           "index": 2,

@@ -5,7 +5,7 @@
             target_database=(
                 "dbt" if target.type == "duckdb" else "padraic-slattery-sndbx-o"
             ),
-            target_schema="dbt_pslattery",
+            target_schema="dbt_dbtective",
             unique_key=["id", "order_date"],
             strategy="timestamp",
             tags=["payment"],
