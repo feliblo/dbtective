@@ -1124,7 +1124,7 @@
     },
     "snapshot.dbtective_test_project.snapshot_orders": {
       "database": "dbt",
-      "schema": "dbt_pslattery",
+      "schema": "dbt_dbtective",
       "name": "snapshot_orders",
       "resource_type": "snapshot",
       "package_name": "dbtective_test_project",
@@ -1178,7 +1178,7 @@
         "event_time": null,
         "concurrent_batches": null,
         "strategy": "timestamp",
-        "target_schema": "dbt_pslattery",
+        "target_schema": "dbt_dbtective",
         "target_database": "dbt",
         "updated_at": "order_date",
         "check_cols": null,
@@ -1206,7 +1206,7 @@
       "build_path": null,
       "unrendered_config": {
         "target_database": "dbt",
-        "target_schema": "dbt_pslattery",
+        "target_schema": "dbt_dbtective",
         "unique_key": "id",
         "strategy": "timestamp",
         "tags": [
@@ -1215,8 +1215,8 @@
         "updated_at": "order_date"
       },
       "created_at": 1755247538.1326017,
-      "relation_name": "\"dbt\".\"dbt_pslattery\".\"snapshot_orders\"",
-      "raw_code": "\n\n    {{\n        config(\n            target_database=(\n                \"dbt\" if target.type == \"duckdb\" else \"padraic-slattery-sndbx-o\"\n            ),\n            target_schema=\"dbt_pslattery\",\n            unique_key=\"id\",\n            strategy=\"timestamp\",\n            tags=[\"payment\"],\n            updated_at=\"order_date\",\n        )\n    }}\n\n    select *\n    from {{ ref(\"raw_orders\") }}\n\n",
+      "relation_name": "\"dbt\".\"dbt_dbtective\".\"snapshot_orders\"",
+      "raw_code": "\n\n    {{\n        config(\n            target_database=(\n                \"dbt\" if target.type == \"duckdb\" else \"padraic-slattery-sndbx-o\"\n            ),\n            target_schema=\"dbt_dbtective\",\n            unique_key=\"id\",\n            strategy=\"timestamp\",\n            tags=[\"payment\"],\n            updated_at=\"order_date\",\n        )\n    }}\n\n    select *\n    from {{ ref(\"raw_orders\") }}\n\n",
       "doc_blocks": [],
       "language": "sql",
       "refs": [
@@ -1247,7 +1247,7 @@
     },
     "snapshot.dbtective_test_project.snapshot_orders_multiple_unique_keys": {
       "database": "dbt",
-      "schema": "dbt_pslattery",
+      "schema": "dbt_dbtective",
       "name": "snapshot_orders_multiple_unique_keys",
       "resource_type": "snapshot",
       "package_name": "dbtective_test_project",
@@ -1304,7 +1304,7 @@
         "event_time": null,
         "concurrent_batches": null,
         "strategy": "timestamp",
-        "target_schema": "dbt_pslattery",
+        "target_schema": "dbt_dbtective",
         "target_database": "dbt",
         "updated_at": "order_date",
         "check_cols": null,
@@ -1332,7 +1332,7 @@
       "build_path": null,
       "unrendered_config": {
         "target_database": "dbt",
-        "target_schema": "dbt_pslattery",
+        "target_schema": "dbt_dbtective",
         "unique_key": [
           "id",
           "order_date"
@@ -1344,8 +1344,8 @@
         "updated_at": "order_date"
       },
       "created_at": 1755247538.1465876,
-      "relation_name": "\"dbt\".\"dbt_pslattery\".\"snapshot_orders_multiple_unique_keys\"",
-      "raw_code": "\n\n    {{\n        config(\n            target_database=(\n                \"dbt\" if target.type == \"duckdb\" else \"padraic-slattery-sndbx-o\"\n            ),\n            target_schema=\"dbt_pslattery\",\n            unique_key=[\"id\", \"order_date\"],\n            strategy=\"timestamp\",\n            tags=[\"payment\"],\n            updated_at=\"order_date\",\n        )\n    }}\n\n    select *\n    from {{ ref(\"raw_orders\") }}\n\n",
+      "relation_name": "\"dbt\".\"dbt_dbtective\".\"snapshot_orders_multiple_unique_keys\"",
+      "raw_code": "\n\n    {{\n        config(\n            target_database=(\n                \"dbt\" if target.type == \"duckdb\" else \"padraic-slattery-sndbx-o\"\n            ),\n            target_schema=\"dbt_dbtective\",\n            unique_key=[\"id\", \"order_date\"],\n            strategy=\"timestamp\",\n            tags=[\"payment\"],\n            updated_at=\"order_date\",\n        )\n    }}\n\n    select *\n    from {{ ref(\"raw_orders\") }}\n\n",
       "doc_blocks": [],
       "language": "sql",
       "refs": [

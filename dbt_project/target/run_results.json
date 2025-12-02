@@ -330,7 +330,7 @@
       "unique_id": "snapshot.dbtective_test_project.snapshot_orders",
       "compiled": true,
       "compiled_code": "\n\n    \n\n    select *\n    from \"dbt\".\"main\".\"raw_orders\"\n",
-      "relation_name": "\"dbt\".\"dbt_pslattery\".\"snapshot_orders\"",
+      "relation_name": "\"dbt\".\"dbt_dbtective\".\"snapshot_orders\"",
       "batch_results": null
     },
     {
@@ -355,7 +355,7 @@
       "unique_id": "snapshot.dbtective_test_project.snapshot_orders_multiple_unique_keys",
       "compiled": true,
       "compiled_code": "\n\n    \n\n    select *\n    from \"dbt\".\"main\".\"raw_orders\"\n",
-      "relation_name": "\"dbt\".\"dbt_pslattery\".\"snapshot_orders_multiple_unique_keys\"",
+      "relation_name": "\"dbt\".\"dbt_dbtective\".\"snapshot_orders_multiple_unique_keys\"",
       "batch_results": null
     },
     {
@@ -1136,6 +1136,10 @@
     "static": false,
     "require_batched_execution_for_custom_microbatch_strategy": false,
     "send_anonymous_usage_stats": true,
-    "warn_error_options": { "error": [], "warn": [], "silence": [] }
+    "warn_error_options": {
+      "error": [],
+      "warn": [],
+      "silence": []
+    }
   }
 }

@@ -147,7 +147,7 @@ mod tests {
                 "model.dbtective_test_project.model_orders": {
                 "metadata": {
                     "type": "BASE TABLE",
-                    "schema": "dbt_pslattery",
+                    "schema": "dbt_dbtective",
                     "name": "model_orders",
                     "database": "dbt",
                     "comment": null,
@@ -249,7 +249,7 @@ mod tests {
                 "source.dbtective_test_project.raw_customers": {
                     "metadata": {
                         "type": "BASE TABLE",
-                        "schema": "dbt_pslattery",
+                        "schema": "dbt_dbtective",
                         "name": "raw_customers",
                         "database": "dbt",
                         "comment": null,
