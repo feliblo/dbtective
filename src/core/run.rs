@@ -1,8 +1,9 @@
 use crate::cli::commands::RunOptions;
-use crate::cli::table::show_results;
+use crate::cli::table::{show_results, RuleResult};
 use crate::core::catalog::parse_catalog::Catalog;
 use crate::core::checks::manifest::node_checks::apply_node_checks;
 use crate::core::checks::manifest::source_checks::apply_manifest_object_checks;
+use crate::core::config::severity::Severity;
 use crate::core::config::Config;
 use crate::core::manifest::Manifest;
 use log::debug;
@@ -10,89 +11,54 @@ use owo_colors::OwoColorize;
 use std::process::exit;
 use std::time::Instant;
 
-#[must_use]
-pub fn run(options: &RunOptions, verbose: bool) -> i32 {
-    let start = Instant::now();
-    let config = match Config::from_file(format!("{}/{}", options.entry_point, options.config_file))
-    {
-        Ok(cfg) => {
-            debug!("Loaded configuration: {cfg:#?}");
-            cfg
-        }
+fn unwrap_or_exit<T>(result: anyhow::Result<T>) -> T {
+    match result {
+        Ok(value) => value,
         Err(err) => {
-            debug!("Failed to load configuration: {err}");
             eprintln!("{}", err.to_string().red());
             exit(1);
         }
-    };
+    }
+}
 
-    let mut findings: Vec<(
-        crate::cli::table::RuleResult,
-        &crate::core::config::severity::Severity,
-    )> = Vec::new();
+#[must_use]
+pub fn run(options: &RunOptions, verbose: bool) -> i32 {
+    let start = Instant::now();
+    let config_path = format!("{}/{}", options.entry_point, options.config_file);
+    let config = unwrap_or_exit(Config::from_file(config_path));
+
+    debug!("Loaded configuration: {config:#?}");
+
+    // Store all findings in a result vector
+    let mut findings: Vec<(RuleResult, &Severity)> = Vec::new();
 
     // Manifest-based checks
-    let manifest = if options.only_catalog {
-        None
-    } else {
-        let manifest_path =
-            std::path::PathBuf::from(format!("{}/{}", options.entry_point, options.manifest_file));
+    let manifest_path =
+        std::path::PathBuf::from(format!("{}/{}", options.entry_point, options.manifest_file));
+    let manifest = unwrap_or_exit(Manifest::from_file(&manifest_path));
 
-        match Manifest::from_file(&manifest_path) {
-            Ok(manifest) => Some(manifest),
-            Err(err) => {
-                eprintln!("{}", err.to_string().red());
-                exit(1);
-            }
-        }
-    };
+    // Manifest-node object checks
+    findings.extend(unwrap_or_exit(apply_node_checks(
+        &manifest, &config, verbose,
+    )));
+    // Manifest-non-node object checks (source macro exposures semantic_models unit_tests)
+    findings.extend(unwrap_or_exit(apply_manifest_object_checks(
+        &manifest, &config, verbose,
+    )));
 
-    if let Some(ref manifest) = manifest {
-        match apply_node_checks(manifest, &config, verbose) {
-            Ok(f) => findings.extend(f),
-            Err(err) => {
-                eprintln!("{}", err.to_string().red());
-                exit(1);
-            }
-        }
-
-        match apply_manifest_object_checks(manifest, &config, verbose) {
-            Ok(source_findings) => findings.extend(source_findings),
-            Err(err) => {
-                eprintln!("{}", err.to_string().red());
-                exit(1);
-            }
-        }
-    }
-
-    // Catalog-based checks (needs both manifest and catalog)
-    let catalog = if options.only_manifest {
-        None
+    // Catalog-based checks (need both manifest and catalog)
+    // This can error in the following case:
+    // The manifest has been rebuild using a `dbt` command,
+    // yet the `catalog.json` has not been updated with `dbt docs generate`
+    if options.only_manifest {
+        println!(
+            "{}",
+            "Skipping catalog-based checks, due to --only-manifest flag".blue()
+        );
     } else {
         let catalog_path =
             std::path::PathBuf::from(format!("{}/{}", options.entry_point, options.catalog_file));
-        match Catalog::from_file(&catalog_path) {
-            Ok(catalog) => Some(catalog),
-            Err(err) => {
-                eprintln!("{}", err.to_string().red());
-                exit(1);
-            }
-        }
-    };
-
-    if let Some(ref _catalog) = catalog {
-        if let Some(ref _manifest) = manifest {
-            dbg!("Applying catalog-based checks");
-            todo!()
-        } else {
-            eprintln!(
-                "{}",
-                "Catalog-based checks require both a manifest and a catalog".red()
-            );
-            exit(1);
-        }
-    } else {
-        println!("Skipping catalog-based checks");
+        let _catalog = unwrap_or_exit(Catalog::from_file(&catalog_path));
     }
     show_results(
         &findings,

@@ -69,11 +69,8 @@ pub struct RunOptions {
     #[arg(long, short = 'g', default_value = "target/catalog.json")]
     pub catalog_file: String,
 
-    #[arg(long, default_value_t = true)]
-    pub only_manifest: bool,
-
     #[arg(long, default_value_t = false)]
-    pub only_catalog: bool,
+    pub only_manifest: bool,
 }
 
 #[cfg(test)]
@@ -133,7 +130,6 @@ mod tests {
             pyproject_file: "pyproject.toml".to_string(),
             config_file: "dbtective.toml".to_string(),
             catalog_file: "target/catalog.json".to_string(),
-            only_catalog: false,
             only_manifest: false,
         };
         let debug_str = format!("{options:?}");
@@ -152,7 +148,6 @@ mod tests {
             pyproject_file: "pyproject.toml".to_string(),
             config_file: "dbtective.toml".to_string(),
             catalog_file: "target/catalog.json".to_string(),
-            only_catalog: false,
             only_manifest: false,
         };
 
@@ -168,7 +163,6 @@ mod tests {
             pyproject_file: "custom_pyproject.toml".to_string(),
             config_file: "custom_config.toml".to_string(),
             catalog_file: "custom_catalog.json".to_string(),
-            only_catalog: true,
             only_manifest: true,
         };
 
@@ -201,7 +195,6 @@ mod tests {
                 pyproject_file: "pyproject.toml".to_string(),
                 config_file: String::new(),
                 catalog_file: "target/catalog.json".to_string(),
-                only_catalog: false,
                 only_manifest: false,
             },
         };
@@ -248,7 +241,6 @@ mod tests {
                     pyproject_file: "pyproject.toml".to_string(),
                     catalog_file: "target/catalog.json".to_string(),
                     config_file: "config.toml".to_string(),
-                    only_catalog: false,
                     only_manifest: false,
                 },
             }),
@@ -281,7 +273,6 @@ mod tests {
                 pyproject_file: "pyproject.toml".to_string(),
                 config_file: "dbtective.toml".to_string(),
                 catalog_file: "target/catalog.json".to_string(),
-                only_catalog: false,
                 only_manifest: false,
             },
         };
