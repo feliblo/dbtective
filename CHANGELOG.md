@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+#### [v0.1.9](https://github.com/feliblo/dbtective/compare/v0.1.8...v0.1.9)
+
+> 2 December 2025
+
+- Docs/update config docs [`#37`](https://github.com/feliblo/dbtective/pull/37)
+- feat(cfg): add catalog tests to config [`e0bc29c`](https://github.com/feliblo/dbtective/commit/e0bc29cb6b0f9f725c07ff0db649188f276fc967)
+- feat(checks): run checks on all (data-related) manifest objects [`67c5ebe`](https://github.com/feliblo/dbtective/commit/67c5ebe9e6165313f409eb5502317f2bc2499d0b)
+- test(cfg): add config parsing tests [`5b2b13f`](https://github.com/feliblo/dbtective/commit/5b2b13f197f754ffb50f0888991c97c1394c767e)
+
 #### [v0.1.8](https://github.com/feliblo/dbtective/compare/v0.1.7...v0.1.8)
 
 > 30 November 2025
