@@ -41,7 +41,7 @@ impl RuleResult {
     }
 }
 
-pub fn show_results(
+pub fn show_results_and_exit(
     results: &[(RuleResult, &Severity)],
     verbose: bool,
     entry_point: &str,

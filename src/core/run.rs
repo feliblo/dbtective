@@ -1,6 +1,7 @@
 use crate::cli::commands::RunOptions;
-use crate::cli::table::{show_results, RuleResult};
+use crate::cli::table::{show_results_and_exit, RuleResult};
 use crate::core::catalog::parse_catalog::Catalog;
+use crate::core::checks::catalog::catalog_checks::apply_catalog_checks;
 use crate::core::checks::manifest::node_checks::apply_node_checks;
 use crate::core::checks::manifest::source_checks::apply_manifest_object_checks;
 use crate::core::config::severity::Severity;
@@ -50,17 +51,25 @@ pub fn run(options: &RunOptions, verbose: bool) -> i32 {
     // This can error in the following case:
     // The manifest has been rebuild using a `dbt` command,
     // yet the `catalog.json` has not been updated with `dbt docs generate`
-    if options.only_manifest {
+    let catalog = if options.only_manifest {
         println!(
             "{}",
             "Skipping catalog-based checks, due to --only-manifest flag".blue()
         );
+        None
     } else {
         let catalog_path =
             std::path::PathBuf::from(format!("{}/{}", options.entry_point, options.catalog_file));
-        let _catalog = unwrap_or_exit(Catalog::from_file(&catalog_path));
+        Some(unwrap_or_exit(Catalog::from_file(&catalog_path)))
+    };
+
+    if let Some(ref catalog) = catalog {
+        findings.extend(unwrap_or_exit(apply_catalog_checks(
+            &config, catalog, &manifest, verbose,
+        )));
     }
-    show_results(
+
+    show_results_and_exit(
         &findings,
         verbose,
         options.entry_point.as_ref(),

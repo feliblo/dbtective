@@ -15,3 +15,9 @@ manifest_tests:
   #     - "tag1"
   #   applies_to:
   #     - "models"
+
+catalog_tests:
+  - name: "columns_are_all_documented"
+    type: "columns_are_all_documented"
+    description: "All columns in the catalog must have documentation."
+    severity: "warning"

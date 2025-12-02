@@ -14,6 +14,7 @@ use owo_colors::OwoColorize;
 /// Applies macro checks to the manifest.
 /// # Errors
 /// Returns an error if a rule has invalid configuration (e.g., invalid regex pattern).
+/// //
 pub fn apply_manifest_object_checks<'a>(
     manifest: &'a Manifest,
     config: &'a Config,

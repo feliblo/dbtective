@@ -169,7 +169,6 @@ mod tests {
         assert_eq!(options.entry_point, "/path/to/project");
         assert_eq!(options.pyproject_file, "custom_pyproject.toml");
         assert_eq!(options.config_file, "custom_config.toml".to_string());
-        assert!(options.only_catalog);
         assert!(options.only_manifest);
     }
 

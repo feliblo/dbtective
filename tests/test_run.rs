@@ -1,4 +1,4 @@
-use dbtective::cli::table::{show_results, RuleResult};
+use dbtective::cli::table::{show_results_and_exit, RuleResult};
 use dbtective::core::checks::manifest::node_checks::apply_node_checks;
 use dbtective::core::checks::manifest::source_checks::apply_manifest_object_checks;
 use dbtective::core::config::severity::Severity;
@@ -70,7 +70,7 @@ impl TestEnvironment {
                 .expect("Failed to apply source checks"),
         );
 
-        show_results(
+        show_results_and_exit(
             &findings,
             verbose,
             self.temp_dir.path().to_str().unwrap(),
