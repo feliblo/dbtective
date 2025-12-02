@@ -7,7 +7,7 @@ pub trait NameAble {
     }
 }
 
-use crate::{cli::table::RuleResult, core::config::parse_config::ManifestRule};
+use crate::{cli::table::RuleResult, core::config::manifest_rule::ManifestRule};
 use regex::Regex;
 
 /// Check if the item's name follows the specified naming convention pattern

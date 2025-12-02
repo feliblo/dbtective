@@ -1,5 +1,5 @@
 use crate::cli::table::RuleResult;
-use crate::core::config::parse_config::ManifestRule;
+use crate::core::config::manifest_rule::ManifestRule;
 
 pub trait Descriptable {
     fn description(&self) -> Option<&String>;

@@ -17,50 +17,53 @@ pub fn apply_node_checks<'a>(
     verbose: bool,
 ) -> anyhow::Result<Vec<(RuleResult, &'a Severity)>> {
     let mut results = Vec::new();
-    for node in manifest.nodes.values() {
-        for rule in &config.manifest_tests {
-            if let Some(applies) = &rule.applies_to {
-                if !should_run_test(&node, rule.includes.as_ref(), rule.excludes.as_ref()) {
-                    if verbose {
-                        println!(
-                            "{}",
-                            format!(
-                                "Skipping rule '{}' for node '{}' due to include/exclude filters",
-                                rule.get_name(),
-                                node.get_name()
-                            )
-                            .blue()
-                        );
-                    }
-                    continue;
-                }
 
-                // applies_to: object based filtering
-                if applies.node_objects.contains(&node.ruletarget()) {
-                    if verbose {
-                        println!(
-                            "{}",
-                            format!(
-                                "Applying rule '{}' to node '{}'",
-                                rule.get_name(),
-                                node.get_name()
-                            )
-                            .blue()
-                        );
-                    }
-                    let check_row_result = match &rule.rule {
-                        SpecificRuleConfig::HasDescription {} => has_description(node, rule),
-                        SpecificRuleConfig::NameConvention { pattern } => {
-                            check_name_convention(node, rule, pattern)?
+    if let Some(manifest_tests) = &config.manifest_tests {
+        for node in manifest.nodes.values() {
+            for rule in manifest_tests {
+                if let Some(applies) = &rule.applies_to {
+                    if !should_run_test(&node, rule.includes.as_ref(), rule.excludes.as_ref()) {
+                        if verbose {
+                            println!(
+                                "{}",
+                                format!(
+                                    "Skipping rule '{}' for node '{}' due to include/exclude filters",
+                                    rule.get_name(),
+                                    node.get_name()
+                                )
+                                .blue()
+                            );
                         }
-                        SpecificRuleConfig::HasTags {
-                            required_tags,
-                            criteria,
-                        } => has_tags(node, rule, required_tags, criteria),
-                    };
+                        continue;
+                    }
 
-                    if let Some(check_row) = check_row_result {
-                        results.push((check_row, &rule.severity));
+                    // applies_to: object based filtering
+                    if applies.node_objects.contains(&node.ruletarget()) {
+                        if verbose {
+                            println!(
+                                "{}",
+                                format!(
+                                    "Applying rule '{}' to node '{}'",
+                                    rule.get_name(),
+                                    node.get_name()
+                                )
+                                .blue()
+                            );
+                        }
+                        let check_row_result = match &rule.rule {
+                            SpecificRuleConfig::HasDescription {} => has_description(node, rule),
+                            SpecificRuleConfig::NameConvention { pattern } => {
+                                check_name_convention(node, rule, pattern)?
+                            }
+                            SpecificRuleConfig::HasTags {
+                                required_tags,
+                                criteria,
+                            } => has_tags(node, rule, required_tags, criteria),
+                        };
+
+                        if let Some(check_row) = check_row_result {
+                            results.push((check_row, &rule.severity));
+                        }
                     }
                 }
             }
