@@ -242,6 +242,18 @@ impl<'de> Deserialize<'de> for AppliesTo {
             }
         }
 
+        // First check if there are any unknown targets - fail immediately if so
+        if !unknown_targets.is_empty() {
+            debug!("{unknown_targets:?}");
+            let msg = format!(
+                "Unknown applies_to targets: {:?}. Valid options are: {}",
+                unknown_targets,
+                RuleTarget::get_all_as_str().join(", ")
+            );
+            return Err(de::Error::custom(msg));
+        }
+
+        // Then check if all target lists are empty
         if node_objects.is_empty()
             && source_objects.is_empty()
             && unit_test_objects.is_empty()
@@ -250,19 +262,10 @@ impl<'de> Deserialize<'de> for AppliesTo {
             && custom_objects.is_empty()
             && semantic_model_objects.is_empty()
         {
-            debug!("{unknown_targets:?}");
-            let msg = if unknown_targets.is_empty() {
-                format!(
-                    "applies_to must specify at least one valid target (e.g. models, sources, tests, snapshots). Valid options are: {}",
-                    RuleTarget::get_all_as_str().join(", ")
-                )
-            } else {
-                format!(
-                    "Unknown applies_to targets: {:?}. Valid options are: {}",
-                    unknown_targets,
-                    RuleTarget::get_all_as_str().join(", ")
-                )
-            };
+            let msg = format!(
+                "applies_to must specify at least one valid target (e.g. models, sources, tests, snapshots). Valid options are: {}",
+                RuleTarget::get_all_as_str().join(", ")
+            );
             return Err(de::Error::custom(msg));
         }
 
