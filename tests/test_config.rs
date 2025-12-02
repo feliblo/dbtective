@@ -65,17 +65,14 @@ manifest_tests:
     let applies_to = manifest_tests[0].applies_to.as_ref().unwrap();
     assert_eq!(applies_to.node_objects.len(), 2); // models, seeds
     assert_eq!(applies_to.source_objects.len(), 1); // sources
-    assert_eq!(applies_to.node_objects.contains(&RuleTarget::Models), true);
-    assert_eq!(applies_to.node_objects.contains(&RuleTarget::Seeds), true);
-    assert_eq!(
-        applies_to.source_objects.contains(&RuleTarget::Sources),
-        true
-    );
+    assert!(applies_to.node_objects.contains(&RuleTarget::Models));
+    assert!(applies_to.node_objects.contains(&RuleTarget::Seeds));
+    assert!(applies_to.source_objects.contains(&RuleTarget::Sources));
 }
 
 #[test]
 fn test_applies_to_invalid_target_for_rule() {
-    // has_tags cannot apply to unit_tests according to applies_to_options_for_rule
+    // has_tags cannot apply to unit_tests according to applies_to_options_for_manifest_rule
     let config = r#"
 manifest_tests:
   - type: "has_tags"
@@ -141,7 +138,7 @@ manifest_tests:
 fn test_applies_to_catalog_tests() {
     let config = r#"
 catalog_tests:
-  - type: "has_description"
+  - type: "columns_are_all_documented"
     severity: "warning"
     applies_to: ["models", "snapshots"]
 "#;
@@ -355,7 +352,7 @@ manifest_tests:
 fn test_catalog_has_description_rule() {
     let config = r#"
 catalog_tests:
-  - type: "has_description"
+  - type: "columns_are_all_documented"
     severity: "error"
     name: "catalog_models_must_have_description"
     applies_to: ["models"]
@@ -377,7 +374,7 @@ catalog_tests:
 fn test_catalog_name_convention_rule() {
     let config = r#"
 catalog_tests:
-  - type: "name_convention"
+  - type: "columns_are_all_documented"
     severity: "warning"
     pattern: "^dim_|^fct_"
     applies_to: ["models"]
@@ -394,10 +391,10 @@ catalog_tests:
 fn test_catalog_multiple_rules() {
     let config = r#"
 catalog_tests:
-  - type: "has_description"
+  - type: "columns_are_all_documented"
     severity: "error"
     applies_to: ["models"]
-  - type: "name_convention"
+  - type: "columns_are_all_documented"
     severity: "warning"
     pattern: "^int_"
     applies_to: ["models"]
@@ -413,7 +410,7 @@ catalog_tests:
 fn test_catalog_includes_excludes() {
     let config = r#"
 catalog_tests:
-  - type: "has_description"
+  - type: "columns_are_all_documented"
     severity: "error"
     applies_to: ["models"]
     includes: ["marts/*"]
@@ -432,7 +429,7 @@ catalog_tests:
 fn test_catalog_default_severity() {
     let config = r#"
 catalog_tests:
-  - type: "has_description"
+  - type: "columns_are_all_documented"
     applies_to: ["models"]
 "#;
     let temp_file = create_temp_config(config);
@@ -458,10 +455,10 @@ manifest_tests:
     applies_to: ["models"]
 
 catalog_tests:
-  - type: "has_description"
+  - type: "columns_are_all_documented"
     severity: "error"
     applies_to: ["models", "snapshots"]
-  - type: "name_convention"
+  - type: "columns_are_all_documented"
     severity: "warning"
     pattern: "^dim_|^fct_"
     applies_to: ["models"]
@@ -475,10 +472,10 @@ catalog_tests:
 
 #[test]
 fn test_empty_config() {
-    let config = r#"
+    let config = r"
 manifest_tests: []
 catalog_tests: []
-"#;
+";
     let temp_file = create_temp_config(config);
     let cfg = Config::from_file(temp_file.path()).expect("Failed to parse empty config");
 
@@ -507,7 +504,7 @@ manifest_tests:
 fn test_only_catalog_tests() {
     let config = r#"
 catalog_tests:
-  - type: "has_description"
+  - type: "columns_are_all_documented"
     severity: "error"
     applies_to: ["models"]
 "#;

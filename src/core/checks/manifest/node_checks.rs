@@ -1,6 +1,6 @@
 use crate::cli::table::RuleResult;
 use crate::core::checks::common::{check_name_convention, has_description, has_tags};
-use crate::core::config::parse_config::SpecificRuleConfig;
+use crate::core::config::manifest_rule::ManifestSpecificRuleConfig;
 
 use crate::core::config::severity::Severity;
 use crate::core::config::{includes_excludes::should_run_test, Config};
@@ -51,11 +51,13 @@ pub fn apply_node_checks<'a>(
                             );
                         }
                         let check_row_result = match &rule.rule {
-                            SpecificRuleConfig::HasDescription {} => has_description(node, rule),
-                            SpecificRuleConfig::NameConvention { pattern } => {
+                            ManifestSpecificRuleConfig::HasDescription {} => {
+                                has_description(node, rule)
+                            }
+                            ManifestSpecificRuleConfig::NameConvention { pattern } => {
                                 check_name_convention(node, rule, pattern)?
                             }
-                            SpecificRuleConfig::HasTags {
+                            ManifestSpecificRuleConfig::HasTags {
                                 required_tags,
                                 criteria,
                             } => has_tags(node, rule, required_tags, criteria),

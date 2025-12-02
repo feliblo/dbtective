@@ -1,4 +1,3 @@
-use crate::core::config::parse_config::SpecificRuleConfig;
 use log::debug;
 use serde::{de, Deserialize, Deserializer};
 use std::fmt;
@@ -104,98 +103,6 @@ impl fmt::Display for RuleTarget {
             Self::Custom => "Custom",
         };
         write!(f, "{singular}")
-    }
-}
-
-// defaults
-pub fn default_applies_to_for_rule(rule_type: &SpecificRuleConfig) -> AppliesTo {
-    match rule_type {
-        // has_description
-        SpecificRuleConfig::HasDescription {} => AppliesTo {
-            node_objects: vec![RuleTarget::Models, RuleTarget::Seeds, RuleTarget::Snapshots],
-            source_objects: vec![RuleTarget::Sources],
-            unit_test_objects: vec![RuleTarget::UnitTests],
-            macro_objects: vec![RuleTarget::Macros],
-            exposure_objects: vec![RuleTarget::Exposures],
-            semantic_model_objects: vec![RuleTarget::SemanticModels],
-            custom_objects: vec![],
-        },
-        // name_convention
-        SpecificRuleConfig::NameConvention { .. } => AppliesTo {
-            node_objects: vec![
-                RuleTarget::Models,
-                RuleTarget::Seeds,
-                RuleTarget::Snapshots,
-                RuleTarget::Analyses,
-            ],
-            source_objects: vec![RuleTarget::Sources],
-            unit_test_objects: vec![RuleTarget::UnitTests],
-            macro_objects: vec![RuleTarget::Macros],
-            exposure_objects: vec![RuleTarget::Exposures],
-            semantic_model_objects: vec![RuleTarget::SemanticModels],
-            custom_objects: vec![],
-        },
-        // has_tags
-        SpecificRuleConfig::HasTags { .. } => AppliesTo {
-            node_objects: vec![
-                RuleTarget::Models,
-                RuleTarget::Seeds,
-                RuleTarget::Snapshots,
-                RuleTarget::Analyses,
-            ],
-            source_objects: vec![RuleTarget::Sources],
-            unit_test_objects: vec![],
-            macro_objects: vec![],
-            exposure_objects: vec![RuleTarget::Exposures],
-            semantic_model_objects: vec![],
-            custom_objects: vec![],
-        },
-    }
-}
-
-// options
-pub fn applies_to_options_for_rule(rule_type: &SpecificRuleConfig) -> AppliesTo {
-    match rule_type {
-        // has_description
-        SpecificRuleConfig::HasDescription {} => AppliesTo {
-            node_objects: vec![RuleTarget::Models, RuleTarget::Seeds, RuleTarget::Snapshots],
-            source_objects: vec![RuleTarget::Sources],
-            unit_test_objects: vec![RuleTarget::UnitTests],
-            macro_objects: vec![RuleTarget::Macros],
-            exposure_objects: vec![RuleTarget::Exposures],
-            semantic_model_objects: vec![RuleTarget::SemanticModels],
-            custom_objects: vec![],
-        },
-        // name_convention
-        SpecificRuleConfig::NameConvention { .. } => AppliesTo {
-            node_objects: vec![
-                RuleTarget::Models,
-                RuleTarget::Seeds,
-                RuleTarget::Snapshots,
-                RuleTarget::Analyses,
-            ],
-            source_objects: vec![RuleTarget::Sources],
-            unit_test_objects: vec![RuleTarget::UnitTests],
-            macro_objects: vec![RuleTarget::Macros],
-            exposure_objects: vec![RuleTarget::Exposures],
-            semantic_model_objects: vec![RuleTarget::SemanticModels],
-            custom_objects: vec![],
-        },
-        // has_tags
-        SpecificRuleConfig::HasTags { .. } => AppliesTo {
-            node_objects: vec![
-                RuleTarget::Models,
-                RuleTarget::Seeds,
-                RuleTarget::Snapshots,
-                RuleTarget::Analyses,
-            ],
-            source_objects: vec![RuleTarget::Sources],
-            unit_test_objects: vec![RuleTarget::UnitTests],
-            macro_objects: vec![],
-            exposure_objects: vec![RuleTarget::Exposures],
-            semantic_model_objects: vec![],
-            custom_objects: vec![],
-        },
     }
 }
 

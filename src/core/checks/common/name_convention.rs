@@ -52,7 +52,7 @@ pub fn check_name_convention<T: NameAble>(
 #[cfg(test)]
 mod tests {
     use crate::core::config::{
-        applies_to::AppliesTo, parse_config::SpecificRuleConfig, severity::Severity,
+        applies_to::AppliesTo, manifest_rule::ManifestSpecificRuleConfig, severity::Severity,
     };
 
     use super::*;
@@ -82,7 +82,7 @@ mod tests {
             applies_to: Some(AppliesTo::empty()),
             includes: None,
             excludes: None,
-            rule: SpecificRuleConfig::NameConvention {
+            rule: ManifestSpecificRuleConfig::NameConvention {
                 pattern: "snake_case".to_string(),
             },
         };
@@ -117,7 +117,7 @@ mod tests {
             applies_to: Some(AppliesTo::empty()),
             includes: None,
             excludes: None,
-            rule: SpecificRuleConfig::NameConvention {
+            rule: ManifestSpecificRuleConfig::NameConvention {
                 pattern: "PascalCase".to_string(),
             },
         };
@@ -152,7 +152,7 @@ mod tests {
             applies_to: Some(AppliesTo::empty()),
             includes: None,
             excludes: None,
-            rule: SpecificRuleConfig::NameConvention {
+            rule: ManifestSpecificRuleConfig::NameConvention {
                 pattern: "kebab-case".to_string(),
             },
         };
@@ -187,7 +187,7 @@ mod tests {
             applies_to: Some(AppliesTo::empty()),
             includes: None,
             excludes: None,
-            rule: SpecificRuleConfig::NameConvention {
+            rule: ManifestSpecificRuleConfig::NameConvention {
                 pattern: "camelCase".to_string(),
             },
         };
@@ -222,7 +222,7 @@ mod tests {
             applies_to: Some(AppliesTo::empty()),
             includes: None,
             excludes: None,
-            rule: SpecificRuleConfig::NameConvention {
+            rule: ManifestSpecificRuleConfig::NameConvention {
                 pattern: r"^[A-Z]{3}-[0-9]{4}$".to_string(),
             },
         };
@@ -257,7 +257,7 @@ mod tests {
             applies_to: Some(AppliesTo::empty()),
             includes: None,
             excludes: None,
-            rule: SpecificRuleConfig::NameConvention {
+            rule: ManifestSpecificRuleConfig::NameConvention {
                 pattern: "(*invalid_regex".to_string(),
             },
         };

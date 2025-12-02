@@ -32,7 +32,7 @@ pub fn has_description<T: Descriptable>(
 #[cfg(test)]
 mod tests {
     use crate::core::config::{
-        applies_to::AppliesTo, parse_config::SpecificRuleConfig, severity::Severity,
+        applies_to::AppliesTo, manifest_rule::ManifestSpecificRuleConfig, severity::Severity,
     };
 
     use super::*;
@@ -64,7 +64,7 @@ mod tests {
             applies_to: Some(AppliesTo::empty()),
             includes: None,
             excludes: None,
-            rule: SpecificRuleConfig::HasDescription {},
+            rule: ManifestSpecificRuleConfig::HasDescription {},
         };
         let node_with_desc = TestNode {
             name: "TestNode1".to_string(),
@@ -95,7 +95,7 @@ mod tests {
             applies_to: None,
             includes: None,
             excludes: None,
-            rule: SpecificRuleConfig::HasDescription {},
+            rule: ManifestSpecificRuleConfig::HasDescription {},
         };
         let node_with_desc = TestNode {
             name: "TestNode3".to_string(),
@@ -127,7 +127,7 @@ mod tests {
             includes: None,
             excludes: None,
             applies_to: None,
-            rule: SpecificRuleConfig::HasDescription {},
+            rule: ManifestSpecificRuleConfig::HasDescription {},
         };
         let node_with_empty_desc = TestNode {
             name: "TestNode5".to_string(),

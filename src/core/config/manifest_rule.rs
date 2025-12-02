@@ -2,10 +2,32 @@ use anyhow::Context;
 use anyhow::Result;
 use serde::Deserialize;
 
-use crate::core::config::applies_to::applies_to_options_for_rule;
 use crate::core::config::applies_to::AppliesTo;
-use crate::core::config::parse_config::SpecificRuleConfig;
+use crate::core::config::applies_to::RuleTarget;
+use crate::core::config::check_config::HasTagsCriteria;
 use crate::core::config::severity::Severity;
+use strum_macros::{AsRefStr, EnumIter, EnumString};
+
+#[derive(Debug, Deserialize, EnumIter, AsRefStr, EnumString)]
+#[strum(serialize_all = "snake_case")]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum ManifestSpecificRuleConfig {
+    HasDescription {},
+    NameConvention {
+        pattern: String,
+    },
+    HasTags {
+        required_tags: Vec<String>,
+        #[serde(default)]
+        criteria: HasTagsCriteria,
+    },
+}
+
+impl ManifestSpecificRuleConfig {
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
+}
 
 const fn manifest_default_severity() -> Severity {
     Severity::Error
@@ -22,7 +44,7 @@ pub struct ManifestRule {
     pub includes: Option<Vec<String>>,
     pub excludes: Option<Vec<String>>,
     #[serde(flatten)]
-    pub rule: SpecificRuleConfig,
+    pub rule: ManifestSpecificRuleConfig,
 }
 
 #[derive(Debug, Deserialize)]
@@ -73,7 +95,7 @@ impl ManifestRule {
     /// # Errors
     /// Returns an error if any target in `applies_to` is not valid for the rule type
     pub fn validate_applies_to(&self) -> Result<()> {
-        let options = applies_to_options_for_rule(&self.rule);
+        let options = applies_to_options_for_manifest_rule(&self.rule);
         let mut invalid_targets = Vec::new();
         let applies_to = self
             .applies_to
@@ -118,5 +140,97 @@ impl ManifestRule {
         }
 
         Ok(())
+    }
+}
+
+// default options if applies_to is not set
+pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) -> AppliesTo {
+    match rule_type {
+        // has_description
+        ManifestSpecificRuleConfig::HasDescription {} => AppliesTo {
+            node_objects: vec![RuleTarget::Models, RuleTarget::Seeds, RuleTarget::Snapshots],
+            source_objects: vec![RuleTarget::Sources],
+            unit_test_objects: vec![RuleTarget::UnitTests],
+            macro_objects: vec![RuleTarget::Macros],
+            exposure_objects: vec![RuleTarget::Exposures],
+            semantic_model_objects: vec![RuleTarget::SemanticModels],
+            custom_objects: vec![],
+        },
+        // name_convention
+        ManifestSpecificRuleConfig::NameConvention { .. } => AppliesTo {
+            node_objects: vec![
+                RuleTarget::Models,
+                RuleTarget::Seeds,
+                RuleTarget::Snapshots,
+                RuleTarget::Analyses,
+            ],
+            source_objects: vec![RuleTarget::Sources],
+            unit_test_objects: vec![RuleTarget::UnitTests],
+            macro_objects: vec![RuleTarget::Macros],
+            exposure_objects: vec![RuleTarget::Exposures],
+            semantic_model_objects: vec![RuleTarget::SemanticModels],
+            custom_objects: vec![],
+        },
+        // has_tags
+        ManifestSpecificRuleConfig::HasTags { .. } => AppliesTo {
+            node_objects: vec![
+                RuleTarget::Models,
+                RuleTarget::Seeds,
+                RuleTarget::Snapshots,
+                RuleTarget::Analyses,
+            ],
+            source_objects: vec![RuleTarget::Sources],
+            unit_test_objects: vec![],
+            macro_objects: vec![],
+            exposure_objects: vec![RuleTarget::Exposures],
+            semantic_model_objects: vec![],
+            custom_objects: vec![],
+        },
+    }
+}
+
+// All options a user can choose
+fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) -> AppliesTo {
+    match rule_type {
+        // has_description
+        ManifestSpecificRuleConfig::HasDescription {} => AppliesTo {
+            node_objects: vec![RuleTarget::Models, RuleTarget::Seeds, RuleTarget::Snapshots],
+            source_objects: vec![RuleTarget::Sources],
+            unit_test_objects: vec![RuleTarget::UnitTests],
+            macro_objects: vec![RuleTarget::Macros],
+            exposure_objects: vec![RuleTarget::Exposures],
+            semantic_model_objects: vec![RuleTarget::SemanticModels],
+            custom_objects: vec![],
+        },
+        // name_convention
+        ManifestSpecificRuleConfig::NameConvention { .. } => AppliesTo {
+            node_objects: vec![
+                RuleTarget::Models,
+                RuleTarget::Seeds,
+                RuleTarget::Snapshots,
+                RuleTarget::Analyses,
+            ],
+            source_objects: vec![RuleTarget::Sources],
+            unit_test_objects: vec![RuleTarget::UnitTests],
+            macro_objects: vec![RuleTarget::Macros],
+            exposure_objects: vec![RuleTarget::Exposures],
+            semantic_model_objects: vec![RuleTarget::SemanticModels],
+            custom_objects: vec![],
+        },
+        // has_tags
+        ManifestSpecificRuleConfig::HasTags { .. } => AppliesTo {
+            node_objects: vec![
+                RuleTarget::Models,
+                RuleTarget::Seeds,
+                RuleTarget::Snapshots,
+                RuleTarget::Analyses,
+            ],
+            source_objects: vec![RuleTarget::Sources],
+            unit_test_objects: vec![RuleTarget::UnitTests],
+            macro_objects: vec![],
+            exposure_objects: vec![RuleTarget::Exposures],
+            semantic_model_objects: vec![],
+            custom_objects: vec![],
+        },
     }
 }

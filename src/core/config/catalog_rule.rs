@@ -2,11 +2,22 @@ use anyhow::Context;
 use anyhow::Result;
 use serde::Deserialize;
 
-use crate::core::config::{
-    applies_to::{applies_to_options_for_rule, AppliesTo},
-    parse_config::SpecificRuleConfig,
-    severity::Severity,
-};
+use crate::core::config::applies_to::RuleTarget;
+use crate::core::config::{applies_to::AppliesTo, severity::Severity};
+use strum_macros::{AsRefStr, EnumIter, EnumString};
+
+#[derive(Debug, Deserialize, EnumIter, AsRefStr, EnumString)]
+#[strum(serialize_all = "snake_case")]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum CatalogSpecificRuleConfig {
+    ColumnsAreAllDocumented {},
+}
+
+impl CatalogSpecificRuleConfig {
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
+}
 
 const fn catalog_default_severity() -> Severity {
     Severity::Error
@@ -26,7 +37,7 @@ pub struct CatalogRule {
     pub excludes: Option<Vec<String>>,
     pub applies_to: Option<AppliesTo>,
     #[serde(flatten)]
-    pub rule: SpecificRuleConfig,
+    pub rule: CatalogSpecificRuleConfig,
 }
 
 impl CatalogRule {
@@ -63,7 +74,7 @@ impl CatalogRule {
     /// # Errors
     /// Returns an error if any target in `applies_to` is not valid for the rule type
     pub fn validate_applies_to(&self) -> Result<()> {
-        let options = applies_to_options_for_rule(&self.rule);
+        let options = applies_to_options_for_catalog_rule(&self.rule);
         let mut invalid_targets = Vec::new();
         let applies_to = self
             .applies_to
@@ -108,5 +119,43 @@ impl CatalogRule {
         }
 
         Ok(())
+    }
+}
+
+pub fn default_applies_to_for_catalog_rule(rule_type: &CatalogSpecificRuleConfig) -> AppliesTo {
+    match rule_type {
+        CatalogSpecificRuleConfig::ColumnsAreAllDocumented { .. } => AppliesTo {
+            node_objects: vec![
+                RuleTarget::Models,
+                RuleTarget::Seeds,
+                RuleTarget::Snapshots,
+                RuleTarget::Analyses,
+            ],
+            source_objects: vec![RuleTarget::Sources],
+            unit_test_objects: vec![RuleTarget::UnitTests],
+            macro_objects: vec![],
+            exposure_objects: vec![RuleTarget::Exposures],
+            semantic_model_objects: vec![],
+            custom_objects: vec![],
+        },
+    }
+}
+
+fn applies_to_options_for_catalog_rule(rule_type: &CatalogSpecificRuleConfig) -> AppliesTo {
+    match rule_type {
+        CatalogSpecificRuleConfig::ColumnsAreAllDocumented { .. } => AppliesTo {
+            node_objects: vec![
+                RuleTarget::Models,
+                RuleTarget::Seeds,
+                RuleTarget::Snapshots,
+                RuleTarget::Analyses,
+            ],
+            source_objects: vec![RuleTarget::Sources],
+            unit_test_objects: vec![RuleTarget::UnitTests],
+            macro_objects: vec![],
+            exposure_objects: vec![RuleTarget::Exposures],
+            semantic_model_objects: vec![],
+            custom_objects: vec![],
+        },
     }
 }

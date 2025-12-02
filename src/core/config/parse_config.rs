@@ -1,32 +1,12 @@
-use crate::core::config::check_config::HasTagsCriteria;
 use crate::core::config::manifest_rule::ManifestRule;
-use crate::core::config::{applies_to::default_applies_to_for_rule, catalog_rule::CatalogRule};
+use crate::core::config::{
+    catalog_rule::default_applies_to_for_catalog_rule, catalog_rule::CatalogRule,
+    manifest_rule::default_applies_to_for_manifest_rule,
+};
 use anyhow::{Context, Result};
 use serde::Deserialize;
 use std::fs::File;
 use std::path::Path;
-use strum_macros::{AsRefStr, EnumIter, EnumString};
-
-#[derive(Debug, Deserialize, EnumIter, AsRefStr, EnumString)]
-#[strum(serialize_all = "snake_case")]
-#[serde(tag = "type", rename_all = "snake_case")]
-pub enum SpecificRuleConfig {
-    HasDescription {},
-    NameConvention {
-        pattern: String,
-    },
-    HasTags {
-        required_tags: Vec<String>,
-        #[serde(default)]
-        criteria: HasTagsCriteria,
-    },
-}
-
-impl SpecificRuleConfig {
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-}
 
 #[derive(Debug, Deserialize)]
 #[allow(dead_code)]
@@ -63,7 +43,7 @@ impl Config {
         if let Some(rules) = &mut self.manifest_tests {
             for rule in rules {
                 if rule.applies_to.is_none() {
-                    rule.applies_to = Some(default_applies_to_for_rule(&rule.rule));
+                    rule.applies_to = Some(default_applies_to_for_manifest_rule(&rule.rule));
                 }
                 rule.normalize_includes_excludes();
             }
@@ -71,7 +51,7 @@ impl Config {
         if let Some(rules) = &mut self.catalog_tests {
             for rule in rules {
                 if rule.applies_to.is_none() {
-                    rule.applies_to = Some(default_applies_to_for_rule(&rule.rule));
+                    rule.applies_to = Some(default_applies_to_for_catalog_rule(&rule.rule));
                 }
                 rule.normalize_includes_excludes();
             }

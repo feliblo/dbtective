@@ -3,7 +3,7 @@ use crate::{
     cli::table::RuleResult,
     core::{
         config::{
-            includes_excludes::should_run_test, parse_config::SpecificRuleConfig,
+            includes_excludes::should_run_test, manifest_rule::ManifestSpecificRuleConfig,
             severity::Severity, Config,
         },
         manifest::Manifest,
@@ -83,11 +83,11 @@ fn apply_source_checks<'a>(
                 }
 
                 let check_row_result = match &rule.rule {
-                    SpecificRuleConfig::HasDescription {} => has_description(source, rule),
-                    SpecificRuleConfig::NameConvention { pattern } => {
+                    ManifestSpecificRuleConfig::HasDescription {} => has_description(source, rule),
+                    ManifestSpecificRuleConfig::NameConvention { pattern } => {
                         check_name_convention(source, rule, pattern)?
                     }
-                    SpecificRuleConfig::HasTags {
+                    ManifestSpecificRuleConfig::HasTags {
                         required_tags,
                         criteria,
                     } => has_tags(source, rule, required_tags, criteria),
@@ -149,12 +149,14 @@ fn apply_macro_checks<'a>(
                 }
 
                 let check_row_result = match &rule.rule {
-                    SpecificRuleConfig::HasDescription {} => has_description(macro_obj, rule),
-                    SpecificRuleConfig::NameConvention { pattern } => {
+                    ManifestSpecificRuleConfig::HasDescription {} => {
+                        has_description(macro_obj, rule)
+                    }
+                    ManifestSpecificRuleConfig::NameConvention { pattern } => {
                         check_name_convention(macro_obj, rule, pattern)?
                     }
                     // Macros do not have tags & Don't implement TagAble
-                    SpecificRuleConfig::HasTags { .. } => continue,
+                    ManifestSpecificRuleConfig::HasTags { .. } => continue,
                 };
 
                 if let Some(check_row) = check_row_result {
@@ -212,11 +214,13 @@ fn apply_exposure_checks<'a>(
                 }
 
                 let check_row_result = match &rule.rule {
-                    SpecificRuleConfig::HasDescription {} => has_description(exposure, rule),
-                    SpecificRuleConfig::NameConvention { pattern } => {
+                    ManifestSpecificRuleConfig::HasDescription {} => {
+                        has_description(exposure, rule)
+                    }
+                    ManifestSpecificRuleConfig::NameConvention { pattern } => {
                         check_name_convention(exposure, rule, pattern)?
                     }
-                    SpecificRuleConfig::HasTags {
+                    ManifestSpecificRuleConfig::HasTags {
                         required_tags,
                         criteria,
                     } => has_tags(exposure, rule, required_tags, criteria),
@@ -279,12 +283,12 @@ fn apply_semantic_model_checks<'a>(
                 }
 
                 let check_row_result = match &rule.rule {
-                    SpecificRuleConfig::HasDescription {} => has_description(sm, rule),
-                    SpecificRuleConfig::NameConvention { pattern } => {
+                    ManifestSpecificRuleConfig::HasDescription {} => has_description(sm, rule),
+                    ManifestSpecificRuleConfig::NameConvention { pattern } => {
                         check_name_convention(sm, rule, pattern)?
                     }
                     // Semantic Models do not have tags & Don't implement TagAble
-                    SpecificRuleConfig::HasTags { .. } => continue,
+                    ManifestSpecificRuleConfig::HasTags { .. } => continue,
                 };
 
                 if let Some(check_row) = check_row_result {
@@ -342,12 +346,12 @@ fn apply_unit_test_checks<'a>(
                 }
 
                 let check_row_result = match &rule.rule {
-                    SpecificRuleConfig::HasDescription {} => has_description(ut, rule),
-                    SpecificRuleConfig::NameConvention { pattern } => {
+                    ManifestSpecificRuleConfig::HasDescription {} => has_description(ut, rule),
+                    ManifestSpecificRuleConfig::NameConvention { pattern } => {
                         check_name_convention(ut, rule, pattern)?
                     }
                     // Unit Tests do not have tags & Don't implement TagAble
-                    SpecificRuleConfig::HasTags { .. } => continue,
+                    ManifestSpecificRuleConfig::HasTags { .. } => continue,
                 };
 
                 if let Some(check_row) = check_row_result {

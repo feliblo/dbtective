@@ -90,7 +90,7 @@ pub fn has_tags<T: Tagable>(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::core::config::{parse_config::SpecificRuleConfig, severity::Severity};
+    use crate::core::config::{manifest_rule::ManifestSpecificRuleConfig, severity::Severity};
     struct TestTagable {
         tags: Option<Tags>,
         object_type: String,
@@ -127,7 +127,7 @@ mod tests {
             applies_to: None,
             includes: None,
             excludes: None,
-            rule: SpecificRuleConfig::HasTags {
+            rule: ManifestSpecificRuleConfig::HasTags {
                 criteria: HasTagsCriteria::All,
                 required_tags: required_tags.clone(),
             },
@@ -156,7 +156,7 @@ mod tests {
             applies_to: None,
             includes: None,
             excludes: None,
-            rule: SpecificRuleConfig::HasTags {
+            rule: ManifestSpecificRuleConfig::HasTags {
                 criteria: HasTagsCriteria::All,
                 required_tags: required_tags.clone(),
             },
@@ -182,7 +182,7 @@ mod tests {
             applies_to: None,
             includes: None,
             excludes: None,
-            rule: SpecificRuleConfig::HasTags {
+            rule: ManifestSpecificRuleConfig::HasTags {
                 criteria: HasTagsCriteria::OneOf,
                 required_tags: required_tags.clone(),
             },
