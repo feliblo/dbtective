@@ -48,7 +48,6 @@ manifest_tests:
     description: "All mart models must have descriptions."
 ```
 
-
 ## Rule Configuration
 
 Each rule in the `manifest_tests` array can have the following properties:
@@ -56,15 +55,13 @@ Each rule in the `manifest_tests` array can have the following properties:
 ### Required Properties
 
 #### `type`
-**Required** - Specifies the type of check to perform.
 
-Available check types:
-- `has_description` - Ensures objects have descriptions
-- `name_convention` - Enforces naming conventions
+**Required** - Specifies the type of check to perform.
 
 ### Optional Properties
 
 #### `name`
+
 **Optional** - A custom name for the rule. If not specified, the rule type will be used as the name.
 
 ```yaml
@@ -74,9 +71,11 @@ manifest_tests:
 ```
 
 #### `severity`
+
 **Optional** - The severity level when the rule fails. Defaults to `error`.
 
 Available values:
+
 - `error` - Causes dbtective to exit with code 1 (default)
 - `warning` - Reports the issue but doesn't fail the check
 
@@ -87,6 +86,7 @@ manifest_tests:
 ```
 
 #### `description`
+
 **Optional** - A human-readable description of what the rule checks.
 
 ```yaml
@@ -96,9 +96,11 @@ manifest_tests:
 ```
 
 #### `applies_to`
+
 **Optional** - Specifies which dbt object types the rule should apply to. If not specified, default targets for each rule type will be used.
 
 Available targets:
+
 - `models` - dbt models
 - `seeds` - dbt seeds
 - `sources` - dbt sources
@@ -122,6 +124,7 @@ manifest_tests:
 **Note:** Not all check types support all targets. Each rule type has specific valid targets. dbtective will validate your configuration and report an error if you use an invalid target for a rule type.
 
 #### `includes`
+
 **Optional** - A list of file path patterns to include. Only objects matching these patterns will be checked. Patterns can use glob syntax.
 
 ```yaml
@@ -133,6 +136,7 @@ manifest_tests:
 ```
 
 #### `excludes`
+
 **Optional** - A list of file path patterns to exclude. Objects matching these patterns will be skipped. Patterns can use glob syntax.
 
 ```yaml

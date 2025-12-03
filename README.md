@@ -2,7 +2,7 @@
 
 dbtective is a Rust-powered 'detective' for `dbt metadata` best practices. As your dbt project grows, keeping metadata consistent and high-quality can become a real challenge.
 
-Explore the [full documentation](https://feliblo.github.io/dbtective/).
+Explore the [full documentation](https://feliblo.github.io/dbtective/docs) or the [possible checks](https://feliblo.github.io/dbtective/docs/checks).
 
 > [!WARNING]
 > dbtective is currently in very early stages.
@@ -18,23 +18,26 @@ Explore the [full documentation](https://feliblo.github.io/dbtective/).
 We detect and enforce these rules in your `cli`, `prek`/`pre-commit` and `CI/CD` pipeline, so fast you will barely notice🕵️.
 
 ## Installation
+
 <details>
 <summary>Pip (pypi)</summary>
 
 ```bash
 pip install dbtective
 ```
+
 </details>
 
 <details>
 <summary> uv </summary>
 
 Install as a dev dependency:
+
 ```bash
 uv add dbtective --dev
 ```
-</details>
 
+</details>
 
 <details>
 <summary>Shell installer (macOS/Linux)</summary>
@@ -68,7 +71,6 @@ brew install feliblo/tap/dbtective
 
 Pre-built binaries for Linux, macOS, and Windows are available on the [releases page](https://github.com/feliblo/dbtective/releases).
 </details>
-
 
 ## Quickstart
 
