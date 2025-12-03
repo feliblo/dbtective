@@ -3,7 +3,7 @@ use crate::cli::table::{show_results_and_exit, RuleResult};
 use crate::core::catalog::parse_catalog::Catalog;
 use crate::core::checks::catalog::catalog_checks::apply_catalog_node_checks;
 use crate::core::checks::manifest::node_checks::apply_node_checks;
-use crate::core::checks::manifest::source_checks::apply_manifest_object_checks;
+use crate::core::checks::manifest::other_manifest_object_checks::apply_manifest_object_checks;
 use crate::core::config::severity::Severity;
 use crate::core::config::Config;
 use crate::core::manifest::Manifest;

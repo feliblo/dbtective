@@ -1,6 +1,6 @@
 use dbtective::cli::table::{show_results_and_exit, RuleResult};
 use dbtective::core::checks::manifest::node_checks::apply_node_checks;
-use dbtective::core::checks::manifest::source_checks::apply_manifest_object_checks;
+use dbtective::core::checks::manifest::other_manifest_object_checks::apply_manifest_object_checks;
 use dbtective::core::config::severity::Severity;
 use dbtective::core::config::Config;
 use dbtective::core::manifest::Manifest;
