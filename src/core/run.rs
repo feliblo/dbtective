@@ -1,9 +1,13 @@
 use crate::cli::commands::RunOptions;
 use crate::cli::table::{show_results_and_exit, RuleResult};
 use crate::core::catalog::parse_catalog::Catalog;
-use crate::core::checks::catalog::catalog_checks::apply_catalog_node_checks;
-use crate::core::checks::manifest::node_checks::apply_node_checks;
-use crate::core::checks::manifest::other_manifest_object_checks::apply_manifest_object_checks;
+use crate::core::checks::catalog::{
+    catalog_node_checks::apply_catalog_node_checks,
+    catalog_source_checks::apply_catalog_source_checks,
+};
+use crate::core::checks::manifest::{
+    node_checks::apply_node_checks, other_manifest_object_checks::apply_manifest_object_checks,
+};
 use crate::core::config::severity::Severity;
 use crate::core::config::Config;
 use crate::core::manifest::Manifest;
@@ -65,6 +69,9 @@ pub fn run(options: &RunOptions, verbose: bool) -> i32 {
 
     if let Some(ref catalog) = catalog {
         findings.extend(apply_catalog_node_checks(
+            &config, catalog, &manifest, verbose,
+        ));
+        findings.extend(apply_catalog_source_checks(
             &config, catalog, &manifest, verbose,
         ));
     }

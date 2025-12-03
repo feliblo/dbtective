@@ -58,14 +58,14 @@ pub fn check_columns_are_documented<C: Columnable, M: Columnable>(
 
     let message = if undocumented_columns.len() > 3 {
         format!(
-            "Columns in '{}' are not documented: {:?} & {} more",
+            "Columns in '{}' not documented: {:?} & {} more",
             C::get_object_string(catalog_object),
-            &undocumented_columns[..3],
-            undocumented_columns.len() - 3
+            &undocumented_columns[..2],
+            undocumented_columns.len() - 2
         )
     } else {
         format!(
-            "Columns in '{}' are not documented: {:?}",
+            "Columns in '{}' not documented: {:?}",
             C::get_object_string(catalog_object),
             undocumented_columns
         )
@@ -151,7 +151,8 @@ mod tests {
             description: None,
             includes: None,
             excludes: None,
-            rule: crate::core::config::catalog_rule::CatalogSpecificRuleConfig::ColumnsAreAllDocumented {},
+            rule:
+                crate::core::config::catalog_rule::CatalogSpecificRuleConfig::ColumnsAllDocumented {},
         }
     }
 
@@ -297,7 +298,7 @@ mod tests {
         let rule_result = result.unwrap();
         assert_eq!(
             rule_result.message,
-            "Columns in 'my_model' are not documented: [\"name\", \"age\"]"
+            "Columns in 'my_model' not documented: [\"name\", \"age\"]"
         );
     }
 }

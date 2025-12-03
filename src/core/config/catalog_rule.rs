@@ -10,7 +10,7 @@ use strum_macros::{AsRefStr, EnumIter, EnumString};
 #[strum(serialize_all = "snake_case")]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum CatalogSpecificRuleConfig {
-    ColumnsAreAllDocumented {},
+    ColumnsAllDocumented {},
 }
 
 impl CatalogSpecificRuleConfig {
@@ -124,7 +124,7 @@ impl CatalogRule {
 
 pub fn default_applies_to_for_catalog_rule(rule_type: &CatalogSpecificRuleConfig) -> AppliesTo {
     match rule_type {
-        CatalogSpecificRuleConfig::ColumnsAreAllDocumented { .. } => AppliesTo {
+        CatalogSpecificRuleConfig::ColumnsAllDocumented { .. } => AppliesTo {
             node_objects: vec![
                 RuleTarget::Models,
                 RuleTarget::Seeds,
@@ -143,7 +143,7 @@ pub fn default_applies_to_for_catalog_rule(rule_type: &CatalogSpecificRuleConfig
 
 fn applies_to_options_for_catalog_rule(rule_type: &CatalogSpecificRuleConfig) -> AppliesTo {
     match rule_type {
-        CatalogSpecificRuleConfig::ColumnsAreAllDocumented { .. } => AppliesTo {
+        CatalogSpecificRuleConfig::ColumnsAllDocumented { .. } => AppliesTo {
             node_objects: vec![
                 RuleTarget::Models,
                 RuleTarget::Seeds,
