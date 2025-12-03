@@ -125,12 +125,7 @@ impl CatalogRule {
 pub fn default_applies_to_for_catalog_rule(rule_type: &CatalogSpecificRuleConfig) -> AppliesTo {
     match rule_type {
         CatalogSpecificRuleConfig::ColumnsAllDocumented { .. } => AppliesTo {
-            node_objects: vec![
-                RuleTarget::Models,
-                RuleTarget::Seeds,
-                RuleTarget::Snapshots,
-                RuleTarget::Analyses,
-            ],
+            node_objects: vec![RuleTarget::Models, RuleTarget::Seeds, RuleTarget::Snapshots],
             source_objects: vec![RuleTarget::Sources],
             unit_test_objects: vec![],
             macro_objects: vec![],

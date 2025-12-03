@@ -94,27 +94,23 @@ fn compare_column_names(
             .map(|col| col.to_lowercase())
             .collect()
     } else {
-        manifest_columns
-            .iter()
-            .map(|col| (*col).to_string())
-            .collect()
+        manifest_columns.iter().map(|col| (*col).clone()).collect()
     };
 
     for catalog_col in catalog_columns {
         let catalog_col_check = if case_insensitive {
             catalog_col.to_lowercase()
         } else {
-            (*catalog_col).to_string()
+            (*catalog_col).clone()
         };
 
         if !manifest_column_set.contains(&catalog_col_check) {
-            undocumented_columns.push((*catalog_col).to_string());
+            undocumented_columns.push((*catalog_col).clone());
         }
     }
 
     undocumented_columns
 }
-
 #[cfg(test)]
 mod tests {
 
