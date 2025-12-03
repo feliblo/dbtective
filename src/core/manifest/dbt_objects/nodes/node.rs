@@ -4,6 +4,7 @@ use super::{Analysis, HookNode, Model, Seed, Snapshot, SqlOperation, Test};
 use crate::core::checks::common::has_description::Descriptable;
 use crate::core::checks::common::has_tags::Tagable;
 use crate::core::checks::common::name_convention::NameAble;
+use crate::core::checks::common_traits::Columnable;
 use crate::core::config::applies_to::RuleTarget;
 use crate::core::config::includes_excludes::IncludeExcludable;
 use serde::Deserialize;
@@ -91,6 +92,27 @@ impl Node {
 impl NameAble for Node {
     fn name(&self) -> &str {
         self.get_name()
+    }
+
+    fn get_object_type(&self) -> &str {
+        self.get_object_type()
+    }
+
+    fn get_object_string(&self) -> &str {
+        self.get_object_string()
+    }
+
+    fn get_relative_path(&self) -> Option<&String> {
+        Some(self.get_relative_path())
+    }
+}
+
+impl Columnable for Node {
+    fn get_column_names(&self) -> Option<Vec<&String>> {
+        self.get_base().columns.as_ref().map(|columns_map| {
+            let column_names: Vec<&String> = columns_map.keys().collect();
+            column_names
+        })
     }
 
     fn get_object_type(&self) -> &str {

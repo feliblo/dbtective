@@ -56,6 +56,17 @@ pub struct Manifest {
 }
 
 impl Manifest {
+    /// Get a node by its `unique_id` (Required by Catalog tests)
+    pub fn get_node(&self, unique_id: &str) -> Option<&Node> {
+        self.nodes.get(unique_id)
+    }
+
+    /// Get a source by its `unique_id` (Required by Catalog tests)
+    #[allow(dead_code)]
+    pub fn get_source(&self, unique_id: &str) -> Option<&Source> {
+        self.sources.get(unique_id)
+    }
+
     /// Reads a manifest from a file and parses it into a `Manifest`.
     ///
     /// # Errors
@@ -138,6 +149,70 @@ pub struct Quoting {
 mod tests {
     use super::*;
     use std::path::PathBuf;
+
+    // Provide default implementations for testing other modules
+    impl Default for Manifest {
+        fn default() -> Self {
+            Self {
+                metadata: ManifestMetadata {
+                    dbt_schema_version: String::new(),
+                    dbt_version: String::new(),
+                    generated_at: String::new(),
+                    invocation_id: None,
+                    invocation_started_at: None,
+                    env: HashMap::new(),
+                    project_name: None,
+                    project_id: None,
+                    user_id: None,
+                    send_anonymous_usage_stats: None,
+                    adapter_type: None,
+                    quoting: Quoting {
+                        database: None,
+                        schema: None,
+                        identifier: None,
+                        column: None,
+                    },
+                },
+                nodes: HashMap::new(),
+                sources: HashMap::new(),
+                macros: HashMap::new(),
+                exposures: HashMap::new(),
+                metrics: HashMap::new(),
+                groups: HashMap::new(),
+                parent_map: HashMap::new(),
+                child_map: HashMap::new(),
+                group_map: HashMap::new(),
+                saved_queries: HashMap::new(),
+                semantic_models: HashMap::new(),
+                unit_tests: HashMap::new(),
+            }
+        }
+    }
+
+    // Provide default implementations for testing other modules
+    impl Default for ManifestMetadata {
+        fn default() -> Self {
+            Self {
+                dbt_schema_version: String::new(),
+                dbt_version: String::new(),
+                generated_at: String::new(),
+                invocation_id: None,
+                invocation_started_at: None,
+                env: HashMap::new(),
+                project_name: None,
+                project_id: None,
+                user_id: None,
+                send_anonymous_usage_stats: None,
+                adapter_type: None,
+                quoting: Quoting {
+                    database: None,
+                    schema: None,
+                    identifier: None,
+                    column: None,
+                },
+            }
+        }
+    }
 
     #[test]
     fn test_load_manifest_invalid_path() {

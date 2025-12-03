@@ -79,6 +79,17 @@ fn apply_source_checks<'a>(
                 // applies_to: object based filtering
                 if let Some(applies) = &rule.applies_to {
                     if !applies.source_objects.contains(&source.ruletarget()) {
+                        if verbose {
+                            println!(
+                                "{}",
+                                format!(
+                                    "Skipping rule '{}' for source '{}' due to applies_to filter",
+                                    rule.get_name(),
+                                    source.get_name()
+                                )
+                                .blue()
+                            );
+                        }
                         continue;
                     }
                 }

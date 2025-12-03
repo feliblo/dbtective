@@ -4,7 +4,7 @@
 
 #[allow(dead_code)]
 pub trait Columnable {
-    fn get_columns(&self) -> Vec<String>;
+    fn get_column_names(&self) -> Option<Vec<&String>>;
     fn get_object_type(&self) -> &str;
     fn get_object_string(&self) -> &str;
     fn get_relative_path(&self) -> Option<&String> {
