@@ -20,7 +20,7 @@ This check ensures that a dbt object's name applies to naming conventions given 
 **Configuration**
 
 - **type**: Must be `name_convention`.
-- **applies_to**: *(optional)* List of node types to check.
+- **applies_to**: *(optional)* List of dbt object types to check.
   - Default: `["models", "seeds", "snapshots", "analyses", "sources", "unit_tests", "macros", "exposures", "semantic_models"]`
   - Options: `models`, `seeds`, `snapshots`, `analyses`, `sources`, `unit_tests`, `macros`, `exposures`, `semantic_models`
 - **pattern**: The naming convention pattern to enforce. Can be one of the following presets or a custom regex pattern.

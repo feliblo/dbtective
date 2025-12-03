@@ -13,14 +13,14 @@ sidebar:
 <details open>
 <summary>has_description details</summary>
 <br>
-This check ensures that every dbt node (model, seed, source, macro, etc.) has a description provided in the configuration.
+This check ensures that every dbt objectshas a description provided in the configuration.
 
 ---
 
 **Configuration**
 
 - **type**: Must be `has_description`.
-- **applies_to**: *(optional)* List of node types to check.
+- **applies_to**: *(optional)* List of dbt object types to check.
   - Default: `["models", "seeds", "snapshots", "sources", "unit_tests", "macros", "exposures", "semantic_models"]`
   - Options: `models`, `seeds`, `snapshots`, `sources`, `unit_tests`, `macros`, `exposures`, `semantic_models`
 

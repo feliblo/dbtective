@@ -1,0 +1,61 @@
+.checks-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.checks-table th {
+    background-color: var(--hx-color-gray-100);
+    padding: 12px;
+    text-align: left;
+    border-bottom: 2px solid var(--hx-color-gray-300);
+    font-weight: 600;
+}
+
+.checks-table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--hx-color-gray-200);
+    vertical-align: top;
+}
+
+.checks-table tr:hover {
+    background-color: var(--hx-color-gray-100);
+}
+
+.check-name {
+    font-family: var(--hx-font-mono);
+    font-weight: 600;
+    color: var(--hx-color-primary-600);
+}
+
+.check-category-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: var(--hx-radius-sm);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.badge-manifest {
+    background-color: var(--hx-color-blue-100);
+    color: var(--hx-color-blue-900);
+}
+
+.badge-catalog {
+    background-color: var(--hx-color-orange-100);
+    color: var(--hx-color-orange-800);
+}
+
+/* Dark mode support */
+html.dark .checks-table th {
+    background-color: var(--hx-color-neutral-800);
+    border-bottom-color: var(--hx-color-neutral-700);
+}
+
+html.dark .checks-table td {
+    border-bottom-color: var(--hx-color-neutral-800);
+}
+
+html.dark .checks-table tr:hover {
+    background-color: var(--hx-color-neutral-800);
+}

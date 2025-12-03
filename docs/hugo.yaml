@@ -36,8 +36,15 @@ menu:
       url: "https://github.com/feliblo/dbtective"
       params:
         icon: github
+    - name: Theme Toggle
+      params:
+        type: theme-toggle
 
 params:
+  theme:
+    default: system
+    displayToggle: true
+
   navbar:
     displayTitle: true
     displayLogo: false

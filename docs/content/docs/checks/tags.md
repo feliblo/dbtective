@@ -13,14 +13,14 @@ sidebar:
 <details open>
 <summary>has_tags details</summary>
 <br>
-This check ensures that every dbt node (model, seed, source, macro, etc.) contains tags specified in the configuration. It can be configured to "all", "any" or "one_of" (maximum one) tags from a specified list.
+This check ensures that dbt objects (model, seed, source, macro, etc.) contain tags specified in the configuration. It can be configured to "all", "any" or "one_of" (maximum one) tags from a specified list.
 
 ---
 
 **Configuration**
 
 - **type**: Must be `has_tags`.
-- **applies_to**: *(optional)* List of node types to check.
+- **applies_to**: *(optional)* List of dbt object types to check.
   - Default: `["models", "seeds", "snapshots", "analyses", "sources", "exposures"]`
   - Options: `models`, `seeds`, `snapshots`, `analyses`, `sources`, `exposures`
 - **tags**: List of tags to check for.

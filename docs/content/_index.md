@@ -23,5 +23,3 @@ Keep your dbt project organized, documented, and production-ready.
 - [Getting Started](docs)
 - [About dbtective](about)
 - [GitHub Repository](https://github.com/feliblo/dbtective)
-
-**dbtective**: Shine a light on your dbt metadata!

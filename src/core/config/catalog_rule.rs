@@ -132,9 +132,9 @@ pub fn default_applies_to_for_catalog_rule(rule_type: &CatalogSpecificRuleConfig
                 RuleTarget::Analyses,
             ],
             source_objects: vec![RuleTarget::Sources],
-            unit_test_objects: vec![RuleTarget::UnitTests],
+            unit_test_objects: vec![],
             macro_objects: vec![],
-            exposure_objects: vec![RuleTarget::Exposures],
+            exposure_objects: vec![],
             semantic_model_objects: vec![],
             custom_objects: vec![],
         },
@@ -144,16 +144,11 @@ pub fn default_applies_to_for_catalog_rule(rule_type: &CatalogSpecificRuleConfig
 fn applies_to_options_for_catalog_rule(rule_type: &CatalogSpecificRuleConfig) -> AppliesTo {
     match rule_type {
         CatalogSpecificRuleConfig::ColumnsAllDocumented { .. } => AppliesTo {
-            node_objects: vec![
-                RuleTarget::Models,
-                RuleTarget::Seeds,
-                RuleTarget::Snapshots,
-                RuleTarget::Analyses,
-            ],
+            node_objects: vec![RuleTarget::Models, RuleTarget::Seeds, RuleTarget::Snapshots],
             source_objects: vec![RuleTarget::Sources],
-            unit_test_objects: vec![RuleTarget::UnitTests],
+            unit_test_objects: vec![],
             macro_objects: vec![],
-            exposure_objects: vec![RuleTarget::Exposures],
+            exposure_objects: vec![],
             semantic_model_objects: vec![],
             custom_objects: vec![],
         },
