@@ -52,6 +52,10 @@ impl CatalogNode {
             _ => Err(format!("Unknown resource type: {resource_type}")),
         }
     }
+
+    pub fn get_unique_id(&self) -> &str {
+        &self.get_base().unique_id
+    }
 }
 
 impl<'de> Deserialize<'de> for CatalogNode {

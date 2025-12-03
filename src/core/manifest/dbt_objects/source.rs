@@ -1,10 +1,16 @@
+use std::collections::HashMap;
+
 // Sources aren't being treated as nodes in dbt. They have their own structure.
 // use super::column::Column;
 // use super::{Meta, Tags};
 use super::tags::Tags;
 use crate::core::{
-    checks::common::{has_description::Descriptable, has_tags::Tagable, name_convention::NameAble},
+    checks::{
+        common::{has_description::Descriptable, has_tags::Tagable, name_convention::NameAble},
+        common_traits::Columnable,
+    },
     config::{applies_to::RuleTarget, includes_excludes::IncludeExcludable},
+    manifest::dbt_objects::column::Column,
 };
 use serde::Deserialize;
 // use std::collections::HashMap;
@@ -33,7 +39,7 @@ pub struct Source {
     // pub loaded_at_query: Option<String>,
     // pub freshness: Option<serde_json::Value>,
     // pub external: Option<serde_json::Value>,
-    // pub columns: Option<HashMap<String, Column>>,
+    pub columns: Option<HashMap<String, Column>>,
     // pub meta: Option<Meta>,
     // pub source_meta: Option<Meta>,
     pub tags: Option<Tags>,
@@ -127,6 +133,27 @@ impl Tagable for Source {
         self.get_name()
     }
 
+    fn get_relative_path(&self) -> Option<&String> {
+        Some(self.get_relative_path())
+    }
+}
+
+impl Columnable for Source {
+    fn get_column_names(&self) -> Option<Vec<&String>> {
+        self.columns
+            .as_ref()
+            .map(|cols| cols.keys().collect::<Vec<&String>>())
+    }
+
+    fn get_object_type(&self) -> &str {
+        Self::get_object_type()
+    }
+
+    fn get_object_string(&self) -> &str {
+        self.get_name()
+    }
+
+    // Paths are only available in manifest objects
     fn get_relative_path(&self) -> Option<&String> {
         Some(self.get_relative_path())
     }

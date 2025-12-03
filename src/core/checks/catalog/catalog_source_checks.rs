@@ -18,8 +18,8 @@ use owo_colors::OwoColorize;
 /// Furthermore, filtering of e.g. `applies_to` is also done at the function level (1 level below)
 /// This is because again the tests apply to both manifest and catalog objects,
 ///
-/// Catalogs only contain 2 object types: nodes and sources. So we handle both cases there.
-pub fn apply_catalog_node_checks<'a>(
+/// Catalogs only contain 2 object types: nodes and sources. We handle source cases here.
+pub fn apply_catalog_source_checks<'a>(
     config: &'a Config,
     catalog: &'a Catalog,
     manifest: &'a Manifest,
@@ -28,7 +28,7 @@ pub fn apply_catalog_node_checks<'a>(
     #[allow(unused_mut)]
     let mut results = Vec::new();
 
-    for catalog_node in catalog.nodes.values() {
+    for catalog_source in catalog.sources.values() {
         if let Some(catalog_tests) = &config.catalog_tests {
             for rule in catalog_tests {
                 if verbose {
@@ -37,19 +37,22 @@ pub fn apply_catalog_node_checks<'a>(
                         format!("Applying catalog rule: {}", rule.get_name()).blue()
                     );
                 }
-                let matching_manifest_node = manifest.get_node(&catalog_node.get_base().unique_id);
-                // `applies_to` filtering has to be don from the manifest node side (only it contains the path)
+                let matching_manifest_source = manifest.get_source(catalog_source.get_unique_id());
 
-                if let Some(manifest_node) = matching_manifest_node {
+                // `applies_to` filtering has to be done from the manifest source side (only it contains the path)
+                if let Some(manifest_source) = matching_manifest_source {
                     if let Some(applies) = &rule.applies_to {
-                        if !applies.node_objects.contains(&manifest_node.ruletarget()) {
+                        if !applies
+                            .source_objects
+                            .contains(&manifest_source.ruletarget())
+                        {
                             if verbose {
                                 println!(
                                     "{}",
                                     format!(
-                                        "Skipping rule '{}' for catalog node '{}' due to applies_to filter",
+                                        "Skipping rule '{}' for catalog source '{}' due to applies_to filter",
                                         rule.get_name(),
-                                        catalog_node.get_name()
+                                        catalog_source.get_name()
                                     )
                                     .blue()
                                 );
@@ -60,10 +63,10 @@ pub fn apply_catalog_node_checks<'a>(
 
                     // APPLY THE RULE HERE
                     let check_row_result = match &rule.rule {
-                        CatalogSpecificRuleConfig::ColumnsAreAllDocumented {} => {
+                        CatalogSpecificRuleConfig::ColumnsAllDocumented {} => {
                             check_columns_are_documented(
-                                catalog_node,
-                                manifest_node,
+                                catalog_source,
+                                manifest_source,
                                 rule,
                                 manifest,
                                 verbose,
@@ -75,14 +78,14 @@ pub fn apply_catalog_node_checks<'a>(
                         results.push((check_row, &rule.severity));
                     }
                 } else {
-                    // Mismatch between catalog and manifest nodes
+                    // Mismatch between catalog and manifest  sources
                     println!(
                         "{}",
                         format!(
-                            "Warning: No matching manifest node found for catalog node '{}'.\n\
+                            "Warning: No matching manifest source found for catalog source '{}'.\n\
                             This may be due to differences in execution runs, renamed or moved files.\n\
                             Consider removing 'catalog.json' and regenerating it using 'dbt docs generate'.",
-                            catalog_node.get_name()
+                            catalog_source.get_name()
                         )
                         .yellow()
                     );

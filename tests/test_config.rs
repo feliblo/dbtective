@@ -138,7 +138,7 @@ manifest_tests:
 fn test_applies_to_catalog_tests() {
     let config = r#"
 catalog_tests:
-  - type: "columns_are_all_documented"
+  - type: "columns_all_documented"
     severity: "warning"
     applies_to: ["models", "snapshots"]
 "#;
@@ -352,7 +352,7 @@ manifest_tests:
 fn test_catalog_has_description_rule() {
     let config = r#"
 catalog_tests:
-  - type: "columns_are_all_documented"
+  - type: "columns_all_documented"
     severity: "error"
     name: "catalog_models_must_have_description"
     applies_to: ["models"]
@@ -374,7 +374,7 @@ catalog_tests:
 fn test_catalog_name_convention_rule() {
     let config = r#"
 catalog_tests:
-  - type: "columns_are_all_documented"
+  - type: "columns_all_documented"
     severity: "warning"
     pattern: "^dim_|^fct_"
     applies_to: ["models"]
@@ -391,10 +391,10 @@ catalog_tests:
 fn test_catalog_multiple_rules() {
     let config = r#"
 catalog_tests:
-  - type: "columns_are_all_documented"
+  - type: "columns_all_documented"
     severity: "error"
     applies_to: ["models"]
-  - type: "columns_are_all_documented"
+  - type: "columns_all_documented"
     severity: "warning"
     pattern: "^int_"
     applies_to: ["models"]
@@ -410,7 +410,7 @@ catalog_tests:
 fn test_catalog_includes_excludes() {
     let config = r#"
 catalog_tests:
-  - type: "columns_are_all_documented"
+  - type: "columns_all_documented"
     severity: "error"
     applies_to: ["models"]
     includes: ["marts/*"]
@@ -429,7 +429,7 @@ catalog_tests:
 fn test_catalog_default_severity() {
     let config = r#"
 catalog_tests:
-  - type: "columns_are_all_documented"
+  - type: "columns_all_documented"
     applies_to: ["models"]
 "#;
     let temp_file = create_temp_config(config);
@@ -455,10 +455,10 @@ manifest_tests:
     applies_to: ["models"]
 
 catalog_tests:
-  - type: "columns_are_all_documented"
+  - type: "columns_all_documented"
     severity: "error"
     applies_to: ["models", "snapshots"]
-  - type: "columns_are_all_documented"
+  - type: "columns_all_documented"
     severity: "warning"
     pattern: "^dim_|^fct_"
     applies_to: ["models"]
@@ -504,7 +504,7 @@ manifest_tests:
 fn test_only_catalog_tests() {
     let config = r#"
 catalog_tests:
-  - type: "columns_are_all_documented"
+  - type: "columns_all_documented"
     severity: "error"
     applies_to: ["models"]
 "#;
