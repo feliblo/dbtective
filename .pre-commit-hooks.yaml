@@ -1,0 +1,6 @@
+- id: dbtective-run
+  name: dbtective run
+  entry: dbtective
+  args: ["run"]
+  language: system
+  pass_filenames: false
