@@ -32,4 +32,4 @@ docs:
 
 
 bump:
-    cz bump --increment PATCH --files-only
+    cz bump --increment PATCH

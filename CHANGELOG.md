@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+## v0.1.10 (2025-12-04)
+
+### Feat
+
+- **checks**: add all_columns_are_documented for nodes
+
+### Fix
+
+- **checks**: fix applies_to for columns_are_documented and clippy warnings
+
+### Refactor
+
+- **checks**: change filename to other_manifest_object_checks.rs
+- **catalog**: preparation for catalog based tests
+- **run**: refactor run to use unwrap_or_exit helper
+
 #### [v0.1.9](https://github.com/feliblo/dbtective/compare/v0.1.8...v0.1.9)
 
 > 2 December 2025
