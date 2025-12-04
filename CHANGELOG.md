@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+## v0.1.11 (2025-12-04)
+
+### Feat
+
+- **actions**: add github actions runner
+
 ## v0.1.10 (2025-12-04)
 
 ### Feat
