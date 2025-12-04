@@ -3,11 +3,6 @@
 
 NEW_VERSION=$CZ_PRE_NEW_VERSION
 
-# Update pre-commit version
-sed -i "s/rev: v[0-9]\+\.[0-9]\+\.[0-9]\+/rev: v$NEW_VERSION/" README.md
-
-# Update GitHub Actions version in README
-sed -i "s/uses: feliblo\/dbtective@v[0-9]\+\.[0-9]\+\.[0-9]\+/uses: feliblo\/dbtective@v$NEW_VERSION/" README.md
 
 # Update GitHub Actions version in docs
 sed -i "s/uses: feliblo\/dbtective@v[0-9]\+\.[0-9]\+\.[0-9]\+/uses: feliblo\/dbtective@v$NEW_VERSION/" docs/content/docs/running/github-actions.md

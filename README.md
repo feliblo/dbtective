@@ -49,6 +49,22 @@ brew install feliblo/tap/dbtective
 </details>
 
 <details>
+<summary>GitHub Actions</summary>
+
+Run dbtective as part of your CI/CD pipeline. See the [GitHub Actions documentation](https://feliblo.github.io/dbtective/docs/github-actions) for more details.
+
+```yaml
+- uses: feliblo/dbtective@v0.1.10
+  with:
+    config-file: "dbtective.yml"
+    entry-point: "."
+    only-manifest: "true"
+    verbose: "false"
+```
+
+</details>
+
+<details>
 <summary>prek/pre-commit</summary>
 
 Prerequisite: `dbtective` is installed via one of the methods above.

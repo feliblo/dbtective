@@ -1,0 +1,72 @@
+name: "dbtective"
+description: "A Rust-powered detective for dbt metadata best practices."
+inputs:
+  config-file:
+    default: "dbtective.yml"
+    description: "Location of the YML config file."
+    required: false
+  entry-point:
+    default: "."
+    description: "Path to dbt project root directory."
+    required: false
+  manifest-file:
+    default: "target/manifest.json"
+    description: "Path to dbt manifest file."
+    required: false
+  verbose:
+    default: "false"
+    description: "Run dbtective in verbose mode."
+    required: false
+  only-manifest:
+    default: "false"
+    description: "Run only manifest-based checks, skip catalog checks."
+    required: false
+  version:
+    default: "latest"
+    description: "Version of dbtective to install (e.g., 'v0.1.10' or 'latest')."
+    required: false
+
+runs:
+  using: composite
+
+  steps:
+    - name: Install dbtective
+      shell: bash
+      run: |
+        if [[ "${{ inputs.version }}" == "latest" ]]; then
+          curl --proto '=https' --tlsv1.2 -LsSf https://github.com/feliblo/dbtective/releases/latest/download/dbtective-installer.sh | sh
+        else
+          curl --proto '=https' --tlsv1.2 -LsSf https://github.com/feliblo/dbtective/releases/download/${{ inputs.version }}/dbtective-installer.sh | sh
+        fi
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+    - name: Assemble `verbose` parameter
+      id: assemble-verbose-param
+      shell: bash
+      run: |
+        if [[ "${{ inputs.verbose }}" == "false" ]]; then
+          echo "verbose-param=" >> $GITHUB_OUTPUT
+        else
+          echo "verbose-param=-v" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Assemble `only-manifest` parameter
+      id: assemble-only-manifest-param
+      shell: bash
+      run: |
+        if [[ "${{ inputs.only-manifest }}" == "false" ]]; then
+          echo "only-manifest-param=" >> $GITHUB_OUTPUT
+        else
+          echo "only-manifest-param=--only-manifest" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Run dbtective
+      id: run-dbtective
+      shell: bash
+      run: |
+        dbtective run \
+          --entry-point ${{ inputs.entry-point }} \
+          --config-file ${{ inputs.config-file }} \
+          --manifest-file ${{ inputs.manifest-file }} \
+          ${{ steps.assemble-only-manifest-param.outputs.only-manifest-param }} \
+          ${{ steps.assemble-verbose-param.outputs.verbose-param }}

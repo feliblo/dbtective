@@ -25,6 +25,7 @@ Run dbtective analysis on your dbt project.
 **Usage:** `dbtective run [OPTIONS]`
 
 **Important:**
+
 - Before running manifest-based checks, run `dbt compile`, `dbt build`, `dbt run` or any of the [documented commands](https://docs.getdbt.com/reference/artifacts/manifest-json) to ensure `manifest.json` is up to date.
 - Before running catalog-based checks, run `dbt docs generate` to ensure `catalog.json` is available.
 
@@ -104,12 +105,14 @@ dbtective run || exit 1
 ## Troubleshooting
 
 **Manifest not found:**
+
 ```bash
 dbt compile
 dbtective run --manifest-file path/to/manifest.json
 ```
 
 **Configuration file not found:**
+
 ```bash
 ls -la dbtective.yml
 dbtective run --entry-point path/to/dbt/project
