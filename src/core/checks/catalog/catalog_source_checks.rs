@@ -25,74 +25,72 @@ pub fn apply_catalog_source_checks<'a>(
     manifest: &'a Manifest,
     verbose: bool,
 ) -> Vec<(RuleResult, &'a Severity)> {
-    #[allow(unused_mut)]
-    let mut results = Vec::new();
+    let Some(catalog_tests) = &config.catalog_tests else {
+        return Vec::new();
+    };
 
-    for catalog_source in catalog.sources.values() {
-        if let Some(catalog_tests) = &config.catalog_tests {
-            for rule in catalog_tests {
-                if verbose {
-                    println!(
-                        "{}",
-                        format!("Applying catalog rule: {}", rule.get_name()).blue()
-                    );
-                }
-                let matching_manifest_source = manifest.get_source(catalog_source.get_unique_id());
+    catalog
+        .sources
+        .values()
+        .flat_map(|catalog_source| catalog_tests.iter().map(move |rule| (catalog_source, rule)))
+        .fold(Vec::new(), |mut acc, (catalog_source, rule)| {
+            if verbose {
+                println!(
+                    "{}",
+                    format!("Applying catalog rule: {}", rule.get_name()).blue()
+                );
+            }
 
-                // `applies_to` filtering has to be done from the manifest source side (only it contains the path)
-                if let Some(manifest_source) = matching_manifest_source {
-                    if let Some(applies) = &rule.applies_to {
-                        if !applies
-                            .source_objects
-                            .contains(&manifest_source.ruletarget())
-                        {
-                            if verbose {
-                                println!(
-                                    "{}",
-                                    format!(
-                                        "Skipping rule '{}' for catalog source '{}' due to applies_to filter",
-                                        rule.get_name(),
-                                        catalog_source.get_name()
-                                    )
-                                    .blue()
-                                );
-                            }
-                            continue;
-                        }
-                    }
+            let Some(manifest_source) = manifest.get_source(catalog_source.get_unique_id()) else {
+                // Mismatch between catalog and manifest sources
+                println!(
+                    "{}",
+                    format!(
+                        "Warning: No matching manifest source found for catalog source '{}'.\n\
+                        This may be due to differences in execution runs, renamed or moved files.\n\
+                        Consider removing 'catalog.json' and regenerating it using 'dbt docs generate'.",
+                        catalog_source.get_name()
+                    )
+                    .yellow()
+                );
+                return acc;
+            };
 
-                    // APPLY THE RULE HERE
-                    let check_row_result = match &rule.rule {
-                        CatalogSpecificRuleConfig::ColumnsAllDocumented {} => {
-                            check_columns_are_documented(
-                                catalog_source,
-                                manifest_source,
-                                rule,
-                                manifest,
-                                verbose,
+            // `applies_to` filtering has to be done from the manifest source side (only it contains the path)
+            if let Some(applies) = &rule.applies_to {
+                if !applies.source_objects.contains(&manifest_source.ruletarget()) {
+                    if verbose {
+                        println!(
+                            "{}",
+                            format!(
+                                "Skipping rule '{}' for catalog source '{}' due to applies_to filter",
+                                rule.get_name(),
+                                catalog_source.get_name()
                             )
-                        }
-                    };
-
-                    if let Some(check_row) = check_row_result {
-                        results.push((check_row, &rule.severity));
+                            .blue()
+                        );
                     }
-                } else {
-                    // Mismatch between catalog and manifest  sources
-                    println!(
-                        "{}",
-                        format!(
-                            "Warning: No matching manifest source found for catalog source '{}'.\n\
-                            This may be due to differences in execution runs, renamed or moved files.\n\
-                            Consider removing 'catalog.json' and regenerating it using 'dbt docs generate'.",
-                            catalog_source.get_name()
-                        )
-                        .yellow()
-                    );
+                    return acc;
                 }
             }
-        }
-    }
 
-    results
+            // APPLY THE RULE HERE
+            let check_row_result = match &rule.rule {
+                CatalogSpecificRuleConfig::ColumnsAllDocumented {} => {
+                    check_columns_are_documented(
+                        catalog_source,
+                        manifest_source,
+                        rule,
+                        manifest,
+                        verbose,
+                    )
+                }
+            };
+
+            if let Some(check_row) = check_row_result {
+                acc.push((check_row, &rule.severity));
+            }
+
+            acc
+        })
 }

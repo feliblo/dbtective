@@ -11,6 +11,10 @@ use crate::{
 };
 use owo_colors::OwoColorize;
 
+// I don't like the duplication of code in this. But otherwise complex trait functions would be needed.
+// It can be refactored later if needed, but honestly I need a bit more Rust experience to do that well.
+// If you read this and have ideas, please open an issue or PR, I'm curious to see better implementations!
+
 /// Applies macro checks to the manifest.
 /// # Errors
 /// Returns an error if a rule has invalid configuration (e.g., invalid regex pattern).
@@ -20,22 +24,18 @@ pub fn apply_manifest_object_checks<'a>(
     config: &'a Config,
     verbose: bool,
 ) -> anyhow::Result<Vec<(RuleResult, &'a Severity)>> {
-    let mut results = Vec::new();
-    let mut source_results = apply_source_checks(manifest, config, verbose)?;
-    results.append(&mut source_results);
-
-    let mut macro_results = apply_macro_checks(manifest, config, verbose)?;
-    results.append(&mut macro_results);
-
-    let mut exposure_results = apply_exposure_checks(manifest, config, verbose)?;
-    results.append(&mut exposure_results);
-
-    let mut semantic_model_results = apply_semantic_model_checks(manifest, config, verbose)?;
-    results.append(&mut semantic_model_results);
-    let mut unit_test_results = apply_unit_test_checks(manifest, config, verbose)?;
-    results.append(&mut unit_test_results);
-    Ok(results)
+    Ok([
+        apply_source_checks(manifest, config, verbose)?,
+        apply_macro_checks(manifest, config, verbose)?,
+        apply_exposure_checks(manifest, config, verbose)?,
+        apply_semantic_model_checks(manifest, config, verbose)?,
+        apply_unit_test_checks(manifest, config, verbose)?,
+    ]
+    .into_iter()
+    .flatten()
+    .collect())
 }
+
 /// Applies source checks to the manifest.
 ///
 /// # Errors
@@ -45,10 +45,12 @@ fn apply_source_checks<'a>(
     config: &'a Config,
     verbose: bool,
 ) -> anyhow::Result<Vec<(RuleResult, &'a Severity)>> {
-    let mut results = Vec::new();
-    if let Some(manifest_tests) = &config.manifest_tests {
-        for source in manifest.sources.values() {
-            for rule in manifest_tests {
+    let results = if let Some(manifest_tests) = &config.manifest_tests {
+        manifest
+            .sources
+            .values()
+            .flat_map(|source| manifest_tests.iter().map(move |rule| (source, rule)))
+            .try_fold(Vec::new(), |mut acc, (source, rule)| -> anyhow::Result<_> {
                 if verbose {
                     println!(
                         "{}",
@@ -61,7 +63,7 @@ fn apply_source_checks<'a>(
                     );
                 }
 
-                if !should_run_test(&source, rule.includes.as_ref(), rule.excludes.as_ref()) {
+                if !should_run_test(source, rule.includes.as_ref(), rule.excludes.as_ref()) {
                     if verbose {
                         println!(
                             "{}",
@@ -73,10 +75,9 @@ fn apply_source_checks<'a>(
                             .blue()
                         );
                     }
-                    continue;
+                    return Ok(acc);
                 }
 
-                // applies_to: object based filtering
                 if let Some(applies) = &rule.applies_to {
                     if !applies.source_objects.contains(&source.ruletarget()) {
                         if verbose {
@@ -90,7 +91,7 @@ fn apply_source_checks<'a>(
                                 .blue()
                             );
                         }
-                        continue;
+                        return Ok(acc);
                     }
                 }
 
@@ -106,11 +107,14 @@ fn apply_source_checks<'a>(
                 };
 
                 if let Some(check_row) = check_row_result {
-                    results.push((check_row, &rule.severity));
+                    acc.push((check_row, &rule.severity));
                 }
-            }
-        }
-    }
+
+                Ok(acc)
+            })?
+    } else {
+        Vec::new()
+    };
 
     Ok(results)
 }
@@ -123,60 +127,69 @@ fn apply_macro_checks<'a>(
     config: &'a Config,
     verbose: bool,
 ) -> anyhow::Result<Vec<(RuleResult, &'a Severity)>> {
-    let mut results = Vec::new();
-    if let Some(manifest_tests) = &config.manifest_tests {
-        for macro_obj in manifest.macros.values() {
-            for rule in manifest_tests {
-                if verbose {
-                    println!(
-                        "{}",
-                        format!(
-                            "Applying rule '{}' to macro '{}'",
-                            rule.get_name(),
-                            macro_obj.get_name()
-                        )
-                        .blue()
-                    );
-                }
-                if !should_run_test(&macro_obj, rule.includes.as_ref(), rule.excludes.as_ref()) {
+    let results = if let Some(manifest_tests) = &config.manifest_tests {
+        manifest
+            .macros
+            .values()
+            .flat_map(|macro_obj| manifest_tests.iter().map(move |rule| (macro_obj, rule)))
+            .try_fold(
+                Vec::new(),
+                |mut acc, (macro_obj, rule)| -> anyhow::Result<_> {
                     if verbose {
                         println!(
                             "{}",
                             format!(
-                                "Skipping rule '{}' for macro '{}' due to include/exclude filters",
+                                "Applying rule '{}' to macro '{}'",
                                 rule.get_name(),
                                 macro_obj.get_name()
                             )
                             .blue()
                         );
                     }
-                    continue;
-                }
 
-                // applies_to: object based filtering
-                if let Some(applies) = &rule.applies_to {
-                    if !applies.macro_objects.contains(&macro_obj.ruletarget()) {
-                        continue;
+                    if !should_run_test(macro_obj, rule.includes.as_ref(), rule.excludes.as_ref()) {
+                        if verbose {
+                            println!(
+                                "{}",
+                                format!(
+                                "Skipping rule '{}' for macro '{}' due to include/exclude filters",
+                                rule.get_name(),
+                                macro_obj.get_name()
+                            )
+                                .blue()
+                            );
+                        }
+                        return Ok(acc);
                     }
-                }
 
-                let check_row_result = match &rule.rule {
-                    ManifestSpecificRuleConfig::HasDescription {} => {
-                        has_description(macro_obj, rule)
+                    if let Some(applies) = &rule.applies_to {
+                        if !applies.macro_objects.contains(&macro_obj.ruletarget()) {
+                            return Ok(acc);
+                        }
                     }
-                    ManifestSpecificRuleConfig::NameConvention { pattern } => {
-                        check_name_convention(macro_obj, rule, pattern)?
-                    }
-                    // Macros do not have tags & Don't implement TagAble
-                    ManifestSpecificRuleConfig::HasTags { .. } => continue,
-                };
 
-                if let Some(check_row) = check_row_result {
-                    results.push((check_row, &rule.severity));
-                }
-            }
-        }
-    }
+                    let check_row_result = match &rule.rule {
+                        ManifestSpecificRuleConfig::HasDescription {} => {
+                            has_description(macro_obj, rule)
+                        }
+                        ManifestSpecificRuleConfig::NameConvention { pattern } => {
+                            check_name_convention(macro_obj, rule, pattern)?
+                        }
+                        // Macros do not have tags & Don't implement TagAble
+                        ManifestSpecificRuleConfig::HasTags { .. } => return Ok(acc),
+                    };
+
+                    if let Some(check_row) = check_row_result {
+                        acc.push((check_row, &rule.severity));
+                    }
+
+                    Ok(acc)
+                },
+            )?
+    } else {
+        Vec::new()
+    };
+
     Ok(results)
 }
 
@@ -188,10 +201,12 @@ fn apply_exposure_checks<'a>(
     config: &'a Config,
     verbose: bool,
 ) -> anyhow::Result<Vec<(RuleResult, &'a Severity)>> {
-    let mut results = Vec::new();
-    if let Some(manifest_tests) = &config.manifest_tests {
-        for exposure in manifest.exposures.values() {
-            for rule in manifest_tests {
+    let results = if let Some(manifest_tests) = &config.manifest_tests {
+        manifest
+            .exposures
+            .values()
+            .flat_map(|exposure| manifest_tests.iter().map(move |rule| (exposure, rule)))
+            .try_fold(Vec::new(), |mut acc, (exposure, rule)| -> anyhow::Result<_> {
                 if verbose {
                     println!(
                         "{}",
@@ -203,25 +218,25 @@ fn apply_exposure_checks<'a>(
                         .blue()
                     );
                 }
-                if !should_run_test(&exposure, rule.includes.as_ref(), rule.excludes.as_ref()) {
+
+                if !should_run_test(exposure, rule.includes.as_ref(), rule.excludes.as_ref()) {
                     if verbose {
                         println!(
                             "{}",
                             format!(
-                            "Skipping rule '{}' for exposure '{}' due to include/exclude filters",
-                            rule.get_name(),
-                            exposure.get_name()
-                        )
+                                "Skipping rule '{}' for exposure '{}' due to include/exclude filters",
+                                rule.get_name(),
+                                exposure.get_name()
+                            )
                             .blue()
                         );
                     }
-                    continue;
+                    return Ok(acc);
                 }
 
-                // applies_to: object based filtering
                 if let Some(applies) = &rule.applies_to {
                     if !applies.exposure_objects.contains(&exposure.ruletarget()) {
-                        continue;
+                        return Ok(acc);
                     }
                 }
 
@@ -239,11 +254,14 @@ fn apply_exposure_checks<'a>(
                 };
 
                 if let Some(check_row) = check_row_result {
-                    results.push((check_row, &rule.severity));
+                    acc.push((check_row, &rule.severity));
                 }
-            }
-        }
-    }
+
+                Ok(acc)
+            })?
+    } else {
+        Vec::new()
+    };
 
     Ok(results)
 }
@@ -257,10 +275,12 @@ fn apply_semantic_model_checks<'a>(
     config: &'a Config,
     verbose: bool,
 ) -> anyhow::Result<Vec<(RuleResult, &'a Severity)>> {
-    let mut results = Vec::new();
-    if let Some(manifest_tests) = &config.manifest_tests {
-        for sm in manifest.semantic_models.values() {
-            for rule in manifest_tests {
+    let results = if let Some(manifest_tests) = &config.manifest_tests {
+        manifest
+            .semantic_models
+            .values()
+            .flat_map(|sm| manifest_tests.iter().map(move |rule| (sm, rule)))
+            .try_fold(Vec::new(), |mut acc, (sm, rule)| -> anyhow::Result<_> {
                 if verbose {
                     println!(
                         "{}",
@@ -272,25 +292,25 @@ fn apply_semantic_model_checks<'a>(
                         .blue()
                     );
                 }
-                if !should_run_test(&sm, rule.includes.as_ref(), rule.excludes.as_ref()) {
+
+                if !should_run_test(sm, rule.includes.as_ref(), rule.excludes.as_ref()) {
                     if verbose {
                         println!(
-                        "{}",
-                        format!(
-                            "Skipping rule '{}' for semantic model '{}' due to include/exclude filters",
-                            rule.get_name(),
-                            sm.get_name()
-                        )
-                        .blue()
-                    );
+                            "{}",
+                            format!(
+                                "Skipping rule '{}' for semantic model '{}' due to include/exclude filters",
+                                rule.get_name(),
+                                sm.get_name()
+                            )
+                            .blue()
+                        );
                     }
-                    continue;
+                    return Ok(acc);
                 }
 
-                // applies_to: object based filtering
                 if let Some(applies) = &rule.applies_to {
                     if !applies.semantic_model_objects.contains(&sm.ruletarget()) {
-                        continue;
+                        return Ok(acc);
                     }
                 }
 
@@ -300,15 +320,19 @@ fn apply_semantic_model_checks<'a>(
                         check_name_convention(sm, rule, pattern)?
                     }
                     // Semantic Models do not have tags & Don't implement TagAble
-                    ManifestSpecificRuleConfig::HasTags { .. } => continue,
+                    ManifestSpecificRuleConfig::HasTags { .. } => return Ok(acc),
                 };
 
                 if let Some(check_row) = check_row_result {
-                    results.push((check_row, &rule.severity));
+                    acc.push((check_row, &rule.severity));
                 }
-            }
-        }
-    }
+
+                Ok(acc)
+            })?
+    } else {
+        Vec::new()
+    };
+
     Ok(results)
 }
 
@@ -320,10 +344,12 @@ fn apply_unit_test_checks<'a>(
     config: &'a Config,
     verbose: bool,
 ) -> anyhow::Result<Vec<(RuleResult, &'a Severity)>> {
-    let mut results = Vec::new();
-    for ut in manifest.unit_tests.values() {
-        if let Some(manifest_tests) = &config.manifest_tests {
-            for rule in manifest_tests {
+    let results = if let Some(manifest_tests) = &config.manifest_tests {
+        manifest
+            .unit_tests
+            .values()
+            .flat_map(|ut| manifest_tests.iter().map(move |rule| (ut, rule)))
+            .try_fold(Vec::new(), |mut acc, (ut, rule)| -> anyhow::Result<_> {
                 if verbose {
                     println!(
                         "{}",
@@ -335,25 +361,25 @@ fn apply_unit_test_checks<'a>(
                         .blue()
                     );
                 }
-                if !should_run_test(&ut, rule.includes.as_ref(), rule.excludes.as_ref()) {
+
+                if !should_run_test(ut, rule.includes.as_ref(), rule.excludes.as_ref()) {
                     if verbose {
                         println!(
                             "{}",
                             format!(
-                            "Skipping rule '{}' for unit test '{}' due to include/exclude filters",
-                            rule.get_name(),
-                            ut.get_name()
-                        )
+                                "Skipping rule '{}' for unit test '{}' due to include/exclude filters",
+                                rule.get_name(),
+                                ut.get_name()
+                            )
                             .blue()
                         );
                     }
-                    continue;
+                    return Ok(acc);
                 }
 
-                // applies_to: object based filtering
                 if let Some(applies) = &rule.applies_to {
                     if !applies.unit_test_objects.contains(&ut.ruletarget()) {
-                        continue;
+                        return Ok(acc);
                     }
                 }
 
@@ -363,15 +389,18 @@ fn apply_unit_test_checks<'a>(
                         check_name_convention(ut, rule, pattern)?
                     }
                     // Unit Tests do not have tags & Don't implement TagAble
-                    ManifestSpecificRuleConfig::HasTags { .. } => continue,
+                    ManifestSpecificRuleConfig::HasTags { .. } => return Ok(acc),
                 };
 
                 if let Some(check_row) = check_row_result {
-                    results.push((check_row, &rule.severity));
+                    acc.push((check_row, &rule.severity));
                 }
-            }
-        }
-    }
+
+                Ok(acc)
+            })?
+    } else {
+        Vec::new()
+    };
 
     Ok(results)
 }
