@@ -1,3 +1,5 @@
+use crate::core::manifest::dbt_objects::nodes::test::Test;
+
 use super::dbt_objects::{Node, Source};
 use super::{Exposure, Group, Macro, Metric, SavedQuery, SemanticModel, UnitTest};
 use anyhow::{Context, Result};
@@ -65,6 +67,23 @@ impl Manifest {
     #[allow(dead_code)]
     pub fn get_source(&self, unique_id: &str) -> Option<&Source> {
         self.sources.get(unique_id)
+    }
+
+    // Get tests attached to a specific parent node
+    pub fn get_tests_by_parent(&self, parent_unique_id: &str) -> Vec<&Test> {
+        self.nodes
+            .iter()
+            .filter_map(|(_, node)| {
+                if let Node::Test(test) = node {
+                    if let Some(attached_node) = &test.attached_node {
+                        if attached_node == parent_unique_id {
+                            return Some(test);
+                        }
+                    }
+                }
+                None
+            })
+            .collect()
     }
 
     /// Reads a manifest from a file and parses it into a `Manifest`.

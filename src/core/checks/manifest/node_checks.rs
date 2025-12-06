@@ -1,6 +1,6 @@
 use crate::cli::table::RuleResult;
 use crate::core::checks::common::{
-    check_name_convention, child_map::is_not_orphaned, has_description, has_tags,
+    check_name_convention, child_map::is_not_orphaned, has_description, has_tags, has_unique_test,
 };
 use crate::core::config::manifest_rule::ManifestSpecificRuleConfig;
 
@@ -70,6 +70,9 @@ pub fn apply_node_checks<'a>(
                     } => has_tags(node, rule, required_tags, criteria),
                     ManifestSpecificRuleConfig::IsNotOrphaned { allowed_references } => {
                         is_not_orphaned(node, rule, allowed_references, manifest)
+                    }
+                    ManifestSpecificRuleConfig::HasUniqueTest { allowed_test_names } => {
+                        has_unique_test(node, rule, manifest, allowed_test_names)
                     }
                 };
 

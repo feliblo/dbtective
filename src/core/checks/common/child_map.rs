@@ -1,7 +1,7 @@
 use crate::{
     cli::table::RuleResult,
     core::{
-        config::{check_config::OrphanedReferenceType, manifest_rule::ManifestRule},
+        config::{check_config_options::OrphanedReferenceType, manifest_rule::ManifestRule},
         manifest::Manifest,
     },
 };
@@ -13,7 +13,6 @@ pub trait ChildMappable {
     fn get_relative_path(&self) -> Option<&String> {
         None
     }
-    fn get_unique_id(&self) -> &String;
     fn get_childs<'a>(&self, manifest: &'a Manifest) -> Vec<&'a str>;
 }
 
@@ -24,12 +23,7 @@ pub fn is_not_orphaned<T: ChildMappable>(
     manifest: &Manifest,
 ) -> Option<RuleResult> {
     let children = tagable.get_childs(manifest);
-    println!(
-        "Children of {}: {:?}",
-        tagable.get_object_string(),
-        children
-    );
-    // Early return if no children (not referenced at all)
+
     if children.is_empty() {
         let error_msg = format!(
             "{} is orphaned (not referenced by any other object)",
@@ -80,14 +74,15 @@ pub fn is_not_orphaned<T: ChildMappable>(
 #[cfg(test)]
 mod tests {
     use crate::core::checks::common::child_map::{is_not_orphaned, ChildMappable};
-    use crate::core::config::check_config::{default_allowed_references, OrphanedReferenceType};
+    use crate::core::config::check_config_options::{
+        default_allowed_references, OrphanedReferenceType,
+    };
     use crate::core::config::manifest_rule::ManifestRule;
     use crate::core::config::manifest_rule::ManifestSpecificRuleConfig::IsNotOrphaned;
     use crate::core::config::severity::Severity;
     use crate::core::manifest::Manifest;
 
     struct MockTaggable {
-        unique_id: String,
         object_type: String,
         object_string: String,
         childs: Vec<&'static str>,
@@ -100,9 +95,7 @@ mod tests {
         fn get_object_string(&self) -> &str {
             &self.object_string
         }
-        fn get_unique_id(&self) -> &String {
-            &self.unique_id
-        }
+
         fn get_childs<'a>(&self, _manifest: &'a Manifest) -> Vec<&'a str> {
             self.childs.clone()
         }
@@ -111,7 +104,6 @@ mod tests {
     #[test]
     fn test_orphaned_no_children() {
         let taggable = MockTaggable {
-            unique_id: "model.test_model".to_string(),
             object_type: "model".to_string(),
             object_string: "test_model".to_string(),
             childs: vec![],
@@ -140,7 +132,6 @@ mod tests {
     #[test]
     fn test_is_not_orphaned_with_allowed_child() {
         let taggable = MockTaggable {
-            unique_id: "model.test_model".to_string(),
             object_type: "model".to_string(),
             object_string: "test_model".to_string(),
             childs: vec!["model.child_model"],
@@ -168,7 +159,6 @@ mod tests {
     #[test]
     fn test_orphaned_non_allowed_object() {
         let taggable = MockTaggable {
-            unique_id: "model.test_model".to_string(),
             object_type: "model".to_string(),
             object_string: "test_model".to_string(),
             childs: vec!["seed.child_model"],

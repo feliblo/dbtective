@@ -4,6 +4,7 @@ use super::{Analysis, HookNode, Model, Seed, Snapshot, SqlOperation, Test};
 use crate::core::checks::common::child_map::ChildMappable;
 use crate::core::checks::common::has_description::Descriptable;
 use crate::core::checks::common::has_tags::Tagable;
+use crate::core::checks::common::has_unique_test::TestAble;
 use crate::core::checks::common::name_convention::NameAble;
 use crate::core::checks::common_traits::Columnable;
 use crate::core::config::applies_to::RuleTarget;
@@ -72,6 +73,10 @@ impl Node {
             Self::HookNode(h) => &h.base,
             Self::SqlOperation(s) => &s.base,
         }
+    }
+
+    pub const fn get_unique_id(&self) -> &String {
+        &self.get_base().unique_id
     }
 
     pub const fn get_package_name(&self) -> &String {
@@ -291,15 +296,6 @@ impl ChildMappable for Node {
         }
     }
 
-    fn get_unique_id(&self) -> &String {
-        match self {
-            Self::Model(_) | Self::Seed(_) => &(*self).get_base().unique_id,
-            _ => {
-                unreachable!("IsNotOrphaned should only be called on models, seeds, and snapshots")
-            }
-        }
-    }
-
     fn get_childs<'a>(&self, manifest: &'a Manifest) -> Vec<&'a str> {
         let unique_id = self.get_unique_id();
         manifest
@@ -307,5 +303,23 @@ impl ChildMappable for Node {
             .get(unique_id)
             .map(|children| children.iter().map(String::as_str).collect())
             .unwrap_or_default()
+    }
+}
+
+impl TestAble for Node {
+    fn get_unique_id(&self) -> &String {
+        self.get_unique_id()
+    }
+
+    fn get_object_string(&self) -> &String {
+        self.get_name()
+    }
+
+    fn get_object_type(&self) -> String {
+        self.get_object_type().to_string()
+    }
+
+    fn get_relative_path(&self) -> Option<&String> {
+        Some(&self.get_base().original_file_path)
     }
 }

@@ -8,7 +8,7 @@ use crate::core::{
     checks::{
         common::{
             child_map::ChildMappable, has_description::Descriptable, has_tags::Tagable,
-            name_convention::NameAble,
+            has_unique_test::TestAble, name_convention::NameAble,
         },
         common_traits::Columnable,
     },
@@ -179,10 +179,6 @@ impl ChildMappable for Source {
         Some(self.get_relative_path())
     }
 
-    fn get_unique_id(&self) -> &String {
-        self.get_unique_id()
-    }
-
     fn get_childs<'a>(&self, manifest: &'a Manifest) -> Vec<&'a str> {
         let unique_id = self.get_unique_id();
         manifest
@@ -190,5 +186,23 @@ impl ChildMappable for Source {
             .get(unique_id)
             .map(|children| children.iter().map(String::as_str).collect())
             .unwrap_or_default()
+    }
+}
+
+impl TestAble for Source {
+    fn get_unique_id(&self) -> &String {
+        self.get_unique_id()
+    }
+
+    fn get_object_string(&self) -> &String {
+        self.get_name()
+    }
+
+    fn get_object_type(&self) -> String {
+        Self::get_object_type().to_string()
+    }
+
+    fn get_relative_path(&self) -> Option<&String> {
+        Some(self.get_relative_path())
     }
 }

@@ -25,6 +25,7 @@ pub enum OrphanedReferenceType {
     Exposures,
     UnitTests,
 }
+
 pub fn default_allowed_references() -> Vec<OrphanedReferenceType> {
     vec![OrphanedReferenceType::Models]
 }
@@ -38,4 +39,12 @@ impl OrphanedReferenceType {
             Self::UnitTests => resource_type == "unit_test",
         }
     }
+}
+
+pub fn default_allowed_test_names() -> Vec<String> {
+    vec![
+        "dbt_expectations.expect_compound_columns_to_be_unique".to_string(),
+        "dbt_utils.unique_combination_of_columns".to_string(),
+        "unique".to_string(),
+    ]
 }

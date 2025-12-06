@@ -4,5 +4,5 @@ pub mod parse_config;
 pub mod severity;
 pub use parse_config::Config;
 pub mod catalog_rule;
-pub mod check_config;
+pub mod check_config_options;
 pub mod manifest_rule;
