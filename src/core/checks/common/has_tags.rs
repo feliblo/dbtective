@@ -55,7 +55,7 @@ pub fn check_tags<T: Tagable>(
         Some(RuleResult::new(
             &rule.severity,
             tagable.get_object_type(),
-            "has_tags",
+            rule.get_name(),
             error_msg,
             tagable.get_relative_path().cloned(),
         ))

@@ -1,4 +1,6 @@
-use crate::core::checks::common::{check_name_convention, has_description, has_tags};
+use crate::core::checks::common::{
+    check_name_convention, has_description, has_tags, is_not_orphaned,
+};
 use crate::{
     cli::table::RuleResult,
     core::{
@@ -104,6 +106,9 @@ fn apply_source_checks<'a>(
                         required_tags,
                         criteria,
                     } => has_tags(source, rule, required_tags, criteria),
+                    ManifestSpecificRuleConfig::IsNotOrphaned { allowed_references } => {
+                        is_not_orphaned(source, rule, allowed_references, manifest)
+                    }
                 };
 
                 if let Some(check_row) = check_row_result {
@@ -175,8 +180,9 @@ fn apply_macro_checks<'a>(
                         ManifestSpecificRuleConfig::NameConvention { pattern } => {
                             check_name_convention(macro_obj, rule, pattern)?
                         }
-                        // Macros do not have tags & Don't implement TagAble
-                        ManifestSpecificRuleConfig::HasTags { .. } => return Ok(acc),
+                        // These can't be implemented for macros
+                        ManifestSpecificRuleConfig::HasTags { .. }
+                        | ManifestSpecificRuleConfig::IsNotOrphaned { .. } => return Ok(acc),
                     };
 
                     if let Some(check_row) = check_row_result {
@@ -251,6 +257,8 @@ fn apply_exposure_checks<'a>(
                         required_tags,
                         criteria,
                     } => has_tags(exposure, rule, required_tags, criteria),
+                    // These can't be implemented for exposures
+                    ManifestSpecificRuleConfig::IsNotOrphaned { .. } => return Ok(acc),
                 };
 
                 if let Some(check_row) = check_row_result {
@@ -319,8 +327,9 @@ fn apply_semantic_model_checks<'a>(
                     ManifestSpecificRuleConfig::NameConvention { pattern } => {
                         check_name_convention(sm, rule, pattern)?
                     }
-                    // Semantic Models do not have tags & Don't implement TagAble
-                    ManifestSpecificRuleConfig::HasTags { .. } => return Ok(acc),
+                    // These can't be implemented for semantic models
+                    ManifestSpecificRuleConfig::HasTags { .. }  |
+                    ManifestSpecificRuleConfig::IsNotOrphaned { .. } => return Ok(acc),
                 };
 
                 if let Some(check_row) = check_row_result {
@@ -389,7 +398,8 @@ fn apply_unit_test_checks<'a>(
                         check_name_convention(ut, rule, pattern)?
                     }
                     // Unit Tests do not have tags & Don't implement TagAble
-                    ManifestSpecificRuleConfig::HasTags { .. } => return Ok(acc),
+                    ManifestSpecificRuleConfig::HasTags { .. } |
+                    ManifestSpecificRuleConfig::IsNotOrphaned { .. } => return Ok(acc),
                 };
 
                 if let Some(check_row) = check_row_result {

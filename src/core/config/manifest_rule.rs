@@ -4,7 +4,9 @@ use serde::Deserialize;
 
 use crate::core::config::applies_to::AppliesTo;
 use crate::core::config::applies_to::RuleTarget;
-use crate::core::config::check_config::HasTagsCriteria;
+use crate::core::config::check_config::{
+    default_allowed_references, HasTagsCriteria, OrphanedReferenceType,
+};
 use crate::core::config::severity::Severity;
 use strum_macros::{AsRefStr, EnumIter, EnumString};
 
@@ -20,6 +22,10 @@ pub enum ManifestSpecificRuleConfig {
         required_tags: Vec<String>,
         #[serde(default)]
         criteria: HasTagsCriteria,
+    },
+    IsNotOrphaned {
+        #[serde(default = "default_allowed_references")]
+        allowed_references: Vec<OrphanedReferenceType>,
     },
 }
 
@@ -186,6 +192,16 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             semantic_model_objects: vec![],
             custom_objects: vec![],
         },
+        // is_not_orphaned
+        ManifestSpecificRuleConfig::IsNotOrphaned { .. } => AppliesTo {
+            node_objects: vec![],
+            source_objects: vec![RuleTarget::Sources],
+            unit_test_objects: vec![],
+            macro_objects: vec![],
+            exposure_objects: vec![],
+            semantic_model_objects: vec![],
+            custom_objects: vec![],
+        },
     }
 }
 
@@ -229,6 +245,16 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
             unit_test_objects: vec![RuleTarget::UnitTests],
             macro_objects: vec![],
             exposure_objects: vec![RuleTarget::Exposures],
+            semantic_model_objects: vec![],
+            custom_objects: vec![],
+        },
+        // is_not_orphaned
+        ManifestSpecificRuleConfig::IsNotOrphaned { .. } => AppliesTo {
+            node_objects: vec![RuleTarget::Models, RuleTarget::Seeds],
+            source_objects: vec![RuleTarget::Sources],
+            unit_test_objects: vec![],
+            macro_objects: vec![],
+            exposure_objects: vec![],
             semantic_model_objects: vec![],
             custom_objects: vec![],
         },

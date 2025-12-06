@@ -44,6 +44,12 @@ Here you can find an overview of all possible checks. Use the filter below to fi
       <td>Check if objects have the required tags. Ensure proper categorization for selective execution.</td>
       <td style="font-size: 12px; color: #666;">tags, metadata, categorization, organization</td>
     </tr>
+    <tr class="check-item" data-keywords="orphaned unused references dependencies lineage data assets cleanup" data-category="manifest">
+      <td><a href="/docs/checks/is_not_orphaned" class="check-name">is_not_orphaned</a></td>
+      <td><span class="check-category-badge badge-manifest">Manifest</span></td>
+      <td>Check if objects are referenced by other objects. Identifies orphaned data assets that may be unused or underutilized.</td>
+      <td style="font-size: 12px; color: #666;">orphaned, unused, references, dependencies, lineage</td>
+    </tr>
   </tbody>
 </table>
 

@@ -6,11 +6,14 @@ use std::collections::HashMap;
 use super::tags::Tags;
 use crate::core::{
     checks::{
-        common::{has_description::Descriptable, has_tags::Tagable, name_convention::NameAble},
+        common::{
+            child_map::ChildMappable, has_description::Descriptable, has_tags::Tagable,
+            name_convention::NameAble,
+        },
         common_traits::Columnable,
     },
     config::{applies_to::RuleTarget, includes_excludes::IncludeExcludable},
-    manifest::dbt_objects::column::Column,
+    manifest::{dbt_objects::column::Column, Manifest},
 };
 use serde::Deserialize;
 // use std::collections::HashMap;
@@ -27,7 +30,7 @@ pub struct Source {
     pub package_name: String,
     // pub path: String,
     pub original_file_path: String,
-    // pub unique_id: String,
+    pub unique_id: String,
     // pub fqn: Vec<String>,
     // pub source_name: String,
     // pub loader: String,
@@ -73,6 +76,10 @@ impl Source {
 
     pub const fn get_relative_path(&self) -> &String {
         &self.original_file_path
+    }
+
+    pub const fn get_unique_id(&self) -> &String {
+        &self.unique_id
     }
 }
 
@@ -156,5 +163,32 @@ impl Columnable for Source {
     // Paths are only available in manifest objects
     fn get_relative_path(&self) -> Option<&String> {
         Some(self.get_relative_path())
+    }
+}
+
+impl ChildMappable for Source {
+    fn get_object_type(&self) -> &str {
+        Self::get_object_type()
+    }
+
+    fn get_object_string(&self) -> &str {
+        self.get_name()
+    }
+
+    fn get_relative_path(&self) -> Option<&String> {
+        Some(self.get_relative_path())
+    }
+
+    fn get_unique_id(&self) -> &String {
+        self.get_unique_id()
+    }
+
+    fn get_childs<'a>(&self, manifest: &'a Manifest) -> Vec<&'a str> {
+        let unique_id = self.get_unique_id();
+        manifest
+            .child_map
+            .get(unique_id)
+            .map(|children| children.iter().map(String::as_str).collect())
+            .unwrap_or_default()
     }
 }

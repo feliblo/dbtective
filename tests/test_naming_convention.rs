@@ -1,10 +1,12 @@
 mod common;
 
 use common::TestEnvironment;
+use dbtective::core::{
+    checks::manifest::node_checks::apply_node_checks, config::Config, manifest::Manifest,
+};
 
 #[test]
-#[allow(clippy::too_many_lines)]
-fn test_description_and_naming_convention_pass() {
+fn test_invalid_regex_pattern_fails() {
     let manifest = r#"{
   "metadata": {
     "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
@@ -40,7 +42,7 @@ fn test_description_and_naming_convention_pass() {
         "tags": []
       },
       "tags": [],
-      "description": "",
+      "description": "Order fact table",
       "columns": {},
       "meta": {},
       "group": null,
@@ -82,37 +84,30 @@ fn test_description_and_naming_convention_pass() {
 
     let config = r#"
 manifest_tests:
-  - name: "models_must_have_description"
-    type: "has_description"
-    severity: "error"
-    description: "All models must have a description."
-    applies_to:
-      - "models"
   - name: "naming_convention"
     type: "name_convention"
-    severity: "warning"
+    severity: "error"
     description: "All nodes must follow the naming convention."
-    pattern: "pascal_case"
+    pattern: "(*invalid_regex"
+    applies_to:
+      - "models"
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_checks(false);
 
-    // Error 1: orders model missing description (fail)
-    assert_eq!(findings.len(), 2);
-    assert_eq!(findings[0].0.severity, "FAIL");
-    assert_eq!(findings[0].0.object_type, "Model");
-    assert_eq!(findings[0].0.rule_name, "models_must_have_description");
-    assert!(findings[0].0.message.contains("orders"));
-    assert!(findings[0].0.message.contains("missing a description"));
+    // The check should fail with an error about invalid regex
+    let manifest = Manifest::from_file(&env.manifest_path).expect("Failed to load manifest");
+    let config = Config::from_file(&env.config_path).expect("Failed to load config");
 
-    // Error 2: orders model name not in PascalCase (warn)
-    assert_eq!(findings[1].0.severity, "WARN");
-    assert_eq!(findings[1].0.object_type, "Model");
-    assert_eq!(findings[1].0.rule_name, "naming_convention");
-    assert!(findings[1].0.message.contains("orders"));
-    assert!(findings[1].0.message.contains("PascalCase"));
+    let result = apply_node_checks(&manifest, &config, false);
+    assert!(
+        result.is_err(),
+        "Expected error for invalid regex pattern, but got success"
+    );
 
-    let exit_code = env.run_and_show_results(false);
-    assert_eq!(exit_code, 1);
+    let error_message = result.unwrap_err().to_string();
+    assert!(
+        error_message.contains("Invalid regex") || error_message.contains("regex"),
+        "Error message should mention regex issue, got: {error_message}"
+    );
 }

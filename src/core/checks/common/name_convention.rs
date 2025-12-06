@@ -38,7 +38,7 @@ pub fn check_name_convention<T: NameAble>(
         Ok(Some(RuleResult::new(
             &rule.severity,
             NameAble::get_object_type(item),
-            rule.rule.as_str(),
+            rule.get_name(),
             format!(
                 "{} does not follow the {} naming convention.",
                 NameAble::get_object_string(item),

@@ -1,12 +1,14 @@
 use super::super::column::Column;
 use super::super::{Meta, Tags};
 use super::{Analysis, HookNode, Model, Seed, Snapshot, SqlOperation, Test};
+use crate::core::checks::common::child_map::ChildMappable;
 use crate::core::checks::common::has_description::Descriptable;
 use crate::core::checks::common::has_tags::Tagable;
 use crate::core::checks::common::name_convention::NameAble;
 use crate::core::checks::common_traits::Columnable;
 use crate::core::config::applies_to::RuleTarget;
 use crate::core::config::includes_excludes::IncludeExcludable;
+use crate::core::manifest::Manifest;
 use serde::Deserialize;
 use std::collections::HashMap;
 
@@ -261,4 +263,49 @@ pub struct CompiledNodeFields {
     // #[serde(rename = "_pre_injected_sql")]
     // pub pre_injected_sql: Option<String>,
     // pub contract: Option<serde_json::Value>,
+}
+
+impl ChildMappable for Node {
+    fn get_object_type(&self) -> &str {
+        match self {
+            Self::Model(_) | Self::Seed(_) => self.get_object_type(),
+            _ => {
+                unreachable!("IsNotOrphaned should only be called on models, seeds, and snapshots")
+            }
+        }
+    }
+
+    fn get_object_string(&self) -> &str {
+        match self {
+            Self::Model(_) | Self::Seed(_) => self.get_name(),
+            _ => {
+                unreachable!("IsNotOrphaned should only be called on models, seeds, and snapshots")
+            }
+        }
+    }
+
+    fn get_relative_path(&self) -> Option<&String> {
+        match &self {
+            Self::Model(_) | Self::Seed(_) => Some(&self.get_base().original_file_path),
+            _ => None,
+        }
+    }
+
+    fn get_unique_id(&self) -> &String {
+        match self {
+            Self::Model(_) | Self::Seed(_) => &(*self).get_base().unique_id,
+            _ => {
+                unreachable!("IsNotOrphaned should only be called on models, seeds, and snapshots")
+            }
+        }
+    }
+
+    fn get_childs<'a>(&self, manifest: &'a Manifest) -> Vec<&'a str> {
+        let unique_id = self.get_unique_id();
+        manifest
+            .child_map
+            .get(unique_id)
+            .map(|children| children.iter().map(String::as_str).collect())
+            .unwrap_or_default()
+    }
 }

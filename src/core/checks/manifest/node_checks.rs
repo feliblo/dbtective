@@ -1,5 +1,7 @@
 use crate::cli::table::RuleResult;
-use crate::core::checks::common::{check_name_convention, has_description, has_tags};
+use crate::core::checks::common::{
+    check_name_convention, child_map::is_not_orphaned, has_description, has_tags,
+};
 use crate::core::config::manifest_rule::ManifestSpecificRuleConfig;
 
 use crate::core::config::severity::Severity;
@@ -66,6 +68,9 @@ pub fn apply_node_checks<'a>(
                         required_tags,
                         criteria,
                     } => has_tags(node, rule, required_tags, criteria),
+                    ManifestSpecificRuleConfig::IsNotOrphaned { allowed_references } => {
+                        is_not_orphaned(node, rule, allowed_references, manifest)
+                    }
                 };
 
                 if let Some(check_row) = check_row_result {
