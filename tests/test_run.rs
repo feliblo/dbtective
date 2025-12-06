@@ -140,6 +140,7 @@ impl TestEnvironment {
             &findings,
             verbose,
             self.temp_dir.path().to_str().unwrap(),
+            false,
             None,
         )
     }

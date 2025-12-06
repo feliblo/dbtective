@@ -40,6 +40,7 @@ Run dbtective analysis on your dbt project.
 | `--only-manifest` | | `true` | Run only manifest checks |
 | `--only-catalog` | | `false` | Run only catalog checks |
 | `--pyproject-file <PATH>` | `-p` | `pyproject.toml` | Path to pyproject.toml (reserved for future use) |
+| `--disable-hyperlinks` | | `false` | Disable file hyperlinks in the output |
 
 ### `init`
 

@@ -71,6 +71,9 @@ pub struct RunOptions {
 
     #[arg(long, default_value_t = false)]
     pub only_manifest: bool,
+
+    #[arg(long, default_value_t = false)]
+    pub disable_hyperlinks: bool,
 }
 
 #[cfg(test)]
@@ -131,6 +134,7 @@ mod tests {
             config_file: "dbtective.toml".to_string(),
             catalog_file: "target/catalog.json".to_string(),
             only_manifest: false,
+            disable_hyperlinks: false,
         };
         let debug_str = format!("{options:?}");
         assert!(debug_str.contains("RunOptions"));
@@ -149,6 +153,7 @@ mod tests {
             config_file: "dbtective.toml".to_string(),
             catalog_file: "target/catalog.json".to_string(),
             only_manifest: false,
+            disable_hyperlinks: false,
         };
 
         assert_eq!(options.entry_point, "./");
@@ -164,6 +169,7 @@ mod tests {
             config_file: "custom_config.toml".to_string(),
             catalog_file: "custom_catalog.json".to_string(),
             only_manifest: true,
+            disable_hyperlinks: false,
         };
 
         assert_eq!(options.entry_point, "/path/to/project");
@@ -195,6 +201,7 @@ mod tests {
                 config_file: String::new(),
                 catalog_file: "target/catalog.json".to_string(),
                 only_manifest: false,
+                disable_hyperlinks: false,
             },
         };
 
@@ -241,6 +248,7 @@ mod tests {
                     catalog_file: "target/catalog.json".to_string(),
                     config_file: "config.toml".to_string(),
                     only_manifest: false,
+                    disable_hyperlinks: false,
                 },
             }),
         };
@@ -273,6 +281,7 @@ mod tests {
                 config_file: "dbtective.toml".to_string(),
                 catalog_file: "target/catalog.json".to_string(),
                 only_manifest: false,
+                disable_hyperlinks: false,
             },
         };
         let debug_str = format!("{run_cmd:?}");

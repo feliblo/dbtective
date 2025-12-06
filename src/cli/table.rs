@@ -1,9 +1,11 @@
 use owo_colors::OwoColorize;
+use tabled::settings::object::Columns;
 use tabled::Tabled;
 use tabled::{
-    settings::{location::Locator, Color, Style},
+    settings::{location::Locator, Color, Style, Width},
     Table,
 };
+use terminal_size::{terminal_size, Height as TerminalHeight, Width as TerminalWidth};
 
 use crate::core::config::severity::Severity;
 use std::path::Path;
@@ -45,6 +47,7 @@ pub fn show_results_and_exit(
     results: &[(RuleResult, &Severity)],
     verbose: bool,
     entry_point: &str,
+    disable_hyperlinks: bool,
     duration: Option<std::time::Duration>,
 ) -> i32 {
     let mut exit_code = 0;
@@ -55,10 +58,14 @@ pub fn show_results_and_exit(
         );
     } else {
         println!("\n {}", "🕵️  dbtective detected some issues:".red());
-        let clickable_rows: Vec<RuleResult> = results
+        let table_rows: Vec<RuleResult> = results
             .iter()
             .map(|(row, _)| {
                 let mut new_row = row.clone();
+                if disable_hyperlinks {
+                    return new_row;
+                }
+                // Add file hyperlinks to message if relative_path is present
                 if let Some(ref path) = row.relative_path {
                     let entry = entry_point.trim_end_matches('/');
                     let path = path.trim_start_matches('/');
@@ -80,11 +87,15 @@ pub fn show_results_and_exit(
             })
             .collect();
 
-        let mut table = Table::new(&clickable_rows);
+        let (width, _) = get_terminal_size();
+        let mut table = Table::new(&table_rows);
+        let message_column_width = if width > 60 { width - 60 } else { width / 2 };
         table
             .with(Style::modern())
             .modify(Locator::content("FAIL"), Color::BG_RED)
-            .modify(Locator::content("WARN"), Color::BG_YELLOW);
+            .modify(Locator::content("WARN"), Color::BG_YELLOW)
+            .modify(Columns::last(), Width::wrap(message_column_width));
+
         println!("{table}");
         exit_code = 1;
     }
@@ -96,4 +107,13 @@ pub fn show_results_and_exit(
     }
 
     exit_code
+}
+
+fn get_terminal_size() -> (usize, usize) {
+    if let Some((TerminalWidth(width), TerminalHeight(height))) = terminal_size() {
+        (width as usize, height as usize)
+    } else {
+        // Default size for non-interactive environments (like CI/GitHub Actions)
+        (140, 40)
+    }
 }

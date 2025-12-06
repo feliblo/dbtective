@@ -60,6 +60,7 @@ runs:
           echo "only-manifest-param=--only-manifest" >> $GITHUB_OUTPUT
         fi
 
+    # Always run with --disable-hyperlinks, since otherwise nothing renders properly in GitHub Actions
     - name: Run dbtective
       id: run-dbtective
       shell: bash
@@ -68,5 +69,6 @@ runs:
           --entry-point ${{ inputs.entry-point }} \
           --config-file ${{ inputs.config-file }} \
           --manifest-file ${{ inputs.manifest-file }} \
+          --disable-hyperlinks \
           ${{ steps.assemble-only-manifest-param.outputs.only-manifest-param }} \
           ${{ steps.assemble-verbose-param.outputs.verbose-param }}
