@@ -25,71 +25,72 @@ pub fn apply_catalog_node_checks<'a>(
     manifest: &'a Manifest,
     verbose: bool,
 ) -> Vec<(RuleResult, &'a Severity)> {
-    #[allow(unused_mut)]
-    let mut results = Vec::new();
+    let Some(catalog_tests) = &config.catalog_tests else {
+        return Vec::new();
+    };
 
-    for catalog_node in catalog.nodes.values() {
-        if let Some(catalog_tests) = &config.catalog_tests {
-            for rule in catalog_tests {
-                if verbose {
-                    println!(
-                        "{}",
-                        format!("Applying catalog rule: {}", rule.get_name()).blue()
-                    );
-                }
-                let matching_manifest_node = manifest.get_node(catalog_node.get_unique_id());
+    catalog
+        .nodes
+        .values()
+        .flat_map(|catalog_node| catalog_tests.iter().map(move |rule| (catalog_node, rule)))
+        .fold(Vec::new(), |mut acc, (catalog_node, rule)| {
+            if verbose {
+                println!(
+                    "{}",
+                    format!("Applying catalog rule: {}", rule.get_name()).blue()
+                );
+            }
 
-                // `applies_to` filtering has to be don from the manifest node side (only it contains the path)
-                if let Some(manifest_node) = matching_manifest_node {
-                    if let Some(applies) = &rule.applies_to {
-                        if !applies.node_objects.contains(&manifest_node.ruletarget()) {
-                            if verbose {
-                                println!(
-                                    "{}",
-                                    format!(
-                                        "Skipping rule '{}' for catalog node '{}' due to applies_to filter",
-                                        rule.get_name(),
-                                        catalog_node.get_name()
-                                    )
-                                    .blue()
-                                );
-                            }
-                            continue;
-                        }
-                    }
+            let Some(manifest_node) = manifest.get_node(catalog_node.get_unique_id()) else {
+                // Mismatch between catalog and manifest nodes
+                println!(
+                    "{}",
+                    format!(
+                        "Warning: No matching manifest node found for catalog node '{}'.\n\
+                        This may be due to differences in execution runs, renamed or moved files.\n\
+                        Consider removing 'catalog.json' and regenerating it using 'dbt docs generate'.",
+                        catalog_node.get_name()
+                    )
+                    .yellow()
+                );
+                return acc;
+            };
 
-                    // APPLY THE RULE HERE
-                    let check_row_result = match &rule.rule {
-                        CatalogSpecificRuleConfig::ColumnsAllDocumented {} => {
-                            check_columns_are_documented(
-                                catalog_node,
-                                manifest_node,
-                                rule,
-                                manifest,
-                                verbose,
+            // `applies_to` filtering has to be done from the manifest node side (only it contains the path)
+            if let Some(applies) = &rule.applies_to {
+                if !applies.node_objects.contains(&manifest_node.ruletarget()) {
+                    if verbose {
+                        println!(
+                            "{}",
+                            format!(
+                                "Skipping rule '{}' for catalog node '{}' due to applies_to filter",
+                                rule.get_name(),
+                                catalog_node.get_name()
                             )
-                        }
-                    };
-
-                    if let Some(check_row) = check_row_result {
-                        results.push((check_row, &rule.severity));
+                            .blue()
+                        );
                     }
-                } else {
-                    // Mismatch between catalog and manifest nodes
-                    println!(
-                        "{}",
-                        format!(
-                            "Warning: No matching manifest node found for catalog node '{}'.\n\
-                            This may be due to differences in execution runs, renamed or moved files.\n\
-                            Consider removing 'catalog.json' and regenerating it using 'dbt docs generate'.",
-                            catalog_node.get_name()
-                        )
-                        .yellow()
-                    );
+                    return acc;
                 }
             }
-        }
-    }
 
-    results
+            // APPLY THE RULE HERE
+            let check_row_result = match &rule.rule {
+                CatalogSpecificRuleConfig::ColumnsAllDocumented {} => {
+                    check_columns_are_documented(
+                        catalog_node,
+                        manifest_node,
+                        rule,
+                        manifest,
+                        verbose,
+                    )
+                }
+            };
+
+            if let Some(check_row) = check_row_result {
+                acc.push((check_row, &rule.severity));
+            }
+
+            acc
+        })
 }

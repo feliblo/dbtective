@@ -16,61 +16,68 @@ pub fn apply_node_checks<'a>(
     config: &'a Config,
     verbose: bool,
 ) -> anyhow::Result<Vec<(RuleResult, &'a Severity)>> {
-    let mut results = Vec::new();
-
-    if let Some(manifest_tests) = &config.manifest_tests {
-        for node in manifest.nodes.values() {
-            for rule in manifest_tests {
-                if let Some(applies) = &rule.applies_to {
-                    if !should_run_test(&node, rule.includes.as_ref(), rule.excludes.as_ref()) {
-                        if verbose {
-                            println!(
-                                "{}",
-                                format!(
-                                    "Skipping rule '{}' for node '{}' due to include/exclude filters",
-                                    rule.get_name(),
-                                    node.get_name()
-                                )
-                                .blue()
-                            );
-                        }
-                        continue;
+    let results = if let Some(manifest_tests) = &config.manifest_tests {
+        manifest
+            .nodes
+            .values()
+            .flat_map(|node| manifest_tests.iter().map(move |rule| (node, rule)))
+            .try_fold(Vec::new(), |mut acc, (node, rule)| -> anyhow::Result<_> {
+                // `applies_to` filtering has to be done from the manifest node side (only it contains the path)
+                let Some(applies) = rule.applies_to.as_ref() else {
+                    return Ok(acc);
+                };
+                if !should_run_test(node, rule.includes.as_ref(), rule.excludes.as_ref()) {
+                    if verbose {
+                        println!(
+                            "{}",
+                            format!(
+                                "Skipping rule '{}' for node '{}' due to include/exclude filters",
+                                rule.get_name(),
+                                node.get_name()
+                            )
+                            .blue()
+                        );
                     }
-
-                    // applies_to: object based filtering
-                    if applies.node_objects.contains(&node.ruletarget()) {
-                        if verbose {
-                            println!(
-                                "{}",
-                                format!(
-                                    "Applying rule '{}' to node '{}'",
-                                    rule.get_name(),
-                                    node.get_name()
-                                )
-                                .blue()
-                            );
-                        }
-                        let check_row_result = match &rule.rule {
-                            ManifestSpecificRuleConfig::HasDescription {} => {
-                                has_description(node, rule)
-                            }
-                            ManifestSpecificRuleConfig::NameConvention { pattern } => {
-                                check_name_convention(node, rule, pattern)?
-                            }
-                            ManifestSpecificRuleConfig::HasTags {
-                                required_tags,
-                                criteria,
-                            } => has_tags(node, rule, required_tags, criteria),
-                        };
-
-                        if let Some(check_row) = check_row_result {
-                            results.push((check_row, &rule.severity));
-                        }
-                    }
+                    return Ok(acc);
                 }
-            }
-        }
-    }
+
+                if !applies.node_objects.contains(&node.ruletarget()) {
+                    return Ok(acc);
+                }
+
+                if verbose {
+                    println!(
+                        "{}",
+                        format!(
+                            "Applying rule '{}' to node '{}'",
+                            rule.get_name(),
+                            node.get_name()
+                        )
+                        .blue()
+                    );
+                }
+
+                let check_row_result = match &rule.rule {
+                    ManifestSpecificRuleConfig::HasDescription {} => has_description(node, rule),
+                    ManifestSpecificRuleConfig::NameConvention { pattern } => {
+                        check_name_convention(node, rule, pattern)?
+                    }
+                    ManifestSpecificRuleConfig::HasTags {
+                        required_tags,
+                        criteria,
+                    } => has_tags(node, rule, required_tags, criteria),
+                };
+
+                if let Some(check_row) = check_row_result {
+                    acc.push((check_row, &rule.severity));
+                }
+
+                Ok(acc)
+            })?
+    } else {
+        // No manifest tests defined in the configuration => no results
+        Vec::new()
+    };
 
     Ok(results)
 }
