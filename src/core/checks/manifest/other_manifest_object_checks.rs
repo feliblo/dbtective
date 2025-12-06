@@ -1,5 +1,5 @@
 use crate::core::checks::common::{
-    check_name_convention, has_description, has_tags, is_not_orphaned,
+    check_name_convention, has_description, has_tags, has_unique_test, is_not_orphaned,
 };
 use crate::{
     cli::table::RuleResult,
@@ -109,6 +109,9 @@ fn apply_source_checks<'a>(
                     ManifestSpecificRuleConfig::IsNotOrphaned { allowed_references } => {
                         is_not_orphaned(source, rule, allowed_references, manifest)
                     }
+                    ManifestSpecificRuleConfig::HasUniqueTest { allowed_test_names } => {
+                        has_unique_test(source, rule, manifest, allowed_test_names)
+                    }
                 };
 
                 if let Some(check_row) = check_row_result {
@@ -182,7 +185,8 @@ fn apply_macro_checks<'a>(
                         }
                         // These can't be implemented for macros
                         ManifestSpecificRuleConfig::HasTags { .. }
-                        | ManifestSpecificRuleConfig::IsNotOrphaned { .. } => return Ok(acc),
+                        | ManifestSpecificRuleConfig::IsNotOrphaned { .. }
+                        | ManifestSpecificRuleConfig::HasUniqueTest { .. } => return Ok(acc),
                     };
 
                     if let Some(check_row) = check_row_result {
@@ -258,7 +262,8 @@ fn apply_exposure_checks<'a>(
                         criteria,
                     } => has_tags(exposure, rule, required_tags, criteria),
                     // These can't be implemented for exposures
-                    ManifestSpecificRuleConfig::IsNotOrphaned { .. } => return Ok(acc),
+                    ManifestSpecificRuleConfig::IsNotOrphaned { .. } |
+                    ManifestSpecificRuleConfig::HasUniqueTest { .. } => return Ok(acc),
                 };
 
                 if let Some(check_row) = check_row_result {
@@ -329,7 +334,8 @@ fn apply_semantic_model_checks<'a>(
                     }
                     // These can't be implemented for semantic models
                     ManifestSpecificRuleConfig::HasTags { .. }  |
-                    ManifestSpecificRuleConfig::IsNotOrphaned { .. } => return Ok(acc),
+                    ManifestSpecificRuleConfig::IsNotOrphaned { .. } |
+                    ManifestSpecificRuleConfig::HasUniqueTest { .. }   => return Ok(acc),
                 };
 
                 if let Some(check_row) = check_row_result {
@@ -399,7 +405,8 @@ fn apply_unit_test_checks<'a>(
                     }
                     // Unit Tests do not have tags & Don't implement TagAble
                     ManifestSpecificRuleConfig::HasTags { .. } |
-                    ManifestSpecificRuleConfig::IsNotOrphaned { .. } => return Ok(acc),
+                    ManifestSpecificRuleConfig::IsNotOrphaned { .. } |
+                    ManifestSpecificRuleConfig::HasUniqueTest { .. } => return Ok(acc),
                 };
 
                 if let Some(check_row) = check_row_result {

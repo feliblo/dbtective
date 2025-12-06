@@ -4,8 +4,8 @@ use serde::Deserialize;
 
 use crate::core::config::applies_to::AppliesTo;
 use crate::core::config::applies_to::RuleTarget;
-use crate::core::config::check_config::{
-    default_allowed_references, HasTagsCriteria, OrphanedReferenceType,
+use crate::core::config::check_config_options::{
+    default_allowed_references, default_allowed_test_names, HasTagsCriteria, OrphanedReferenceType,
 };
 use crate::core::config::severity::Severity;
 use strum_macros::{AsRefStr, EnumIter, EnumString};
@@ -26,6 +26,10 @@ pub enum ManifestSpecificRuleConfig {
     IsNotOrphaned {
         #[serde(default = "default_allowed_references")]
         allowed_references: Vec<OrphanedReferenceType>,
+    },
+    HasUniqueTest {
+        #[serde(default = "default_allowed_test_names")]
+        allowed_test_names: Vec<String>,
     },
 }
 
@@ -96,7 +100,6 @@ impl ManifestRule {
                 .collect()
         });
     }
-
     /// Validate that the `applies_to` targets are valid for the specific rule
     /// # Errors
     /// Returns an error if any target in `applies_to` is not valid for the rule type
@@ -202,6 +205,15 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             semantic_model_objects: vec![],
             custom_objects: vec![],
         },
+        ManifestSpecificRuleConfig::HasUniqueTest { .. } => AppliesTo {
+            node_objects: vec![RuleTarget::Models, RuleTarget::Seeds, RuleTarget::Snapshots],
+            source_objects: vec![],
+            unit_test_objects: vec![],
+            macro_objects: vec![],
+            exposure_objects: vec![],
+            semantic_model_objects: vec![],
+            custom_objects: vec![],
+        },
     }
 }
 
@@ -251,6 +263,15 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
         // is_not_orphaned
         ManifestSpecificRuleConfig::IsNotOrphaned { .. } => AppliesTo {
             node_objects: vec![RuleTarget::Models, RuleTarget::Seeds],
+            source_objects: vec![RuleTarget::Sources],
+            unit_test_objects: vec![],
+            macro_objects: vec![],
+            exposure_objects: vec![],
+            semantic_model_objects: vec![],
+            custom_objects: vec![],
+        },
+        ManifestSpecificRuleConfig::HasUniqueTest { .. } => AppliesTo {
+            node_objects: vec![RuleTarget::Models, RuleTarget::Seeds, RuleTarget::Snapshots],
             source_objects: vec![RuleTarget::Sources],
             unit_test_objects: vec![],
             macro_objects: vec![],

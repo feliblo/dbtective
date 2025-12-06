@@ -8,13 +8,19 @@ manifest_tests:
     type: "name_convention"
     description: "All nodes must follow the naming convention."
     pattern: "snake_case"
-  # - name: "models_must_have_tags"
-  #   type: "has_tags"
-  #   severity: "error"
-  #   required_tags:
-  #     - "tag1"
-  #   applies_to:
-  #     - "models"
+
+  - name: "has_unique_test"
+    type: "has_unique_test"
+    description: "All models must have at least one unique test."
+    severity: "error"
+
+  - name: "models_must_have_tags"
+    type: "has_tags"
+    severity: "error"
+    required_tags:
+      - "tag1"
+    applies_to:
+      - "models"
 
 catalog_tests:
   - name: "columns_all_documented"

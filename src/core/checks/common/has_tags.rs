@@ -1,7 +1,7 @@
 use crate::{
     cli::table::RuleResult,
     core::{
-        config::{check_config::HasTagsCriteria, manifest_rule::ManifestRule},
+        config::{check_config_options::HasTagsCriteria, manifest_rule::ManifestRule},
         manifest::dbt_objects::Tags,
     },
 };
