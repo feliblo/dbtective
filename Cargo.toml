@@ -3,7 +3,7 @@ members = ["."]
 
 [package]
 name = "dbtective"
-version = "0.1.11"
+version = "0.1.12"
 edition = "2021"
 description = "A Rust-powered linter and detective for dbt metadata best practices"
 license = "MIT"

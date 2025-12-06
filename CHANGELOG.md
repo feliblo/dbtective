@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+## v0.1.12 (2025-12-06)
+
+### Feat
+
+- **table**: fit table to terminal & add --disable-hyperlinks option
+
 ## v0.1.11 (2025-12-04)
 
 ### Feat
