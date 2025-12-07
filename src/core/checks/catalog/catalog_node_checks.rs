@@ -2,7 +2,7 @@ use crate::{
     cli::table::RuleResult,
     core::{
         catalog::parse_catalog::Catalog,
-        checks::catalog::check_columns_are_documented::check_columns_are_documented,
+        checks::catalog::{check_columns_are_documented, check_columns_have_description},
         config::{catalog_rule::CatalogSpecificRuleConfig, severity::Severity, Config},
         manifest::Manifest,
     },
@@ -82,6 +82,14 @@ pub fn apply_catalog_node_checks<'a>(
                         manifest_node,
                         rule,
                         manifest,
+                        verbose,
+                    )
+                }
+                CatalogSpecificRuleConfig::ColumnsHaveDescription {  }=> {
+                    check_columns_have_description(
+                        catalog_node,
+                        manifest_node,
+                        rule,
                         verbose,
                     )
                 }
