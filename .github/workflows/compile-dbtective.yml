@@ -1,0 +1,37 @@
+name: "🕵️ Test dbtective"
+
+# This workflow compiles dbtective and runs it on a small test dbt project
+# Since the dbtective check can fail, we don't care about failures when it
+# Contains '🕵️  dbtective detected some issues:', meaning it compiled and ran.
+
+on:
+  workflow_call:
+
+jobs:
+  test-dbtective:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Build dbtective
+        run: cargo build --release
+
+      - name: Run dbtective on test project
+        run: |
+          output=$(./target/release/dbtective run \
+            --entry-point dbt_project \
+            --disable-hyperlinks 2>&1 || true)
+
+          echo "$output"
+
+          if echo "$output" | grep -q "🕵️  dbtective detected some issues:"; then
+            echo "✅ dbtective compiled and ran successfully"
+            exit 0
+          else
+            echo "❌ Expected message not found in output"
+            exit 1
+          fi
