@@ -152,6 +152,14 @@ impl Columnable for Source {
             .map(|cols| cols.keys().collect::<Vec<&String>>())
     }
 
+    fn get_columns_with_descriptions(&self) -> Option<Vec<(&String, &String)>> {
+        self.columns.as_ref().map(|cols| {
+            cols.iter()
+                .filter_map(|(name, col)| col.description.as_ref().map(|desc| (name, desc)))
+                .collect::<Vec<(&String, &String)>>()
+        })
+    }
+
     fn get_object_type(&self) -> &str {
         Self::get_object_type()
     }

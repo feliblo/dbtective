@@ -27,3 +27,7 @@ catalog_tests:
     type: "columns_all_documented"
     description: "All columns in the catalog must have documentation."
     severity: "warning"
+
+  - name: "columns_have_description"
+    type: "columns_have_description"
+    description: "All columns in the manifest must have a description."

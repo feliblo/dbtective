@@ -113,6 +113,12 @@ impl Columnable for CatalogNode {
             .into()
     }
 
+    // Column descriptions are not available in the catalog.
+    // Find them by corresponding with the unique_id to the manifest.
+    fn get_columns_with_descriptions(&self) -> Option<Vec<(&String, &String)>> {
+        None
+    }
+
     fn get_object_type(&self) -> &str {
         self.get_object_type()
     }
@@ -130,6 +136,10 @@ impl Columnable for CatalogNode {
 impl Columnable for &CatalogNode {
     fn get_column_names(&self) -> Option<Vec<&String>> {
         (*self).get_column_names()
+    }
+
+    fn get_columns_with_descriptions(&self) -> Option<Vec<(&String, &String)>> {
+        (*self).get_columns_with_descriptions()
     }
 
     fn get_object_type(&self) -> &str {

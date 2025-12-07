@@ -36,6 +36,12 @@ impl Columnable for CatalogSource {
         self.columns.keys().collect::<Vec<&String>>().into()
     }
 
+    // Column descriptions are not available in the catalog.
+    // Find them by corresponding with the unique_id to the manifest.
+    fn get_columns_with_descriptions(&self) -> Option<Vec<(&String, &String)>> {
+        None
+    }
+
     fn get_object_type(&self) -> &str {
         Self::get_object_type()
     }
@@ -53,6 +59,10 @@ impl Columnable for CatalogSource {
 impl Columnable for &CatalogSource {
     fn get_column_names(&self) -> Option<Vec<&String>> {
         (*self).get_column_names()
+    }
+
+    fn get_columns_with_descriptions(&self) -> Option<Vec<(&String, &String)>> {
+        (*self).get_columns_with_descriptions()
     }
 
     fn get_object_type(&self) -> &str {

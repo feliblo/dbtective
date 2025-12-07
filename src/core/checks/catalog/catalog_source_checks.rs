@@ -2,14 +2,14 @@ use crate::{
     cli::table::RuleResult,
     core::{
         catalog::parse_catalog::Catalog,
-        checks::catalog::check_columns_are_documented::check_columns_are_documented,
+        checks::catalog::{check_columns_are_documented, check_columns_have_description},
         config::{catalog_rule::CatalogSpecificRuleConfig, severity::Severity, Config},
         manifest::Manifest,
     },
 };
 use owo_colors::OwoColorize;
 
-///  Catalog checks take a more complext approach
+///  Catalog checks take a more complex approach
 /// (since they will iterate over the manifest objects aswell as the catalog objects)
 /// # Errors
 /// Returns an error if a rule has invalid configuration (e.g., invalid regex pattern)
@@ -82,6 +82,14 @@ pub fn apply_catalog_source_checks<'a>(
                         manifest_source,
                         rule,
                         manifest,
+                        verbose,
+                    )
+                }
+                CatalogSpecificRuleConfig::ColumnsHaveDescription {} => {
+                    check_columns_have_description(
+                        catalog_source,
+                        manifest_source,
+                        rule,
                         verbose,
                     )
                 }

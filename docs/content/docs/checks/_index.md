@@ -30,7 +30,7 @@ Here you can find an overview of all possible checks. Use the filter below to fi
     <tr class="check-item" data-keywords="description documentation yaml schema describe docs comments metadata" data-category="manifest">
       <td><a href="/docs/checks/description" class="check-name">has_description</a></td>
       <td><span class="check-category-badge badge-manifest">Manifest</span></td>
-      <td>Check if a description is populated. Ensures objects have documentation in their schema (e.g. YAML) files.</td>
+      <td>Check if a description is populated. Ensures objects have a description in their schema (e.g. YAML) files.</td>
       <td style="font-size: 12px; color: #666;">description, documentation, yaml, schema</td>
     </tr>
     <tr class="check-item" data-keywords="naming pattern regex standards conventions prefixes suffixes name format" data-category="manifest">
@@ -83,11 +83,16 @@ Here you can find an overview of all possible checks. Use the filter below to fi
   </thead>
   <tbody>
     <tr class="check-item" data-keywords="columns catalog database schema yml yaml documentation undocumented missing docs column-level" data-category="catalog">
-      <td><a href="/docs/checks/documentation" class="check-name">columns_all_documented</a></td>
+      <td><a href="/docs/checks/columns" class="check-name">columns_all_documented</a></td>
       <td><span class="check-category-badge badge-catalog">Catalog</span> </td>
       <td>Check if all SQL columns are documented in e.g. their yml file. Validates that database columns match documentation.</td>
       <td style="font-size: 12px; color: #666;">columns, catalog, database, schema, undocumented</td>
     </tr>
+    <tr class="check-item" data-keywords="columns descriptions documentation catalog database schema yml yaml column-level missing docs" data-category="catalog">
+      <td><a href="/docs/checks/columns" class="check-name">columns_have_description</a></td>
+      <td><span class="check-category-badge badge-catalog">Catalog</span> </td>
+      <td>Check if all documented columns have non-empty descriptions. Ensures column-level documentation is complete</td>
+      <td style="font-size: 12px; color: #666;">columns, descriptions, documentation, catalog, database</td>
   </tbody>
 </table>
 

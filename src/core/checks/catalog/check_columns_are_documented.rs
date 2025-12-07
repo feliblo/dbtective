@@ -5,7 +5,8 @@ use crate::{
     },
 };
 
-#[allow(dead_code)]
+// Both the catalog and the manifest object are matched to the same object
+// Using the unique_id
 pub fn check_columns_are_documented<C: Columnable, M: Columnable>(
     catalog_object: &C,
     manifest_object: &M,
@@ -97,18 +98,19 @@ fn compare_column_names(
         manifest_columns.iter().map(|col| (*col).clone()).collect()
     };
 
-    for catalog_col in catalog_columns {
+    // Find columns in catalog that are not in manifest
+    undocumented_columns.extend(catalog_columns.iter().filter_map(|catalog_col| {
         let catalog_col_check = if case_insensitive {
             catalog_col.to_lowercase()
         } else {
             (*catalog_col).clone()
         };
-
-        if !manifest_column_set.contains(&catalog_col_check) {
-            undocumented_columns.push((*catalog_col).clone());
+        if manifest_column_set.contains(&catalog_col_check) {
+            None
+        } else {
+            Some((*catalog_col).clone())
         }
-    }
-
+    }));
     undocumented_columns
 }
 #[cfg(test)]
@@ -124,10 +126,16 @@ mod tests {
         relative_path: Option<String>,
         column_names: Option<Vec<String>>,
     }
+
     impl Columnable for TestColumnable {
         fn get_column_names(&self) -> Option<Vec<&String>> {
             self.column_names.as_ref().map(|cols| cols.iter().collect())
         }
+
+        fn get_columns_with_descriptions(&self) -> Option<Vec<(&String, &String)>> {
+            None
+        }
+
         fn get_object_type(&self) -> &str {
             &self.object_type
         }
