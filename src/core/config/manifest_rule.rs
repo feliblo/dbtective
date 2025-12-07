@@ -206,8 +206,8 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             custom_objects: vec![],
         },
         ManifestSpecificRuleConfig::HasUniqueTest { .. } => AppliesTo {
-            node_objects: vec![RuleTarget::Models, RuleTarget::Seeds, RuleTarget::Snapshots],
-            source_objects: vec![],
+            node_objects: vec![RuleTarget::Models],
+            source_objects: vec![RuleTarget::Sources],
             unit_test_objects: vec![],
             macro_objects: vec![],
             exposure_objects: vec![],

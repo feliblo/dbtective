@@ -50,6 +50,12 @@ Here you can find an overview of all possible checks. Use the filter below to fi
       <td>Check if objects are referenced by other objects. Identifies orphaned data assets that may be unused or underutilized.</td>
       <td style="font-size: 12px; color: #666;">orphaned, unused, references, dependencies, lineage</td>
     </tr>
+    <tr class="check-item" data-keywords="tests uniqueness unique validation custom" data-category="manifest">
+      <td><a href="/docs/checks/has_unique_test" class="check-name">has_unique_test</a></td>
+      <td><span class="check-category-badge badge-manifest">Manifest</span></td>
+      <td>Check if dbt objects have at least one uniqueness test attached. Supports standard and custom uniqueness tests.</td>
+      <td style="font-size: 12px; color: #666;">tests, uniqueness, unique, validation, custom</td>
+    </tr>
   </tbody>
 </table>
 
