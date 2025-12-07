@@ -76,3 +76,7 @@ jobs:
 
       - name: ✅ Test Success
         run: echo "🎉 All tests passed successfully!"
+
+  compile_dbtective:
+    name: 🕵️ Compile dbtective
+    uses: ./.github/workflows/compile-dbtective.yml
