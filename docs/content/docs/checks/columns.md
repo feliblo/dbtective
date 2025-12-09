@@ -29,17 +29,54 @@ This check ensures that every dbt object  (model, seed, source, macro, etc.) doc
 
 **Example Config**
 
+{{< tabs items="dbtective.yml,dbtective.toml,pyproject.toml" >}}
+
+{{< tab >}}
+
 ```yaml
-manifest_tests:
+catalog_tests:
   - name: "all_columns_should_be_documented"
     type: "columns_all_documented"
     description: "Everything must have a description."
     # severity: "warning"  (optional)
-    # applies_to: ['models', 'seeds'] (optional
+    # applies_to: ['models', 'seeds']  (optional)
     # includes: ["path/to/include/*"]
     # excludes: ["path/to/exclude/*"]
-
 ```
+
+{{< /tab >}}
+
+{{< tab >}}
+
+```toml
+[[catalog_tests]]
+name = "all_columns_should_be_documented"
+type = "columns_all_documented"
+description = "Everything must have a description."
+# severity = "warning"  # (optional)
+# applies_to = ["models", "seeds"]  # (optional)
+# includes = ["path/to/include/*"]
+# excludes = ["path/to/exclude/*"]
+```
+
+{{< /tab >}}
+
+{{< tab >}}
+
+```toml
+[[tool.dbtective.catalog_tests]]
+name = "all_columns_should_be_documented"
+type = "columns_all_documented"
+description = "Everything must have a description."
+# severity = "warning"  # (optional)
+# applies_to = ["models", "seeds"]  # (optional)
+# includes = ["path/to/include/*"]
+# excludes = ["path/to/exclude/*"]
+```
+
+{{< /tab >}}
+
+{{< /tabs >}}
 
 <details closed>
 <summary>Relevant dbt code</summary>
@@ -85,17 +122,54 @@ This check ensures that every documented column has a non-empty description. Unl
 
 **Example Config**
 
+{{< tabs items="dbtective.yml,dbtective.toml,pyproject.toml" >}}
+
+{{< tab >}}
+
 ```yaml
 catalog_tests:
   - name: "all_columns_must_have_descriptions"
     type: "columns_have_description"
     description: "All documented columns must have non-empty descriptions."
     # severity: "warning"  (optional)
-    # applies_to: ['models', 'seeds'] (optional)
+    # applies_to: ['models', 'seeds']  (optional)
     # includes: ["path/to/include/*"]
     # excludes: ["path/to/exclude/*"]
-
 ```
+
+{{< /tab >}}
+
+{{< tab >}}
+
+```toml
+[[catalog_tests]]
+name = "all_columns_must_have_descriptions"
+type = "columns_have_description"
+description = "All documented columns must have non-empty descriptions."
+# severity = "warning"  # (optional)
+# applies_to = ["models", "seeds"]  # (optional)
+# includes = ["path/to/include/*"]
+# excludes = ["path/to/exclude/*"]
+```
+
+{{< /tab >}}
+
+{{< tab >}}
+
+```toml
+[[tool.dbtective.catalog_tests]]
+name = "all_columns_must_have_descriptions"
+type = "columns_have_description"
+description = "All documented columns must have non-empty descriptions."
+# severity = "warning"  # (optional)
+# applies_to = ["models", "seeds"]  # (optional)
+# includes = ["path/to/include/*"]
+# excludes = ["path/to/exclude/*"]
+```
+
+{{< /tab >}}
+
+{{< /tabs >}}
 
 <details closed>
 <summary>Relevant dbt code</summary>

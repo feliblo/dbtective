@@ -41,19 +41,65 @@ This helps identify unused or underutilized data assets that may be candidates f
 
 **Example Config**
 
+{{< tabs items="dbtective.yml,dbtective.toml,pyproject.toml" >}}
+
+{{< tab >}}
+
 ```yaml
 manifest_tests:
   - name: "all_sources_cannot_be_orphaned"
     type: "is_not_orphaned"
     description: "All sources should be referenced by at least one model."
 
-- name: "models_and_sources_cannot_be_orphaned_except_marts"
+  - name: "models_and_sources_cannot_be_orphaned_except_marts"
     type: "is_not_orphaned"
     applies_to: ["models", "seeds"]
     excludes: ["models/marts/*"]
     allowed_references: ["models", "exposures"]
     severity: "warning"
 ```
+
+{{< /tab >}}
+
+{{< tab >}}
+
+```toml
+[[manifest_tests]]
+name = "all_sources_cannot_be_orphaned"
+type = "is_not_orphaned"
+description = "All sources should be referenced by at least one model."
+
+[[manifest_tests]]
+name = "models_and_sources_cannot_be_orphaned_except_marts"
+type = "is_not_orphaned"
+applies_to = ["models", "seeds"]
+excludes = ["models/marts/*"]
+allowed_references = ["models", "exposures"]
+severity = "warning"
+```
+
+{{< /tab >}}
+
+{{< tab >}}
+
+```toml
+[[tool.dbtective.manifest_tests]]
+name = "all_sources_cannot_be_orphaned"
+type = "is_not_orphaned"
+description = "All sources should be referenced by at least one model."
+
+[[tool.dbtective.manifest_tests]]
+name = "models_and_sources_cannot_be_orphaned_except_marts"
+type = "is_not_orphaned"
+applies_to = ["models", "seeds"]
+excludes = ["models/marts/*"]
+allowed_references = ["models", "exposures"]
+severity = "warning"
+```
+
+{{< /tab >}}
+
+{{< /tabs >}}
 
 <details closed>
 <summary>Relevant dbt code</summary>

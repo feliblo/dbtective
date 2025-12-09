@@ -34,13 +34,22 @@ Run dbtective analysis on your dbt project.
 | Option | Short | Default | Description |
 |--------|-------|---------|-------------|
 | `--entry-point <PATH>` | | `.` | Path to dbt project root |
-| `--config-file <PATH>` | `-c` | `dbtective.yml` | Path to dbtective configuration |
+| `--config-file <PATH>` | `-c` | Auto-detected | Path to dbtective configuration from the entry-point (overrides auto-detection) |
 | `--manifest-file <PATH>` | `-m` | `target/manifest.json` | Path to dbt manifest.json |
 | `--catalog-file <PATH>` | `-g` | `target/catalog.json` | Path to dbt catalog.json |
 | `--only-manifest` | | `true` | Run only manifest checks |
 | `--only-catalog` | | `false` | Run only catalog checks |
-| `--pyproject-file <PATH>` | `-p` | `pyproject.toml` | Path to pyproject.toml (reserved for future use) |
 | `--disable-hyperlinks` | | `false` | Disable file hyperlinks in the output |
+
+#### Config File Auto-Detection
+
+By default, dbtective automatically searches for configuration files in the following priority order:
+
+1. `dbtective.yml` or `dbtective.yaml` (highest priority)
+2. `dbtective.toml`
+3. `pyproject.toml` (lowest priority)
+
+If multiple config files exist, dbtective will use the highest priority one and display a warning. You can override this behavior by explicitly specifying `--config-file`.
 
 ### `init`
 
@@ -62,7 +71,7 @@ Initialize a new dbtective project.
 ### Basic Usage
 
 ```bash
-# Run with defaults (current directory, dbtective.yml, target/manifest.json)
+# Run with defaults (auto-detects config, uses target/manifest.json)
 dbtective run
 
 # Run with verbose output
@@ -75,8 +84,11 @@ dbtective run --entry-point ./dbt_project
 ### Custom Configuration
 
 ```bash
-# Use custom config file
+# Override auto-detection with a specific config file
 dbtective run --config-file ./configs/custom.yml
+
+# Use a specific config file in TOML format
+dbtective run --config-file ./dbtective.toml
 
 # Use custom manifest location
 dbtective run --manifest-file custom/path/manifest.json
@@ -115,9 +127,26 @@ dbtective run --manifest-file path/to/manifest.json
 **Configuration file not found:**
 
 ```bash
-ls -la dbtective.yml
+# Check what config files exist
+ls -la dbtective.yml dbtective.yaml dbtective.toml pyproject.toml
+
+# Run from the correct directory
 dbtective run --entry-point path/to/dbt/project
+
+# Or specify config explicitly
 dbtective run --config-file path/to/dbtective.yml
+```
+
+**Multiple config files warning:**
+
+If you see a warning about multiple config files and want to use a specific one:
+
+```bash
+# Explicitly specify which config to use
+dbtective run --config-file dbtective.toml
+
+# Or remove the config files you don't need
+rm dbtective.yml  # if you prefer using dbtective.toml
 ```
 
 ## Getting Help
