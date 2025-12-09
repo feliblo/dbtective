@@ -28,17 +28,54 @@ This check ensures that every dbt objectshas a description provided in the confi
 
 **Example Config**
 
+{{< tabs items="dbtective.yml,dbtective.toml,pyproject.toml" >}}
+
+{{< tab >}}
+
 ```yaml
 manifest_tests:
   - name: "everything_has_description"
     type: "has_description"
     description: "Everything must have a description."
     # severity: "warning"  (optional)
-    # applies_to: ['models', 'seeds'] (optional
+    # applies_to: ['models', 'seeds'] (optional)
     # includes: ["path/to/include/*"]
     # excludes: ["path/to/exclude/*"]
-
 ```
+
+{{< /tab >}}
+
+{{< tab >}}
+
+```toml
+[[manifest_tests]]
+name = "everything_has_description"
+type = "has_description"
+description = "Everything must have a description."
+# severity = "warning"  # (optional)
+# applies_to = ["models", "seeds"]  # (optional)
+# includes = ["path/to/include/*"]
+# excludes = ["path/to/exclude/*"]
+```
+
+{{< /tab >}}
+
+{{< tab >}}
+
+```toml
+[[tool.dbtective.manifest_tests]]
+name = "everything_has_description"
+type = "has_description"
+description = "Everything must have a description."
+# severity = "warning"  # (optional)
+# applies_to = ["models", "seeds"]  # (optional)
+# includes = ["path/to/include/*"]
+# excludes = ["path/to/exclude/*"]
+```
+
+{{< /tab >}}
+
+{{< /tabs >}}
 
 <details closed>
 <summary>Relevant dbt code</summary>

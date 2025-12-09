@@ -35,19 +35,60 @@ This check ensures that dbt objects (model, seed, source, macro, etc.) contain t
 
 **Example Config**
 
+{{< tabs items="dbtective.yml,dbtective.toml,pyproject.toml" >}}
+
+{{< tab >}}
+
 ```yaml
 manifest_tests:
   - name: "everything_has_tags"
     type: "has_tags"
-    tags: ["tag1", "tag2", "tag3"]
+    required_tags: ["tag1", "tag2", "tag3"]
     criteria: "all"  # options: "all", "any", "one_of"
     description: "Everything must have tags."
     # severity: "warning"  (optional)
-    # applies_to: ['models', 'seeds'] (optional
+    # applies_to: ['models', 'seeds']  (optional)
     # includes: ["path/to/include/*"]
     # excludes: ["path/to/exclude/*"]
-
 ```
+
+{{< /tab >}}
+
+{{< tab >}}
+
+```toml
+[[manifest_tests]]
+name = "everything_has_tags"
+type = "has_tags"
+required_tags = ["tag1", "tag2", "tag3"]
+criteria = "all"  # options: "all", "any", "one_of"
+description = "Everything must have tags."
+# severity = "warning"  # (optional)
+# applies_to = ["models", "seeds"]  # (optional)
+# includes = ["path/to/include/*"]
+# excludes = ["path/to/exclude/*"]
+```
+
+{{< /tab >}}
+
+{{< tab >}}
+
+```toml
+[[tool.dbtective.manifest_tests]]
+name = "everything_has_tags"
+type = "has_tags"
+required_tags = ["tag1", "tag2", "tag3"]
+criteria = "all"  # options: "all", "any", "one_of"
+description = "Everything must have tags."
+# severity = "warning"  # (optional)
+# applies_to = ["models", "seeds"]  # (optional)
+# includes = ["path/to/include/*"]
+# excludes = ["path/to/exclude/*"]
+```
+
+{{< /tab >}}
+
+{{< /tabs >}}
 
 <details closed>
 <summary>Relevant dbt code</summary>

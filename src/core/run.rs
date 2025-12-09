@@ -8,28 +8,20 @@ use crate::core::checks::catalog::{
 use crate::core::checks::manifest::{
     node_checks::apply_node_checks, other_manifest_object_checks::apply_manifest_object_checks,
 };
+use crate::core::config::parse_config::resolve_config_path;
 use crate::core::config::severity::Severity;
 use crate::core::config::Config;
 use crate::core::manifest::Manifest;
+use crate::core::utils::unwrap_or_exit;
 use log::debug;
 use owo_colors::OwoColorize;
-use std::process::exit;
 use std::time::Instant;
-
-fn unwrap_or_exit<T>(result: anyhow::Result<T>) -> T {
-    match result {
-        Ok(value) => value,
-        Err(err) => {
-            eprintln!("{}", err.to_string().red());
-            exit(1);
-        }
-    }
-}
 
 #[must_use]
 pub fn run(options: &RunOptions, verbose: bool) -> i32 {
     let start = Instant::now();
-    let config_path = format!("{}/{}", options.entry_point, options.config_file);
+
+    let config_path = resolve_config_path(&options.entry_point, options.config_file.as_ref());
     let config = unwrap_or_exit(Config::from_file(config_path));
 
     debug!("Loaded configuration: {config:#?}");

@@ -17,7 +17,7 @@ Explore the [full documentation](https://feliblo.github.io/dbtective/docs) or th
 
 We detect and enforce these rules in your `cli`, `prek`/`pre-commit` and `CI/CD` pipeline, so fast you will barely notice🕵️.
 
-## Installation
+## Installationcheck
 
 <details>
 <summary>Pip (pypi)</summary>

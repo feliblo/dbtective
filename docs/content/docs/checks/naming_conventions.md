@@ -35,18 +35,57 @@ This check ensures that a dbt object's name applies to naming conventions given 
 
 **Example Config**
 
+{{< tabs items="dbtective.yml,dbtective.toml,pyproject.toml" >}}
+
+{{< tab >}}
+
 ```yaml
 manifest_tests:
   - name: "all_objects_snake_case"
     type: "name_convention"
-    description: "All dbt dbt objects must be snake_case."
+    description: "All dbt objects must be snake_case."
     pattern: "snake_case"
     # severity: "warning"  (optional)
-    # applies_to: ['models', 'seeds'] (optional)
-    # includes: ["path/to/include/*"] (optional)
-    # excludes: ["path/to/exclude/*"] (optional)
-
+    # applies_to: ['models', 'seeds']  (optional)
+    # includes: ["path/to/include/*"]  (optional)
+    # excludes: ["path/to/exclude/*"]  (optional)
 ```
+
+{{< /tab >}}
+
+{{< tab >}}
+
+```toml
+[[manifest_tests]]
+name = "all_objects_snake_case"
+type = "name_convention"
+description = "All dbt objects must be snake_case."
+pattern = "snake_case"
+# severity = "warning"  # (optional)
+# applies_to = ["models", "seeds"]  # (optional)
+# includes = ["path/to/include/*"]  # (optional)
+# excludes = ["path/to/exclude/*"]  # (optional)
+```
+
+{{< /tab >}}
+
+{{< tab >}}
+
+```toml
+[[tool.dbtective.manifest_tests]]
+name = "all_objects_snake_case"
+type = "name_convention"
+description = "All dbt objects must be snake_case."
+pattern = "snake_case"
+# severity = "warning"  # (optional)
+# applies_to = ["models", "seeds"]  # (optional)
+# includes = ["path/to/include/*"]  # (optional)
+# excludes = ["path/to/exclude/*"]  # (optional)
+```
+
+{{< /tab >}}
+
+{{< /tabs >}}
 
 <details closed>
 <summary>Relevant dbt code</summary>

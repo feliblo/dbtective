@@ -30,30 +30,91 @@ This check ensures that dbt objects (models, sources, etc.) have at least one un
 
 **Example Config**
 
+{{< tabs items="dbtective.yml,dbtective.toml,pyproject.toml" >}}
+
+{{< tab >}}
+
 ```yaml
 manifest_tests:
   - name: "models_should_have_unique_test"
     type: "has_unique_test"
     description: "All models should have a unique test"
     severity: "error"
-    applies_to:
-      - "models"
-    # allowed_test_names: ["unique", "dbt_utils.unique_combination_of_columns"] (optional)
-    # includes: ["path/to/include/*"] (optional)
-    # excludes: ["path/to/exclude/*"] (optional)
+    applies_to: ["models"]
+    # allowed_test_names: ["unique", "dbt_utils.unique_combination_of_columns"]  (optional)
+    # includes: ["path/to/include/*"]  (optional)
+    # excludes: ["path/to/exclude/*"]  (optional)
 
-manifest_tests:
   - name: "sources_should_have_unique_test"
     type: "has_unique_test"
     description: "All sources must have uniqueness validation"
     severity: "warning"
-    applies_to:
-      - "sources"
+    applies_to: ["sources"]
     allowed_test_names:
       - "unique"
       - "dbt_utils.unique_combination_of_columns"
       - "my_custom_unique_test"
 ```
+
+{{< /tab >}}
+
+{{< tab >}}
+
+```toml
+[[manifest_tests]]
+name = "models_should_have_unique_test"
+type = "has_unique_test"
+description = "All models should have a unique test"
+severity = "error"
+applies_to = ["models"]
+# allowed_test_names = ["unique", "dbt_utils.unique_combination_of_columns"]  # (optional)
+# includes = ["path/to/include/*"]  # (optional)
+# excludes = ["path/to/exclude/*"]  # (optional)
+
+[[manifest_tests]]
+name = "sources_should_have_unique_test"
+type = "has_unique_test"
+description = "All sources must have uniqueness validation"
+severity = "warning"
+applies_to = ["sources"]
+allowed_test_names = [
+  "unique",
+  "dbt_utils.unique_combination_of_columns",
+  "my_custom_unique_test"
+]
+```
+
+{{< /tab >}}
+
+{{< tab >}}
+
+```toml
+[[tool.dbtective.manifest_tests]]
+name = "models_should_have_unique_test"
+type = "has_unique_test"
+description = "All models should have a unique test"
+severity = "error"
+applies_to = ["models"]
+# allowed_test_names = ["unique", "dbt_utils.unique_combination_of_columns"]  # (optional)
+# includes = ["path/to/include/*"]  # (optional)
+# excludes = ["path/to/exclude/*"]  # (optional)
+
+[[tool.dbtective.manifest_tests]]
+name = "sources_should_have_unique_test"
+type = "has_unique_test"
+description = "All sources must have uniqueness validation"
+severity = "warning"
+applies_to = ["sources"]
+allowed_test_names = [
+  "unique",
+  "dbt_utils.unique_combination_of_columns",
+  "my_custom_unique_test"
+]
+```
+
+{{< /tab >}}
+
+{{< /tabs >}}
 
 <details closed>
 <summary>Relevant dbt code</summary>
