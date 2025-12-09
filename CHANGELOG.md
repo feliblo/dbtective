@@ -1,8 +1,8 @@
-## Unreleased
+## v0.1.20 (2025-12-09)
 
 ### Fix
 
-- **release**: add --no-verify flag to changelog amend commit - ([f84fff2](https://github.com/feliblo/dbtective/commit/f84fff299d79145b14690aa95c2dc987ecd2344d)) - Felix Blom
+- **release**: add --no-verify flag to changelog amend commit - ([05f1edb](https://github.com/feliblo/dbtective/commit/05f1edbbd693e7538dac012659a7b3226d48ab01)) - Felix Blom
 - **docs**: cargo dist needs h1's as changelog headers - ([a3db336](https://github.com/feliblo/dbtective/commit/a3db336462ea40bdbc314b8ae3878df4413f8718)) - Felix Blom
 - **docs**: fix changelog formatting - retry auto-release-description - ([54835b7](https://github.com/feliblo/dbtective/commit/54835b7d43ba04b9c009cfb3fb498a9a7f1f34c8)) - Felix Blom
 

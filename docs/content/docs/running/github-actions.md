@@ -13,7 +13,7 @@ Add `dbtective` to your workflow file (e.g., `.github/workflows/ci.yml`).If you 
 
 ```yaml
     - name: Run dbtective
-      uses: feliblo/dbtective@v0.1.19
+      uses: feliblo/dbtective@v0.1.20
       with:
         config-file: "dbtective.yml"
         entry-point: "."
@@ -44,7 +44,7 @@ jobs:
           dbt docs generate # to generate catalog.json
 
       - name: Run dbtective
-        uses: feliblo/dbtective@v0.1.19
+        uses: feliblo/dbtective@v0.1.20
         with:
           config-file: "dbtective.yml"
           entry-point: "."
