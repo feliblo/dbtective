@@ -28,30 +28,30 @@ Here you can find an overview of all possible checks. Use the filter below to fi
   </thead>
   <tbody>
     <tr class="check-item" data-keywords="description documentation yaml schema describe docs comments metadata" data-category="manifest">
-      <td><a href="/docs/checks/description" class="check-name">has_description</a></td>
+      <td><a href="description" class="check-name">has_description</a></td>
       <td><span class="check-category-badge badge-manifest">Manifest</span></td>
       <td>Check if a description is populated. Ensures objects have a description in their schema (e.g. YAML) files.</td>
       <td style="font-size: 12px; color: #666;">description, documentation, yaml, schema</td>
     </tr>
     <tr class="check-item" data-keywords="naming pattern regex standards conventions prefixes suffixes name format" data-category="manifest">
-      <td><a href="/docs/checks/naming_conventions" class="check-name">name_convention</a></td>
+      <td><a href="naming_conventions" class="check-name">name_convention</a></td>
       <td><span class="check-category-badge badge-manifest">Manifest</span></td>
       <td>Check if object names follow casing (e.g.<code>snake_case</code>) or custom regex patterns. Enforces naming standards using configurable patterns.</td>    <td style="font-size: 12px; color: #666;">naming, pattern, regex, conventions, prefixes</td>
     </tr>
     <tr class="check-item" data-keywords="tags metadata categorization organization labels tagging" data-category="manifest">
-      <td><a href="/docs/checks/tags" class="check-name">has_tags</a></td>
+      <td><a href="tags" class="check-name">has_tags</a></td>
       <td><span class="check-category-badge badge-manifest">Manifest</span></td>
       <td>Check if objects have the required tags. Ensure proper categorization for selective execution.</td>
       <td style="font-size: 12px; color: #666;">tags, metadata, categorization, organization</td>
     </tr>
     <tr class="check-item" data-keywords="orphaned unused references dependencies lineage data assets cleanup" data-category="manifest">
-      <td><a href="/docs/checks/is_not_orphaned" class="check-name">is_not_orphaned</a></td>
+      <td><a href="is_not_orphaned" class="check-name">is_not_orphaned</a></td>
       <td><span class="check-category-badge badge-manifest">Manifest</span></td>
       <td>Check if objects are referenced by other objects. Identifies orphaned data assets that may be unused or underutilized.</td>
       <td style="font-size: 12px; color: #666;">orphaned, unused, references, dependencies, lineage</td>
     </tr>
     <tr class="check-item" data-keywords="tests uniqueness unique validation custom" data-category="manifest">
-      <td><a href="/docs/checks/has_unique_test" class="check-name">has_unique_test</a></td>
+      <td><a href="tests" class="check-name">has_unique_test</a></td>
       <td><span class="check-category-badge badge-manifest">Manifest</span></td>
       <td>Check if dbt objects have at least one uniqueness test attached. Supports standard and custom uniqueness tests.</td>
       <td style="font-size: 12px; color: #666;">tests, uniqueness, unique, validation, custom</td>
@@ -83,13 +83,13 @@ Here you can find an overview of all possible checks. Use the filter below to fi
   </thead>
   <tbody>
     <tr class="check-item" data-keywords="columns catalog database schema yml yaml documentation undocumented missing docs column-level" data-category="catalog">
-      <td><a href="/docs/checks/columns" class="check-name">columns_all_documented</a></td>
+      <td><a href="columns" class="check-name">columns_all_documented</a></td>
       <td><span class="check-category-badge badge-catalog">Catalog</span> </td>
       <td>Check if all SQL columns are documented in e.g. their yml file. Validates that database columns match documentation.</td>
       <td style="font-size: 12px; color: #666;">columns, catalog, database, schema, undocumented</td>
     </tr>
     <tr class="check-item" data-keywords="columns descriptions documentation catalog database schema yml yaml column-level missing docs" data-category="catalog">
-      <td><a href="/docs/checks/columns" class="check-name">columns_have_description</a></td>
+      <td><a href="columns" class="check-name">columns_have_description</a></td>
       <td><span class="check-category-badge badge-catalog">Catalog</span> </td>
       <td>Check if all documented columns have non-empty descriptions. Ensures column-level documentation is complete</td>
       <td style="font-size: 12px; color: #666;">columns, descriptions, documentation, catalog, database</td>

@@ -6,8 +6,9 @@ version_provider = "cargo"
 update_changelog_on_bump = false
 major_version_zero = true
 version_files = ["Cargo.toml:version", "pyproject.toml:version"]
-pre_bump_hooks = ["scripts/update_readme.sh", "scripts/update_docs.sh"]
-post_bump_hooks = [
+pre_bump_hooks = [
+    "scripts/update_readme.sh",
+    "scripts/update_docs.sh",
     "git cliff --config scripts/git_cliff_template.toml -o CHANGELOG.md",
 ]
 changelog_file = "CHANGELOG.md"

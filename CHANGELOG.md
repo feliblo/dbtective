@@ -3,7 +3,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 ---
+## [0.1.16](https://github.com/feliblo/dbtective/compare/v0.1.15..v0.1.16) - 2025-12-09
 
+### Features
+
+- **(ci)** tryout git cliff for changelog generation - ([4db4862](https://github.com/feliblo/dbtective/commit/4db48627b488c7287aac3c667842c2df0c7d0b53)) - Felix Blom
+
+### Bump
+
+- version 0.1.15 → 0.1.16 - ([6300f45](https://github.com/feliblo/dbtective/commit/6300f4554a17d357f8b504762a483574ef19bda9)) - Felix Blom
+
+---
 ## [0.1.15](https://github.com/feliblo/dbtective/compare/v0.1.14..v0.1.15) - 2025-12-09
 
 ### Bug Fixes
@@ -19,7 +29,6 @@ All notable changes to this project will be documented in this file. See [conven
 - version 0.1.14 → 0.1.15 - ([9406102](https://github.com/feliblo/dbtective/commit/94061022d5da9b1acacc4af6cebe46234917a423)) - Felix Blom
 
 ---
-
 ## [0.1.14](https://github.com/feliblo/dbtective/compare/v0.1.13..v0.1.14) - 2025-12-09
 
 ### Features
@@ -36,7 +45,6 @@ All notable changes to this project will be documented in this file. See [conven
 - **(compile)** check if dbtective compiles & runs on test project in every pr - ([2f2e431](https://github.com/feliblo/dbtective/commit/2f2e4316e9a6de957ac02fb8e562c1d0c48a216a)) - Felix Blom
 
 ---
-
 ## [0.1.13](https://github.com/feliblo/dbtective/compare/v0.1.12..v0.1.13) - 2025-12-07
 
 ### Documentation
@@ -53,7 +61,6 @@ All notable changes to this project will be documented in this file. See [conven
 - version 0.1.12 → 0.1.13 - ([08b7c3f](https://github.com/feliblo/dbtective/commit/08b7c3fdcc1335f5cd04915a66a896e26ff1878d)) - Felix Blom
 
 ---
-
 ## [0.1.12](https://github.com/feliblo/dbtective/compare/v0.1.5..v0.1.12) - 2025-12-06
 
 ### Bug Fixes
@@ -111,7 +118,6 @@ All notable changes to this project will be documented in this file. See [conven
 - **(prek)** add pre-commit/prek hook - ([5f13fd3](https://github.com/feliblo/dbtective/commit/5f13fd3b99f58035f1ad1178d7c1283a1064bdeb)) - Felix Blom
 
 ---
-
 ## [0.1.5](https://github.com/feliblo/dbtective/compare/v0.1.0-alpha..v0.1.5) - 2025-11-30
 
 ### Bug Fixes
@@ -172,7 +178,6 @@ All notable changes to this project will be documented in this file. See [conven
 - version 0.1.4 → 0.1.5 - ([aca87b2](https://github.com/feliblo/dbtective/commit/aca87b268e34c1ec00bc4b177ce16d0a4b33aa3f)) - feliblo
 
 ---
-
 ## [0.1.0-alpha] - 2025-11-25
 
 ### Bug Fixes
