@@ -1,0 +1,63 @@
+{% for entry in tree %}
+
+## {{ entry.version }}{% if entry.date %} ({{ entry.date }}){% endif %}
+
+{% for change_key, changes in entry.changes.items() %}
+
+{% if change_key %}
+### {{ change_key }}
+{% endif %}
+
+{% for change in changes %}
+{% set repo_url = "https://github.com/feliblo/dbtective" %}
+{% set short_sha = change.sha1[:7] %}
+{% set has_pr = '(#' in change.message %}
+{% if has_pr %}
+{% set msg_parts = change.message.split('(#') %}
+{% set clean_msg = msg_parts[0] | trim %}
+{% set pr_number = msg_parts[1].split(')')[0] %}
+{% else %}
+{% set clean_msg = change.message %}
+{% endif %}
+{% if '@users.noreply.github.com' in change.author_email %}
+{% set email_user = change.author_email.split('@')[0] %}
+{% if '+' in email_user %}
+{% set gh_user = email_user.split('+')[1] %}
+{% else %}
+{% set gh_user = email_user %}
+{% endif %}
+{% set author_link = "[@" + gh_user + "](https://github.com/" + gh_user + ")" %}
+{% else %}
+{% set author_link = change.author %}
+{% endif %}
+{% if change.scope %}- **{{ change.scope }}**: {{ clean_msg }} - ([{{ short_sha }}]({{ repo_url }}/commit/{{ change.sha1 }})){% if has_pr %} - [#{{ pr_number }}]({{ repo_url }}/pull/{{ pr_number }}){% endif %} - {{ author_link }}
+{% elif change.message %}- {{ clean_msg }} - ([{{ short_sha }}]({{ repo_url }}/commit/{{ change.sha1 }})){% if has_pr %} - [#{{ pr_number }}]({{ repo_url }}/pull/{{ pr_number }}){% endif %} - {{ author_link }}
+{% endif %}
+{% endfor %}
+{% endfor %}
+
+### Contributors
+
+{% set contributors = [] %}
+{% for change_key, changes in entry.changes.items() %}
+{% for change in changes %}
+{% if '@users.noreply.github.com' in change.author_email %}
+{% set email_user = change.author_email.split('@')[0] %}
+{% if '+' in email_user %}
+{% set gh_user = email_user.split('+')[1] %}
+{% else %}
+{% set gh_user = email_user %}
+{% endif %}
+{% if gh_user not in contributors %}
+{% set _ = contributors.append(gh_user) %}
+{% endif %}
+{% elif change.author not in contributors %}
+{% set _ = contributors.append(change.author) %}
+{% endif %}
+{% endfor %}
+{% endfor %}
+{% for contributor in contributors %}
+{% if contributor.startswith('@') or '/' in contributor %}{{ contributor }}{% elif contributor in ['feliblo', 'Felix Blom'] %}[@feliblo](https://github.com/feliblo){% else %}[@{{ contributor }}](https://github.com/{{ contributor }}){% endif %}{% if not loop.last %}, {% endif %}
+{% endfor %}
+
+{% endfor %}
