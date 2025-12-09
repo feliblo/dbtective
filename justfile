@@ -28,7 +28,7 @@ setup-docs:
     cd ..
 
 docs:
-    hugo server --logLevel debug --disableFastRender -p 1313 -s docs
+    hugo server --logLevel debug --disableFastRender --baseURL http://localhost:1313/ -p 1313 -s docs
 
 
 bump:
