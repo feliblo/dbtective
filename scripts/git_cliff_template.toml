@@ -10,15 +10,15 @@ body = """
 ---
 {% if version %}\
     {% if previous.version %}\
-        ## {{ version | trim_start_matches(pat="v") }} - {{ timestamp | date(format="%Y-%m-%d") }} ([compare]($REPO/compare/{{ previous.version }}..{{ version }}))
+        # {{ version | trim_start_matches(pat="v") }} - {{ timestamp | date(format="%Y-%m-%d") }} ([compare]($REPO/compare/{{ previous.version }}..{{ version }}))
     {% else %}\
-        ## {{ version | trim_start_matches(pat="v") }} - {{ timestamp | date(format="%Y-%m-%d") }}
+        # {{ version | trim_start_matches(pat="v") }} - {{ timestamp | date(format="%Y-%m-%d") }}
     {% endif %}\
 {% else %}\
-    ## unreleased
+    # unreleased
 {% endif %}\
 {% for group, commits in commits | group_by(attribute="group") %}
-    ### {{ group | striptags | trim | upper_first }}
+    ## {{ group | striptags | trim | upper_first }}
     {% for commit in commits
     | filter(attribute="scope")
     | sort(attribute="scope") %}
