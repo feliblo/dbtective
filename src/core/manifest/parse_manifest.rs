@@ -11,12 +11,14 @@ use std::path::Path;
 use serde::Deserialize;
 
 enum AllowedManifestVersions {
-    V12,
+    V12, // v12 and v20 are identical
 }
+// https://docs.getdbt.com/reference/artifacts/manifest-json
 impl AllowedManifestVersions {
     fn from_str(version: &str) -> Option<Self> {
         match version {
-            "https://schemas.getdbt.com/dbt/manifest/v12.json" => Some(Self::V12),
+            "https://schemas.getdbt.com/dbt/manifest/v12.json"
+            | "https://schemas.getdbt.com/dbt/manifest/v20.json" => Some(Self::V12),
             _ => None,
         }
     }
