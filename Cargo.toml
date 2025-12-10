@@ -46,6 +46,7 @@ strum = "0.27.2"
 strum_macros = "0.27.2"
 tabled = { version = "0.20.0", features = ["ansi"] }
 terminal_size = "0.4.3"
+serde_path_to_error = "0.1.20"
 
 [dev-dependencies]
 tempfile = "3.23.0"

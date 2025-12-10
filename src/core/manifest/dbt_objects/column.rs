@@ -34,7 +34,7 @@ pub struct Column {
     pub tests: Option<Vec<String>>,
     pub meta: Option<Meta>,
     pub datatype: Option<String>,
-    pub constraints: Option<Vec<String>>,
+    pub constraints: Option<Vec<ColumnLevelConstraint>>,
     pub quoted: Option<bool>,
     pub config: Option<ColumnConfig>,
     pub tags: Tags,

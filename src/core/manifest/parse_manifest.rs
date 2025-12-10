@@ -3,12 +3,11 @@ use crate::core::manifest::dbt_objects::nodes::test::Test;
 use super::dbt_objects::{Node, Source};
 use super::{Exposure, Group, Macro, Metric, SavedQuery, SemanticModel, UnitTest};
 use anyhow::{Context, Result};
+use serde::Deserialize;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
-
-use serde::Deserialize;
 
 enum AllowedManifestVersions {
     V12, // v12 and v20 are identical
@@ -106,10 +105,17 @@ impl Manifest {
 
         let reader = BufReader::new(file);
 
-        let mut manifest: Self = serde_json::from_reader(reader).context(format!(
-            "Unable to parse manifest JSON, delete it from {} and regenerate using eligible dbt commands. \nSee: \x1b]8;;https://docs.getdbt.com/reference/artifacts/manifest-json\x1b\\dbt manifest documentation\x1b]8;;\x1b\\",
-            manifest_path.display()
-        ))?;
+        let mut de = serde_json::Deserializer::from_reader(reader);
+
+        let mut manifest: Self = serde_path_to_error::deserialize(&mut de)
+            .inspect_err(|e| {
+                dbg!(e.path().to_string(), e.inner());
+            })
+            .context(format!(
+                "Unable to parse manifest JSON, delete it from {} and regenerate using eligible dbt commands.\n\
+                See: \x1b]8;;https://docs.getdbt.com/reference/artifacts/manifest-json\x1b\\dbt manifest documentation\x1b]8;;\x1b\\",
+                manifest_path.display()
+            ))?;
 
         check_manifest_version(&manifest.metadata.dbt_schema_version)?;
 
