@@ -73,7 +73,7 @@ pub fn is_not_orphaned<T: ChildMappable>(
 
 #[cfg(test)]
 mod tests {
-    use crate::core::checks::common::child_map::{is_not_orphaned, ChildMappable};
+    use crate::core::checks::rules::child_map::{is_not_orphaned, ChildMappable};
     use crate::core::config::check_config_options::{
         default_allowed_references, OrphanedReferenceType,
     };

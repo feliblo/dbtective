@@ -1,12 +1,13 @@
 use super::super::column::Column;
 use super::super::{Meta, Tags};
 use super::{Analysis, HookNode, Model, Seed, Snapshot, SqlOperation, Test};
-use crate::core::checks::common::child_map::ChildMappable;
-use crate::core::checks::common::has_description::Descriptable;
-use crate::core::checks::common::has_tags::Tagable;
-use crate::core::checks::common::has_unique_test::TestAble;
-use crate::core::checks::common::name_convention::NameAble;
 use crate::core::checks::common_traits::Columnable;
+use crate::core::checks::rules::child_map::ChildMappable;
+use crate::core::checks::rules::has_contract_enforced::ContractAble;
+use crate::core::checks::rules::has_description::Descriptable;
+use crate::core::checks::rules::has_tags::Tagable;
+use crate::core::checks::rules::has_unique_test::TestAble;
+use crate::core::checks::rules::name_convention::NameAble;
 use crate::core::config::applies_to::RuleTarget;
 use crate::core::config::includes_excludes::IncludeExcludable;
 use crate::core::manifest::Manifest;
@@ -222,6 +223,18 @@ pub struct MacroDependsOn {
     pub macros: Vec<String>,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct NodeConfig {
+    pub contract: Option<Contract>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Contract {
+    pub enforced: bool,
+    #[allow(dead_code)]
+    pub alias_types: bool,
+}
+
 // Base Layer: Core fields ALL nodes have
 #[derive(Debug, Deserialize)]
 #[allow(dead_code)]
@@ -242,7 +255,7 @@ pub struct NodeBase {
     pub description: Option<String>,
     pub meta: Option<Meta>,
     pub columns: Option<HashMap<String, Column>>,
-    pub config: Option<serde_json::Value>,
+    pub config: Option<NodeConfig>,
     // Currently unused fields that do exist in the data
     // pub group: Option<String>,
     // pub docs: Option<NodeDocs>,
@@ -329,5 +342,52 @@ impl TestAble for Node {
 
     fn get_relative_path(&self) -> Option<&String> {
         Some(&self.get_base().original_file_path)
+    }
+}
+
+// Only for model this works though
+impl ContractAble for Node {
+    fn get_contract_enforced(&self) -> Option<bool> {
+        match self {
+            Self::Model(_) => self
+                .get_base()
+                .config
+                .as_ref()
+                .and_then(|cfg| cfg.contract.as_ref().map(|contract| contract.enforced)),
+            // Nothing for other node types
+            Self::Seed(_)
+            | Self::Analysis(_)
+            | Self::Test(_)
+            | Self::Snapshot(_)
+            | Self::HookNode(_)
+            | Self::SqlOperation(_) => None,
+        }
+    }
+    fn get_object_type(&self) -> &str {
+        self.get_object_type()
+    }
+
+    fn get_name(&self) -> &str {
+        self.get_name()
+    }
+    fn get_relative_path(&self) -> Option<&String> {
+        Some(&self.get_base().original_file_path)
+    }
+}
+
+impl ContractAble for &Node {
+    fn get_contract_enforced(&self) -> Option<bool> {
+        (*self).get_contract_enforced()
+    }
+
+    fn get_object_type(&self) -> &str {
+        (*self).get_object_type()
+    }
+
+    fn get_name(&self) -> &str {
+        (*self).get_name()
+    }
+    fn get_relative_path(&self) -> Option<&String> {
+        Some(&(*self).get_base().original_file_path)
     }
 }

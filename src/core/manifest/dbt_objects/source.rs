@@ -6,11 +6,11 @@ use std::collections::HashMap;
 use super::tags::Tags;
 use crate::core::{
     checks::{
-        common::{
+        common_traits::Columnable,
+        rules::{
             child_map::ChildMappable, has_description::Descriptable, has_tags::Tagable,
             has_unique_test::TestAble, name_convention::NameAble,
         },
-        common_traits::Columnable,
     },
     config::{applies_to::RuleTarget, includes_excludes::IncludeExcludable},
     manifest::{dbt_objects::column::Column, Manifest},

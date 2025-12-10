@@ -1,3 +1,5 @@
+use std::vec;
+
 use anyhow::Context;
 use anyhow::Result;
 use serde::Deserialize;
@@ -31,6 +33,7 @@ pub enum ManifestSpecificRuleConfig {
         #[serde(default = "default_allowed_test_names")]
         allowed_test_names: Vec<String>,
     },
+    HasContractEnforced {},
 }
 
 impl ManifestSpecificRuleConfig {
@@ -214,6 +217,15 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             semantic_model_objects: vec![],
             custom_objects: vec![],
         },
+        ManifestSpecificRuleConfig::HasContractEnforced { .. } => AppliesTo {
+            node_objects: vec![RuleTarget::Models],
+            macro_objects: vec![],
+            source_objects: vec![],
+            unit_test_objects: vec![],
+            exposure_objects: vec![],
+            semantic_model_objects: vec![],
+            custom_objects: vec![],
+        },
     }
 }
 
@@ -275,6 +287,15 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
             source_objects: vec![RuleTarget::Sources],
             unit_test_objects: vec![],
             macro_objects: vec![],
+            exposure_objects: vec![],
+            semantic_model_objects: vec![],
+            custom_objects: vec![],
+        },
+        ManifestSpecificRuleConfig::HasContractEnforced { .. } => AppliesTo {
+            node_objects: vec![RuleTarget::Models],
+            macro_objects: vec![],
+            source_objects: vec![],
+            unit_test_objects: vec![],
             exposure_objects: vec![],
             semantic_model_objects: vec![],
             custom_objects: vec![],

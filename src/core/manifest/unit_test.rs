@@ -1,7 +1,7 @@
 use serde::Deserialize;
 
 use crate::core::{
-    checks::common::{has_description::Descriptable, name_convention::NameAble},
+    checks::rules::{has_description::Descriptable, name_convention::NameAble},
     config::{applies_to::RuleTarget, includes_excludes::IncludeExcludable},
 };
 

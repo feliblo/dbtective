@@ -1,6 +1,7 @@
 use crate::cli::table::RuleResult;
-use crate::core::checks::common::{
-    check_name_convention, child_map::is_not_orphaned, has_description, has_tags, has_unique_test,
+use crate::core::checks::rules::{
+    check_name_convention, child_map::is_not_orphaned, has_contract_enforced, has_description,
+    has_tags, has_unique_test,
 };
 use crate::core::config::manifest_rule::ManifestSpecificRuleConfig;
 
@@ -73,6 +74,9 @@ pub fn apply_node_checks<'a>(
                     }
                     ManifestSpecificRuleConfig::HasUniqueTest { allowed_test_names } => {
                         has_unique_test(node, rule, manifest, allowed_test_names)
+                    }
+                    ManifestSpecificRuleConfig::HasContractEnforced {} => {
+                        has_contract_enforced(node, rule)
                     }
                 };
 
