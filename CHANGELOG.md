@@ -1,3 +1,14 @@
+## v0.1.24 (2025-12-11)
+
+### Fix
+
+- **logs**: remove verbose logs from catalog - ([64d912f](https://github.com/feliblo/dbtective/commit/64d912f0b15da57a6935c4c92735a579b7973976)) - feliblo
+- **table**: try another windows prefix fix in hyperlinks - ([a667eaa](https://github.com/feliblo/dbtective/commit/a667eaaa50c6950a86357113e8d7ea67d08b637f)) - feliblo
+
+### Contributors
+
+[@feliblo](https://github.com/feliblo)
+
 ## v0.1.23 (2025-12-11)
 
 ### Feat
