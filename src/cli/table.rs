@@ -75,7 +75,15 @@ pub fn show_results_and_exit(
                         .canonicalize()
                         .map(|p| p.to_string_lossy().into_owned())
                         .unwrap_or(full_path);
-                    let file_url = format!("file://{abs_path}");
+
+                    // Convert to proper file URL format
+                    // On Windows, paths like C:\foo need to become file:///C:/foo to follow RFC 8089
+                    let file_url = if cfg!(windows) {
+                        let path_with_slashes = abs_path.replace('\\', "/");
+                        format!("file:///{path_with_slashes}")
+                    } else {
+                        format!("file://{abs_path}")
+                    };
 
                     new_row.message = format!(
                         "\x1b]8;;{url}\x1b\\{text}\x1b]8;;\x1b\\",
