@@ -11,7 +11,6 @@ use crate::{
         manifest::Manifest,
     },
 };
-use owo_colors::OwoColorize;
 
 // I don't like the duplication of code in this. But otherwise complex trait functions would be needed.
 // It can be refactored later if needed, but honestly I need a bit more Rust experience to do that well.
@@ -45,7 +44,7 @@ pub fn apply_manifest_object_checks<'a>(
 fn apply_source_checks<'a>(
     manifest: &'a Manifest,
     config: &'a Config,
-    verbose: bool,
+    _verbose: bool,
 ) -> anyhow::Result<Vec<(RuleResult, &'a Severity)>> {
     let results = if let Some(manifest_tests) = &config.manifest_tests {
         manifest
@@ -53,18 +52,6 @@ fn apply_source_checks<'a>(
             .values()
             .flat_map(|source| manifest_tests.iter().map(move |rule| (source, rule)))
             .try_fold(Vec::new(), |mut acc, (source, rule)| -> anyhow::Result<_> {
-                if verbose {
-                    println!(
-                        "{}",
-                        format!(
-                            "Applying rule '{}' to source '{}'",
-                            rule.get_name(),
-                            source.get_name()
-                        )
-                        .blue()
-                    );
-                }
-
                 if !should_run_test(source, rule.includes.as_ref(), rule.excludes.as_ref()) {
                     return Ok(acc);
                 }
@@ -113,7 +100,7 @@ fn apply_source_checks<'a>(
 fn apply_macro_checks<'a>(
     manifest: &'a Manifest,
     config: &'a Config,
-    verbose: bool,
+    _verbose: bool,
 ) -> anyhow::Result<Vec<(RuleResult, &'a Severity)>> {
     let results = if let Some(manifest_tests) = &config.manifest_tests {
         manifest
@@ -123,18 +110,6 @@ fn apply_macro_checks<'a>(
             .try_fold(
                 Vec::new(),
                 |mut acc, (macro_obj, rule)| -> anyhow::Result<_> {
-                    if verbose {
-                        println!(
-                            "{}",
-                            format!(
-                                "Applying rule '{}' to macro '{}'",
-                                rule.get_name(),
-                                macro_obj.get_name()
-                            )
-                            .blue()
-                        );
-                    }
-
                     if !should_run_test(macro_obj, rule.includes.as_ref(), rule.excludes.as_ref()) {
                         return Ok(acc);
                     }
@@ -179,7 +154,7 @@ fn apply_macro_checks<'a>(
 fn apply_exposure_checks<'a>(
     manifest: &'a Manifest,
     config: &'a Config,
-    verbose: bool,
+    _verbose: bool,
 ) -> anyhow::Result<Vec<(RuleResult, &'a Severity)>> {
     let results = if let Some(manifest_tests) = &config.manifest_tests {
         manifest
@@ -189,18 +164,6 @@ fn apply_exposure_checks<'a>(
             .try_fold(
                 Vec::new(),
                 |mut acc, (exposure, rule)| -> anyhow::Result<_> {
-                    if verbose {
-                        println!(
-                            "{}",
-                            format!(
-                                "Applying rule '{}' to exposure '{}'",
-                                rule.get_name(),
-                                exposure.get_name()
-                            )
-                            .blue()
-                        );
-                    }
-
                     if !should_run_test(exposure, rule.includes.as_ref(), rule.excludes.as_ref()) {
                         return Ok(acc);
                     }
@@ -249,7 +212,7 @@ fn apply_exposure_checks<'a>(
 fn apply_semantic_model_checks<'a>(
     manifest: &'a Manifest,
     config: &'a Config,
-    verbose: bool,
+    _verbose: bool,
 ) -> anyhow::Result<Vec<(RuleResult, &'a Severity)>> {
     let results = if let Some(manifest_tests) = &config.manifest_tests {
         manifest
@@ -257,18 +220,6 @@ fn apply_semantic_model_checks<'a>(
             .values()
             .flat_map(|sm| manifest_tests.iter().map(move |rule| (sm, rule)))
             .try_fold(Vec::new(), |mut acc, (sm, rule)| -> anyhow::Result<_> {
-                if verbose {
-                    println!(
-                        "{}",
-                        format!(
-                            "Applying rule '{}' to semantic model '{}'",
-                            rule.get_name(),
-                            sm.get_name()
-                        )
-                        .blue()
-                    );
-                }
-
                 if !should_run_test(sm, rule.includes.as_ref(), rule.excludes.as_ref()) {
                     return Ok(acc);
                 }
@@ -310,7 +261,7 @@ fn apply_semantic_model_checks<'a>(
 fn apply_unit_test_checks<'a>(
     manifest: &'a Manifest,
     config: &'a Config,
-    verbose: bool,
+    _verbose: bool,
 ) -> anyhow::Result<Vec<(RuleResult, &'a Severity)>> {
     let results = if let Some(manifest_tests) = &config.manifest_tests {
         manifest
@@ -318,18 +269,6 @@ fn apply_unit_test_checks<'a>(
             .values()
             .flat_map(|ut| manifest_tests.iter().map(move |rule| (ut, rule)))
             .try_fold(Vec::new(), |mut acc, (ut, rule)| -> anyhow::Result<_> {
-                if verbose {
-                    println!(
-                        "{}",
-                        format!(
-                            "Applying rule '{}' to unit test '{}'",
-                            rule.get_name(),
-                            ut.get_name()
-                        )
-                        .blue()
-                    );
-                }
-
                 if !should_run_test(ut, rule.includes.as_ref(), rule.excludes.as_ref()) {
                     return Ok(acc);
                 }

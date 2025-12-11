@@ -8,7 +8,6 @@ use crate::core::config::manifest_rule::ManifestSpecificRuleConfig;
 use crate::core::config::severity::Severity;
 use crate::core::config::{includes_excludes::should_run_test, Config};
 use crate::core::manifest::Manifest;
-use owo_colors::OwoColorize;
 
 /// Applies node checks to the manifest.
 ///
@@ -17,7 +16,7 @@ use owo_colors::OwoColorize;
 pub fn apply_node_checks<'a>(
     manifest: &'a Manifest,
     config: &'a Config,
-    verbose: bool,
+    _verbose: bool,
 ) -> anyhow::Result<Vec<(RuleResult, &'a Severity)>> {
     let results = if let Some(manifest_tests) = &config.manifest_tests {
         manifest
@@ -35,18 +34,6 @@ pub fn apply_node_checks<'a>(
 
                 if !applies.node_objects.contains(&node.ruletarget()) {
                     return Ok(acc);
-                }
-
-                if verbose {
-                    println!(
-                        "{}",
-                        format!(
-                            "Applying rule '{}' to node '{}'",
-                            rule.get_name(),
-                            node.get_name()
-                        )
-                        .blue()
-                    );
                 }
 
                 let check_row_result = match &rule.rule {
