@@ -7,5 +7,5 @@ pub struct CatalogStat {
     pub label: String,
     pub value: serde_json::Value,
     pub include: bool,
-    pub description: String,
+    pub description: Option<String>,
 }

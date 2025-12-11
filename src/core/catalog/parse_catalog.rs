@@ -62,10 +62,15 @@ impl Catalog {
 
         let reader = BufReader::new(file);
 
-        let catalog: Self = serde_json::from_reader(reader).context(format!(
-            "Unable to parse catalog JSON, delete it from {} and regenerate using 'dbt docs generate'\nSee: \x1b]8;;https://docs.getdbt.com/reference/artifacts/catalog-json\x1b\\dbt catalog documentation\x1b]8;;\x1b\\",
-            catalog_path.display()
-        ))?;
+        let mut de = serde_json::Deserializer::from_reader(reader);
+        let catalog: Self = serde_path_to_error::deserialize(&mut de)
+            .inspect_err(|e| {
+                dbg!(e.path().to_string(), e.inner());
+            })
+            .context(format!(
+                "Unable to parse catalog JSON, delete it from {} and regenerate using 'dbt docs generate'\nSee: \x1b]8;;https://docs.getdbt.com/reference/artifacts/catalog-json\x1b\\dbt catalog documentation\x1b]8;;\x1b\\",
+                catalog_path.display()
+            ))?;
 
         check_catalog_version(&catalog.metadata.dbt_schema_version)?;
 
