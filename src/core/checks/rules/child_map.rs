@@ -42,15 +42,9 @@ pub fn is_not_orphaned<T: ChildMappable>(
     // Check if it has at least one allowed reference (given in config)
     let has_allowed_reference = children.iter().any(|c| {
         let object_type = c.split('.').next().unwrap_or("unknown_object");
-        allowed_references.iter().any(|art| {
-            println!(
-                "Checking if child object_type '{}' matches allowed reference type '{}'",
-                object_type,
-                art.as_ref()
-            );
-
-            art.matches(object_type)
-        })
+        allowed_references
+            .iter()
+            .any(|art| art.matches(object_type))
     });
 
     if has_allowed_reference {

@@ -66,33 +66,11 @@ fn apply_source_checks<'a>(
                 }
 
                 if !should_run_test(source, rule.includes.as_ref(), rule.excludes.as_ref()) {
-                    if verbose {
-                        println!(
-                            "{}",
-                            format!(
-                                "Skipping rule '{}' for source '{}' due to include/exclude filters",
-                                rule.get_name(),
-                                source.get_name()
-                            )
-                            .blue()
-                        );
-                    }
                     return Ok(acc);
                 }
 
                 if let Some(applies) = &rule.applies_to {
                     if !applies.source_objects.contains(&source.ruletarget()) {
-                        if verbose {
-                            println!(
-                                "{}",
-                                format!(
-                                    "Skipping rule '{}' for source '{}' due to applies_to filter",
-                                    rule.get_name(),
-                                    source.get_name()
-                                )
-                                .blue()
-                            );
-                        }
                         return Ok(acc);
                     }
                 }
@@ -158,17 +136,6 @@ fn apply_macro_checks<'a>(
                     }
 
                     if !should_run_test(macro_obj, rule.includes.as_ref(), rule.excludes.as_ref()) {
-                        if verbose {
-                            println!(
-                                "{}",
-                                format!(
-                                "Skipping rule '{}' for macro '{}' due to include/exclude filters",
-                                rule.get_name(),
-                                macro_obj.get_name()
-                            )
-                                .blue()
-                            );
-                        }
                         return Ok(acc);
                     }
 
@@ -219,63 +186,55 @@ fn apply_exposure_checks<'a>(
             .exposures
             .values()
             .flat_map(|exposure| manifest_tests.iter().map(move |rule| (exposure, rule)))
-            .try_fold(Vec::new(), |mut acc, (exposure, rule)| -> anyhow::Result<_> {
-                if verbose {
-                    println!(
-                        "{}",
-                        format!(
-                            "Applying rule '{}' to exposure '{}'",
-                            rule.get_name(),
-                            exposure.get_name()
-                        )
-                        .blue()
-                    );
-                }
-
-                if !should_run_test(exposure, rule.includes.as_ref(), rule.excludes.as_ref()) {
+            .try_fold(
+                Vec::new(),
+                |mut acc, (exposure, rule)| -> anyhow::Result<_> {
                     if verbose {
                         println!(
                             "{}",
                             format!(
-                                "Skipping rule '{}' for exposure '{}' due to include/exclude filters",
+                                "Applying rule '{}' to exposure '{}'",
                                 rule.get_name(),
                                 exposure.get_name()
                             )
                             .blue()
                         );
                     }
-                    return Ok(acc);
-                }
 
-                if let Some(applies) = &rule.applies_to {
-                    if !applies.exposure_objects.contains(&exposure.ruletarget()) {
+                    if !should_run_test(exposure, rule.includes.as_ref(), rule.excludes.as_ref()) {
                         return Ok(acc);
                     }
-                }
 
-                let check_row_result = match &rule.rule {
-                    ManifestSpecificRuleConfig::HasDescription {} => {
-                        has_description(exposure, rule)
+                    if let Some(applies) = &rule.applies_to {
+                        if !applies.exposure_objects.contains(&exposure.ruletarget()) {
+                            return Ok(acc);
+                        }
                     }
-                    ManifestSpecificRuleConfig::NameConvention { pattern } => {
-                        check_name_convention(exposure, rule, pattern)?
+
+                    let check_row_result = match &rule.rule {
+                        ManifestSpecificRuleConfig::HasDescription {} => {
+                            has_description(exposure, rule)
+                        }
+                        ManifestSpecificRuleConfig::NameConvention { pattern } => {
+                            check_name_convention(exposure, rule, pattern)?
+                        }
+                        ManifestSpecificRuleConfig::HasTags {
+                            required_tags,
+                            criteria,
+                        } => has_tags(exposure, rule, required_tags, criteria),
+                        // These can't be implemented for exposures
+                        ManifestSpecificRuleConfig::IsNotOrphaned { .. }
+                        | ManifestSpecificRuleConfig::HasUniqueTest { .. }
+                        | ManifestSpecificRuleConfig::HasContractEnforced {} => return Ok(acc),
+                    };
+
+                    if let Some(check_row) = check_row_result {
+                        acc.push((check_row, &rule.severity));
                     }
-                    ManifestSpecificRuleConfig::HasTags {
-                        required_tags,
-                        criteria,
-                    } => has_tags(exposure, rule, required_tags, criteria),
-                    // These can't be implemented for exposures
-                    ManifestSpecificRuleConfig::IsNotOrphaned { .. } |
-                    ManifestSpecificRuleConfig::HasUniqueTest { .. } |
-                    ManifestSpecificRuleConfig::HasContractEnforced {} => return Ok(acc),
-                };
 
-                if let Some(check_row) = check_row_result {
-                    acc.push((check_row, &rule.severity));
-                }
-
-                Ok(acc)
-            })?
+                    Ok(acc)
+                },
+            )?
     } else {
         Vec::new()
     };
@@ -311,17 +270,6 @@ fn apply_semantic_model_checks<'a>(
                 }
 
                 if !should_run_test(sm, rule.includes.as_ref(), rule.excludes.as_ref()) {
-                    if verbose {
-                        println!(
-                            "{}",
-                            format!(
-                                "Skipping rule '{}' for semantic model '{}' due to include/exclude filters",
-                                rule.get_name(),
-                                sm.get_name()
-                            )
-                            .blue()
-                        );
-                    }
                     return Ok(acc);
                 }
 
@@ -337,10 +285,10 @@ fn apply_semantic_model_checks<'a>(
                         check_name_convention(sm, rule, pattern)?
                     }
                     // These can't be implemented for semantic models
-                    ManifestSpecificRuleConfig::HasTags { .. }  |
-                    ManifestSpecificRuleConfig::IsNotOrphaned { .. } |
-                    ManifestSpecificRuleConfig::HasUniqueTest { .. } |
-                    ManifestSpecificRuleConfig::HasContractEnforced {} => return Ok(acc),
+                    ManifestSpecificRuleConfig::HasTags { .. }
+                    | ManifestSpecificRuleConfig::IsNotOrphaned { .. }
+                    | ManifestSpecificRuleConfig::HasUniqueTest { .. }
+                    | ManifestSpecificRuleConfig::HasContractEnforced {} => return Ok(acc),
                 };
 
                 if let Some(check_row) = check_row_result {
@@ -383,17 +331,6 @@ fn apply_unit_test_checks<'a>(
                 }
 
                 if !should_run_test(ut, rule.includes.as_ref(), rule.excludes.as_ref()) {
-                    if verbose {
-                        println!(
-                            "{}",
-                            format!(
-                                "Skipping rule '{}' for unit test '{}' due to include/exclude filters",
-                                rule.get_name(),
-                                ut.get_name()
-                            )
-                            .blue()
-                        );
-                    }
                     return Ok(acc);
                 }
 
@@ -409,10 +346,10 @@ fn apply_unit_test_checks<'a>(
                         check_name_convention(ut, rule, pattern)?
                     }
                     // Unit Tests do not have tags & Don't implement TagAble
-                    ManifestSpecificRuleConfig::HasTags { .. } |
-                    ManifestSpecificRuleConfig::IsNotOrphaned { .. } |
-                    ManifestSpecificRuleConfig::HasUniqueTest { .. } |
-                    ManifestSpecificRuleConfig::HasContractEnforced {} => return Ok(acc),
+                    ManifestSpecificRuleConfig::HasTags { .. }
+                    | ManifestSpecificRuleConfig::IsNotOrphaned { .. }
+                    | ManifestSpecificRuleConfig::HasUniqueTest { .. }
+                    | ManifestSpecificRuleConfig::HasContractEnforced {} => return Ok(acc),
                 };
 
                 if let Some(check_row) = check_row_result {
