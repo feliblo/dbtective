@@ -10,6 +10,39 @@ use serde::Deserialize;
 use std::fs::File;
 use std::path::Path;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum ConfigFile {
+    Yml,
+    Yaml,
+    Toml,
+    PyProject,
+}
+
+impl ConfigFile {
+    const ALL: [Self; 4] = [Self::Yml, Self::Yaml, Self::Toml, Self::PyProject];
+
+    const fn filename(self) -> &'static str {
+        match self {
+            Self::Yml => "dbtective.yml",
+            Self::Yaml => "dbtective.yaml",
+            Self::Toml => "dbtective.toml",
+            Self::PyProject => "pyproject.toml",
+        }
+    }
+
+    const fn priority(self) -> u8 {
+        match self {
+            Self::Yml | Self::Yaml => 1,
+            Self::Toml => 2,
+            Self::PyProject => 3,
+        }
+    }
+
+    const fn requires_section_check(self) -> bool {
+        matches!(self, Self::PyProject)
+    }
+}
+
 #[derive(Debug, Deserialize)]
 #[allow(dead_code)]
 pub struct Config {
@@ -42,36 +75,47 @@ impl Config {
     pub fn find_config_in_dir<P: AsRef<Path>>(dir: P) -> Result<(String, Vec<String>)> {
         let dir = dir.as_ref();
 
-        let possible_configs = [
-            ("dbtective.yml", 1),
-            ("dbtective.yaml", 1), // same priority as .yml
-            ("dbtective.toml", 2),
-            ("pyproject.toml", 3),
-        ];
-
-        let mut found_configs = Vec::new();
-
-        for (config_name, priority) in &possible_configs {
-            let config_path = dir.join(config_name);
-            if config_path.exists() {
-                found_configs.push(((*config_name).to_string(), *priority));
-            }
-        }
+        let mut found_configs: Vec<ConfigFile> = ConfigFile::ALL
+            .into_iter()
+            .filter(|config| {
+                let path = dir.join(config.filename());
+                if !path.exists() {
+                    return false;
+                }
+                if config.requires_section_check() {
+                    return Self::pyproject_has_dbtective_section(&path);
+                }
+                true
+            })
+            .collect();
 
         if found_configs.is_empty() {
             return Err(anyhow::anyhow!(
-                "No dbtective config file found in {}. Looked for: dbtective.yml, dbtective.yaml, dbtective.toml, or pyproject.toml",
+                "No dbtective config file found in {}. Looked for: dbtective.yml, dbtective.yaml, dbtective.toml, or pyproject.toml with [tool.dbtective]",
                 dir.display()
             ));
         }
 
-        // Sort by priority (lower number = higher priority)
-        found_configs.sort_by_key(|(_, priority)| *priority);
+        found_configs.sort_by_key(|c| c.priority());
 
-        let chosen_config = found_configs[0].0.clone();
-        let all_found: Vec<String> = found_configs.into_iter().map(|(name, _)| name).collect();
+        let chosen_config = found_configs[0].filename().to_string();
+        let all_found: Vec<String> = found_configs
+            .iter()
+            .map(|c| c.filename().to_string())
+            .collect();
 
         Ok((chosen_config, all_found))
+    }
+
+    /// Check if a pyproject.toml file contains the [tool.dbtective] section
+    fn pyproject_has_dbtective_section<P: AsRef<Path>>(path: P) -> bool {
+        let Ok(contents) = std::fs::read_to_string(path) else {
+            return false;
+        };
+        let Ok(value) = contents.parse::<toml::Value>() else {
+            return false;
+        };
+        value.get("tool").and_then(|t| t.get("dbtective")).is_some()
     }
 
     /// Load and parse the configuration from a file, auto-detecting the format
