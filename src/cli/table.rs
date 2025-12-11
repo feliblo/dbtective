@@ -58,7 +58,10 @@ pub fn show_results_and_exit(
         );
     } else {
         println!("\n {}", "🕵️  dbtective detected some issues:".red());
-        let table_rows: Vec<RuleResult> = results
+
+        let sorted_results = sort_results(results);
+
+        let table_rows: Vec<RuleResult> = sorted_results
             .iter()
             .map(|(row, _)| {
                 let mut new_row = row.clone();
@@ -124,4 +127,20 @@ fn get_terminal_size() -> (usize, usize) {
         // Default size for non-interactive environments (like CI/GitHub Actions)
         (140, 40)
     }
+}
+
+/// Sort results by severity (FAIL before WARN), then by `object_type`, then by `rule_name`
+fn sort_results<'a>(
+    results: &'a [(RuleResult, &'a Severity)],
+) -> Vec<&'a (RuleResult, &'a Severity)> {
+    let mut sorted: Vec<_> = results.iter().collect();
+    sorted.sort_by(|(a, sev_a), (b, sev_b)| {
+        sev_a
+            .as_code()
+            .cmp(&sev_b.as_code())
+            .reverse()
+            .then_with(|| a.object_type.cmp(&b.object_type))
+            .then_with(|| a.rule_name.cmp(&b.rule_name))
+    });
+    sorted
 }
