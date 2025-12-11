@@ -14,7 +14,6 @@ use crate::core::config::Config;
 use crate::core::manifest::Manifest;
 use crate::core::utils::unwrap_or_exit;
 use log::debug;
-use owo_colors::OwoColorize;
 use std::time::Instant;
 
 #[must_use]
@@ -48,10 +47,6 @@ pub fn run(options: &RunOptions, verbose: bool) -> i32 {
     // The manifest has been rebuild using a `dbt` command,
     // yet the `catalog.json` has not been updated with `dbt docs generate`
     let catalog = if options.only_manifest {
-        println!(
-            "{}",
-            "Skipping catalog-based checks, due to --only-manifest flag".blue()
-        );
         None
     } else {
         let catalog_path =

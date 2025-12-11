@@ -30,17 +30,6 @@ pub fn apply_node_checks<'a>(
                     return Ok(acc);
                 };
                 if !should_run_test(node, rule.includes.as_ref(), rule.excludes.as_ref()) {
-                    if verbose {
-                        println!(
-                            "{}",
-                            format!(
-                                "Skipping rule '{}' for node '{}' due to include/exclude filters",
-                                rule.get_name(),
-                                node.get_name()
-                            )
-                            .blue()
-                        );
-                    }
                     return Ok(acc);
                 }
 

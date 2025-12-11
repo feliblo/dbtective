@@ -59,17 +59,6 @@ pub fn apply_catalog_node_checks<'a>(
             // `applies_to` filtering has to be done from the manifest node side (only it contains the path)
             if let Some(applies) = &rule.applies_to {
                 if !applies.node_objects.contains(&manifest_node.ruletarget()) {
-                    if verbose {
-                        println!(
-                            "{}",
-                            format!(
-                                "Skipping rule '{}' for catalog node '{}' due to applies_to filter",
-                                rule.get_name(),
-                                catalog_node.get_name()
-                            )
-                            .blue()
-                        );
-                    }
                     return acc;
                 }
             }

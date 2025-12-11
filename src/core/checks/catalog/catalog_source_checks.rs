@@ -59,17 +59,6 @@ pub fn apply_catalog_source_checks<'a>(
             // `applies_to` filtering has to be done from the manifest source side (only it contains the path)
             if let Some(applies) = &rule.applies_to {
                 if !applies.source_objects.contains(&manifest_source.ruletarget()) {
-                    if verbose {
-                        println!(
-                            "{}",
-                            format!(
-                                "Skipping rule '{}' for catalog source '{}' due to applies_to filter",
-                                rule.get_name(),
-                                catalog_source.get_name()
-                            )
-                            .blue()
-                        );
-                    }
                     return acc;
                 }
             }
