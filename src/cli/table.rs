@@ -81,9 +81,14 @@ pub fn show_results_and_exit(
 
                     // Convert to proper file URL format
                     // On Windows, paths like C:\foo need to become file:///C:/foo to follow RFC 8089
+                    // canonicalize() on Windows may return extended-length paths with \\?\ prefix
                     let file_url = if cfg!(windows) {
                         let path_with_slashes = abs_path.replace('\\', "/");
-                        format!("file:///{path_with_slashes}")
+                        let clean_path = path_with_slashes
+                            .strip_prefix("//?/")
+                            .or_else(|| path_with_slashes.strip_prefix("//./"))
+                            .unwrap_or(&path_with_slashes);
+                        format!("file:///{clean_path}")
                     } else {
                         format!("file://{abs_path}")
                     };
