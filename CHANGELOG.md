@@ -1,3 +1,18 @@
+## v0.1.22 (2025-12-11)
+
+### Feat
+
+- **rules**: add has_contract_enforced rule - ([da1536e](https://github.com/feliblo/dbtective/commit/da1536ef2a14964f9614804f2cc0d1b1e43cf1c4)) - Felix Blom
+
+### Fix
+
+- **table**: fix windows hyperlinks in table - ([b0ee40d](https://github.com/feliblo/dbtective/commit/b0ee40d1f6ee97e7d9f12b2b38633d2d980d0762)) - feliblo
+- **logs**: remove overly verbose logging - ([51bdf8f](https://github.com/feliblo/dbtective/commit/51bdf8f38698fedef43822a15ca516977a524e4f)) - feliblo
+
+### Contributors
+
+[@feliblo](https://github.com/feliblo), [@feliblo](https://github.com/feliblo)
+
 ## v0.1.21 (2025-12-10)
 
 ### Fix
