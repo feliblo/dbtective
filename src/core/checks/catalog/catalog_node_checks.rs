@@ -34,13 +34,6 @@ pub fn apply_catalog_node_checks<'a>(
         .values()
         .flat_map(|catalog_node| catalog_tests.iter().map(move |rule| (catalog_node, rule)))
         .fold(Vec::new(), |mut acc, (catalog_node, rule)| {
-            if verbose {
-                println!(
-                    "{}",
-                    format!("Applying catalog rule: {}", rule.get_name()).blue()
-                );
-            }
-
             let Some(manifest_node) = manifest.get_node(catalog_node.get_unique_id()) else {
                 // Mismatch between catalog and manifest nodes
                 println!(
