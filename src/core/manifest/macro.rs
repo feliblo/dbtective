@@ -1,8 +1,11 @@
 use serde::Deserialize;
 
 use crate::core::{
-    checks::rules::{has_description::Descriptable, name_convention::NameAble},
+    checks::rules::{
+        has_description::Descriptable, has_metadata_keys::HasMetadata, name_convention::NameAble,
+    },
     config::{applies_to::RuleTarget, includes_excludes::IncludeExcludable},
+    manifest::dbt_objects::Meta,
 };
 
 // #[derive(Debug, Deserialize)]
@@ -31,7 +34,7 @@ pub struct Macro {
     // pub macro_sql: String,
     // pub depends_on: MacroDependsOn,
     pub description: Option<String>,
-    // pub meta: Option<serde_json::Value>,
+    pub meta: Option<Meta>,
     // pub docs: Option<serde_json::Value>,
     // pub patch_path: Option<String>,
     // pub arguments: Option<Vec<MacroArgument>>,
@@ -95,6 +98,24 @@ impl Descriptable for Macro {
 impl NameAble for Macro {
     fn name(&self) -> &str {
         self.get_name()
+    }
+
+    fn get_object_type(&self) -> &str {
+        Self::get_object_type()
+    }
+
+    fn get_object_string(&self) -> &str {
+        self.get_name()
+    }
+
+    fn get_relative_path(&self) -> Option<&String> {
+        Some(self.get_relative_path())
+    }
+}
+
+impl HasMetadata for Macro {
+    fn get_metadata(&self) -> Option<&Meta> {
+        self.meta.as_ref()
     }
 
     fn get_object_type(&self) -> &str {

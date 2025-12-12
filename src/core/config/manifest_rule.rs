@@ -34,6 +34,11 @@ pub enum ManifestSpecificRuleConfig {
         allowed_test_names: Vec<String>,
     },
     HasContractEnforced {},
+    HasMetadataKeys {
+        required_keys: Vec<String>,
+        #[serde(default)]
+        custom_message: Option<String>,
+    },
 }
 
 impl ManifestSpecificRuleConfig {
@@ -226,6 +231,15 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             semantic_model_objects: vec![],
             custom_objects: vec![],
         },
+        ManifestSpecificRuleConfig::HasMetadataKeys { .. } => AppliesTo {
+            node_objects: vec![RuleTarget::Models],
+            source_objects: vec![RuleTarget::Sources],
+            unit_test_objects: vec![],
+            macro_objects: vec![RuleTarget::Macros],
+            exposure_objects: vec![],
+            semantic_model_objects: vec![],
+            custom_objects: vec![],
+        },
     }
 }
 
@@ -298,6 +312,15 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
             unit_test_objects: vec![],
             exposure_objects: vec![],
             semantic_model_objects: vec![],
+            custom_objects: vec![],
+        },
+        ManifestSpecificRuleConfig::HasMetadataKeys { .. } => AppliesTo {
+            node_objects: vec![RuleTarget::Models, RuleTarget::Seeds, RuleTarget::Snapshots],
+            source_objects: vec![RuleTarget::Sources],
+            unit_test_objects: vec![],
+            macro_objects: vec![RuleTarget::Macros],
+            exposure_objects: vec![RuleTarget::Exposures],
+            semantic_model_objects: vec![RuleTarget::SemanticModels],
             custom_objects: vec![],
         },
     }

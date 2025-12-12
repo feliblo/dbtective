@@ -1,5 +1,6 @@
 use crate::core::checks::rules::{
-    check_name_convention, has_description, has_tags, has_unique_test, is_not_orphaned,
+    check_name_convention, has_description, has_metadata_keys, has_tags, has_unique_test,
+    is_not_orphaned,
 };
 use crate::{
     cli::table::RuleResult,
@@ -77,6 +78,11 @@ fn apply_source_checks<'a>(
                     ManifestSpecificRuleConfig::HasUniqueTest { allowed_test_names } => {
                         has_unique_test(source, rule, manifest, allowed_test_names)
                     }
+                    ManifestSpecificRuleConfig::HasMetadataKeys {
+                        required_keys,
+                        custom_message,
+                    } => has_metadata_keys(source, rule, required_keys, custom_message.as_ref()),
+
                     // These can't be implemented for exposures
                     ManifestSpecificRuleConfig::HasContractEnforced {} => return Ok(acc), // Models only
                 };
@@ -127,6 +133,15 @@ fn apply_macro_checks<'a>(
                         ManifestSpecificRuleConfig::NameConvention { pattern } => {
                             check_name_convention(macro_obj, rule, pattern)?
                         }
+                        ManifestSpecificRuleConfig::HasMetadataKeys {
+                            required_keys,
+                            custom_message,
+                        } => has_metadata_keys(
+                            macro_obj,
+                            rule,
+                            required_keys,
+                            custom_message.as_ref(),
+                        ),
                         // These can't be implemented for macros
                         ManifestSpecificRuleConfig::HasTags { .. }
                         | ManifestSpecificRuleConfig::IsNotOrphaned { .. }
@@ -185,6 +200,15 @@ fn apply_exposure_checks<'a>(
                             required_tags,
                             criteria,
                         } => has_tags(exposure, rule, required_tags, criteria),
+                        ManifestSpecificRuleConfig::HasMetadataKeys {
+                            required_keys,
+                            custom_message,
+                        } => has_metadata_keys(
+                            exposure,
+                            rule,
+                            required_keys,
+                            custom_message.as_ref(),
+                        ),
                         // These can't be implemented for exposures
                         ManifestSpecificRuleConfig::IsNotOrphaned { .. }
                         | ManifestSpecificRuleConfig::HasUniqueTest { .. }
@@ -235,6 +259,10 @@ fn apply_semantic_model_checks<'a>(
                     ManifestSpecificRuleConfig::NameConvention { pattern } => {
                         check_name_convention(sm, rule, pattern)?
                     }
+                    ManifestSpecificRuleConfig::HasMetadataKeys {
+                        required_keys,
+                        custom_message,
+                    } => has_metadata_keys(sm, rule, required_keys, custom_message.as_ref()),
                     // These can't be implemented for semantic models
                     ManifestSpecificRuleConfig::HasTags { .. }
                     | ManifestSpecificRuleConfig::IsNotOrphaned { .. }
@@ -284,11 +312,12 @@ fn apply_unit_test_checks<'a>(
                     ManifestSpecificRuleConfig::NameConvention { pattern } => {
                         check_name_convention(ut, rule, pattern)?
                     }
-                    // Unit Tests do not have tags & Don't implement TagAble
+                    // Unit Tests do not implement the following rules
                     ManifestSpecificRuleConfig::HasTags { .. }
                     | ManifestSpecificRuleConfig::IsNotOrphaned { .. }
                     | ManifestSpecificRuleConfig::HasUniqueTest { .. }
-                    | ManifestSpecificRuleConfig::HasContractEnforced {} => return Ok(acc),
+                    | ManifestSpecificRuleConfig::HasContractEnforced {}
+                    | ManifestSpecificRuleConfig::HasMetadataKeys { .. } => return Ok(acc),
                 };
 
                 if let Some(check_row) = check_row_result {

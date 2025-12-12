@@ -5,6 +5,7 @@ use crate::core::checks::common_traits::Columnable;
 use crate::core::checks::rules::child_map::ChildMappable;
 use crate::core::checks::rules::has_contract_enforced::ContractAble;
 use crate::core::checks::rules::has_description::Descriptable;
+use crate::core::checks::rules::has_metadata_keys::HasMetadata;
 use crate::core::checks::rules::has_tags::Tagable;
 use crate::core::checks::rules::has_unique_test::TestAble;
 use crate::core::checks::rules::name_convention::NameAble;
@@ -389,5 +390,23 @@ impl ContractAble for &Node {
     }
     fn get_relative_path(&self) -> Option<&String> {
         Some(&(*self).get_base().original_file_path)
+    }
+}
+
+impl HasMetadata for Node {
+    fn get_metadata(&self) -> Option<&Meta> {
+        self.get_base().meta.as_ref()
+    }
+
+    fn get_object_type(&self) -> &str {
+        self.get_object_type()
+    }
+
+    fn get_object_string(&self) -> &str {
+        self.get_object_string()
+    }
+
+    fn get_relative_path(&self) -> Option<&String> {
+        Some(self.get_relative_path())
     }
 }
