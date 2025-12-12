@@ -1,5 +1,5 @@
 ---
-title: Has Contract Enforced
+title: has_contract_enforced
 type: docs
 prev: docs/checks
 sidebar:

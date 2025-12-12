@@ -1,5 +1,5 @@
 ---
-title: Columns
+title: columns (2)
 type: docs
 prev: docs/checks
 sidebar:

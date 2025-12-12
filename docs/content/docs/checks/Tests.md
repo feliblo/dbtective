@@ -1,6 +1,6 @@
 ---
 
-title: Object Tests
+title: has_unique_tests
 type: docs
 prev: docs/checks
 sidebar:
