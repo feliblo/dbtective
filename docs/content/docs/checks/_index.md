@@ -1,6 +1,7 @@
 ---
 title: Checks
 type: docs
+weight: 1
 prev: docs/docs-main
 sidebar:
   open: true

@@ -160,17 +160,7 @@ dbtective run --entry-point "my_dbt_project"
 
 We welcome contributions! Whether you're fixing bugs, adding features, or improving documentation, your help makes dbtective better for everyone.
 
-**Quick start:**
-Install [just](https://github.com/casey/just) command line runner & take a look at the commands in the justfile.
-
-To build and run on the example project (`./dbt_project` using config `./dbt_project/dbtective.yml`) use:
-
-```bash
-just run
-just run-verbose
-```
-
-For detailed contributing guidelines, development setup, and coding standards, please see [CONTRIBUTING.md](./CONTRIBUTING.md).
+For detailed contributing guidelines, development setup, and coding standards, please see the [contributing documentation](https://feliblo.github.io/dbtective/docs/).
 
 
 # Acknowledgements

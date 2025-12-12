@@ -1,5 +1,6 @@
 ---
 title: FAQ
+weight: 4
 toc: false
 ---
 {{% details title="What is dbtective?" closed="true" %}}
