@@ -213,15 +213,7 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             semantic_model_objects: vec![],
             custom_objects: vec![],
         },
-        ManifestSpecificRuleConfig::HasUniqueTest { .. } => AppliesTo {
-            node_objects: vec![RuleTarget::Models],
-            source_objects: vec![RuleTarget::Sources],
-            unit_test_objects: vec![],
-            macro_objects: vec![],
-            exposure_objects: vec![],
-            semantic_model_objects: vec![],
-            custom_objects: vec![],
-        },
+
         ManifestSpecificRuleConfig::HasContractEnforced { .. } => AppliesTo {
             node_objects: vec![RuleTarget::Models],
             macro_objects: vec![],
@@ -231,11 +223,13 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             semantic_model_objects: vec![],
             custom_objects: vec![],
         },
-        ManifestSpecificRuleConfig::HasMetadataKeys { .. } => AppliesTo {
+
+        ManifestSpecificRuleConfig::HasUniqueTest { .. }
+        | ManifestSpecificRuleConfig::HasMetadataKeys { .. } => AppliesTo {
             node_objects: vec![RuleTarget::Models],
             source_objects: vec![RuleTarget::Sources],
             unit_test_objects: vec![],
-            macro_objects: vec![RuleTarget::Macros],
+            macro_objects: vec![],
             exposure_objects: vec![],
             semantic_model_objects: vec![],
             custom_objects: vec![],

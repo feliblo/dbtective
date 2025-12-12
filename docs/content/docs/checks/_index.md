@@ -56,6 +56,15 @@ Here you can find an overview of all possible checks. Use the filter below to fi
       <td>Check if dbt objects have at least one uniqueness test attached. Supports standard and custom uniqueness tests.</td>
       <td style="font-size: 12px; color: #666;">tests, uniqueness, unique, validation, custom</td>
     </tr>
+      <tr class="check-item" data-keywords="tests metadata keys" data-category="manifest">
+      <td><a href="has_metadata_keys" class="check-name">has_metadata_keys</a></td>
+      <td><span class="check-category-badge badge-manifest">Manifest</span></td>
+      <td>Check if dbt objects has the provided keys in the metadata</td>
+      <td style="font-size: 12px; color: #666;">tests, uniqueness, unique, validation, custom</td>
+    </tr>
+
+
+
   </tbody>
 </table>
 

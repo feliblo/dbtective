@@ -1,5 +1,5 @@
 ---
-title: Tags
+title: has_tags
 type: docs
 prev: docs/checks
 sidebar:

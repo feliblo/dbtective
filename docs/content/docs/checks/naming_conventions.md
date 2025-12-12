@@ -1,5 +1,5 @@
 ---
-title: Naming Conventions
+title: naming_conventions
 type: docs
 prev: docs/checks
 sidebar:

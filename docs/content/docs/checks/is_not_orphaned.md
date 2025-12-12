@@ -1,5 +1,5 @@
 ---
-title: Not Orphaned
+title: is_not_orphaned
 type: docs
 prev: docs/checks
 sidebar:

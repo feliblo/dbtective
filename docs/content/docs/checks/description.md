@@ -1,5 +1,5 @@
 ---
-title: Description
+title: has_description
 type: docs
 prev: docs/checks
 sidebar:
