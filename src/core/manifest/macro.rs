@@ -86,6 +86,10 @@ impl Descriptable for Macro {
     fn get_object_string(&self) -> &str {
         self.get_name()
     }
+
+    fn get_relative_path(&self) -> Option<&String> {
+        Some(self.get_relative_path())
+    }
 }
 
 impl NameAble for Macro {
