@@ -171,3 +171,8 @@ just run-verbose
 ```
 
 For detailed contributing guidelines, development setup, and coding standards, please see [CONTRIBUTING.md](./CONTRIBUTING.md).
+
+
+# Acknowledgements
+
+This project is heavily inspired dbt [dbt-bouncer](https://github.com/godatadriven/dbt-bouncer). It tries to improve certain aspects of the amazing work by [pgoslatara](https://github.com/pgoslatara), while giving me an opportunity to improve my Rust. More about the aspects we try to improve is available in our  [FAQ](https://feliblo.github.io/dbtective/docs/faq).
