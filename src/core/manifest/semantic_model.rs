@@ -1,8 +1,11 @@
 use serde::Deserialize;
 
 use crate::core::{
-    checks::rules::{has_description::Descriptable, name_convention::NameAble},
+    checks::rules::{
+        has_description::Descriptable, has_metadata_keys::HasMetadata, name_convention::NameAble,
+    },
     config::{applies_to::RuleTarget, includes_excludes::IncludeExcludable},
+    manifest::dbt_objects::Meta,
 };
 
 // #[derive(Debug, Deserialize)]
@@ -30,7 +33,7 @@ pub struct SemanticModel {
     // pub entities: Option<Vec<serde_json::Value>>,
     // pub measures: Option<Vec<serde_json::Value>>,
     // pub dimensions: Option<Vec<serde_json::Value>>,
-    // pub metadata: Option<serde_json::Value>,
+    pub metadata: Option<Meta>,
     // pub depends_on: Option<SemanticModelDependsOn>,
     // pub refs: Option<Vec<serde_json::Value>>,
     // pub created_at: Option<f64>,
@@ -92,6 +95,24 @@ impl Descriptable for SemanticModel {
 impl NameAble for SemanticModel {
     fn name(&self) -> &str {
         self.get_name()
+    }
+
+    fn get_object_type(&self) -> &str {
+        Self::get_object_type()
+    }
+
+    fn get_object_string(&self) -> &str {
+        self.get_name()
+    }
+
+    fn get_relative_path(&self) -> Option<&String> {
+        Some(self.get_relative_path())
+    }
+}
+
+impl HasMetadata for SemanticModel {
+    fn get_metadata(&self) -> Option<&Meta> {
+        self.metadata.as_ref()
     }
 
     fn get_object_type(&self) -> &str {

@@ -8,12 +8,16 @@ use crate::core::{
     checks::{
         common_traits::Columnable,
         rules::{
-            child_map::ChildMappable, has_description::Descriptable, has_tags::Tagable,
-            has_unique_test::TestAble, name_convention::NameAble,
+            child_map::ChildMappable, has_description::Descriptable,
+            has_metadata_keys::HasMetadata, has_tags::Tagable, has_unique_test::TestAble,
+            name_convention::NameAble,
         },
     },
     config::{applies_to::RuleTarget, includes_excludes::IncludeExcludable},
-    manifest::{dbt_objects::column::Column, Manifest},
+    manifest::{
+        dbt_objects::{column::Column, Meta},
+        Manifest,
+    },
 };
 use serde::Deserialize;
 // use std::collections::HashMap;
@@ -43,7 +47,7 @@ pub struct Source {
     // pub freshness: Option<serde_json::Value>,
     // pub external: Option<serde_json::Value>,
     pub columns: Option<HashMap<String, Column>>,
-    // pub meta: Option<Meta>,
+    pub meta: Option<Meta>,
     // pub source_meta: Option<Meta>,
     pub tags: Option<Tags>,
     // pub config: Option<serde_json::Value>,
@@ -208,6 +212,24 @@ impl TestAble for Source {
 
     fn get_object_type(&self) -> String {
         Self::get_object_type().to_string()
+    }
+
+    fn get_relative_path(&self) -> Option<&String> {
+        Some(self.get_relative_path())
+    }
+}
+
+impl HasMetadata for Source {
+    fn get_metadata(&self) -> Option<&Meta> {
+        self.meta.as_ref()
+    }
+
+    fn get_object_type(&self) -> &str {
+        Self::get_object_type()
+    }
+
+    fn get_object_string(&self) -> &str {
+        self.get_name()
     }
 
     fn get_relative_path(&self) -> Option<&String> {

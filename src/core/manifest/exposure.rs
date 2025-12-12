@@ -1,9 +1,12 @@
 use serde::Deserialize;
 
 use crate::core::{
-    checks::rules::{has_description::Descriptable, has_tags::Tagable, name_convention::NameAble},
+    checks::rules::{
+        has_description::Descriptable, has_metadata_keys::HasMetadata, has_tags::Tagable,
+        name_convention::NameAble,
+    },
     config::{applies_to::RuleTarget, includes_excludes::IncludeExcludable},
-    manifest::dbt_objects::Tags,
+    manifest::dbt_objects::{Meta, Tags},
 };
 
 // #[derive(Debug, Deserialize)]
@@ -36,8 +39,8 @@ pub struct Exposure {
     pub description: Option<String>,
     // pub label: Option<String>,
     // pub maturity: Option<String>,
-    // pub meta: Option<serde_json::Value>,
-    pub tags: Option<Vec<String>>,
+    pub meta: Option<Meta>,
+    pub tags: Option<Tags>,
     // pub config: Option<serde_json::Value>,
     // pub unrendered_config: Option<serde_json::Value>,
     // pub url: Option<String>,
@@ -121,6 +124,24 @@ impl Tagable for Exposure {
     }
 
     fn get_object_type(&self) -> &'static str {
+        Self::get_object_type()
+    }
+
+    fn get_object_string(&self) -> &str {
+        self.get_name()
+    }
+
+    fn get_relative_path(&self) -> Option<&String> {
+        Some(self.get_relative_path())
+    }
+}
+
+impl HasMetadata for Exposure {
+    fn get_metadata(&self) -> Option<&Meta> {
+        self.meta.as_ref()
+    }
+
+    fn get_object_type(&self) -> &str {
         Self::get_object_type()
     }
 
