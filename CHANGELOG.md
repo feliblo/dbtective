@@ -1,3 +1,13 @@
+## v0.1.26 (2025-12-14)
+
+### Feat
+
+- **cli**: add dbtective init command - ([5f2f50a](https://github.com/feliblo/dbtective/commit/5f2f50a4d4d6943d77ae932286c3e0c8127509c7)) - feliblo
+
+### Contributors
+
+[@feliblo](https://github.com/feliblo)
+
 ## v0.1.25 (2025-12-12)
 
 ### Feat
