@@ -2,6 +2,10 @@
 
 dbtective is a Rust-powered 'detective' for `dbt metadata` best practices. As your dbt project grows, keeping metadata consistent and high-quality can become a real challenge.
 
+
+![CLI demo](/docs/static/demo.gif)
+
+
 Explore the [full documentation](https://feliblo.github.io/dbtective/docs) or the [possible checks](https://feliblo.github.io/dbtective/docs/checks).
 
 > [!WARNING]
