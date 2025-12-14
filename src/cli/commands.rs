@@ -26,8 +26,16 @@ pub enum Commands {
     },
 }
 
-#[derive(Args, Debug)]
-pub struct InitOptions {}
+#[derive(Args, Debug, Clone)]
+pub struct InitOptions {
+    /// Directory where the config file should be created
+    #[arg(long, short = 'l', default_value = ".")]
+    pub location: String,
+
+    /// Configuration format to generate (yml, toml, or pyproject)
+    #[arg(long, short = 'f', value_parser = ["yml", "yaml", "toml", "pyproject"], default_value = "yml")]
+    pub format: String,
+}
 
 #[derive(Args, Debug)]
 pub struct RunOptions {
@@ -54,11 +62,40 @@ pub struct RunOptions {
 #[cfg(test)]
 mod tests {
     use crate::cli::commands::{Cli, Commands, InitOptions, RunOptions};
+
+    fn default_init_options() -> InitOptions {
+        InitOptions {
+            location: ".".to_string(),
+            format: "yml".to_string(),
+        }
+    }
+
     #[test]
     fn test_init_options_debug() {
-        let options = InitOptions {};
+        let options = default_init_options();
         let debug_str = format!("{options:?}");
         assert!(debug_str.contains("InitOptions"));
+        assert!(debug_str.contains("location"));
+        assert!(debug_str.contains("format"));
+    }
+
+    #[test]
+    fn test_init_options_with_custom_values() {
+        let options = InitOptions {
+            location: "/custom/path".to_string(),
+            format: "toml".to_string(),
+        };
+        assert_eq!(options.location, "/custom/path");
+        assert_eq!(options.format, "toml");
+    }
+
+    #[test]
+    fn test_init_options_pyproject_format() {
+        let options = InitOptions {
+            location: ".".to_string(),
+            format: "pyproject".to_string(),
+        };
+        assert_eq!(options.format, "pyproject");
     }
 
     #[test]
@@ -79,7 +116,6 @@ mod tests {
 
     #[test]
     fn test_run_options_default_values() {
-        // Test creating RunOptions with default-like values
         let options = RunOptions {
             manifest_file: "custom_manifest.json".to_string(),
             entry_point: "./".to_string(),
@@ -112,19 +148,15 @@ mod tests {
 
     #[test]
     fn test_commands_enum_variants() {
-        // Test Init command variant
         let init_cmd = Commands::Init {
-            options: InitOptions {},
+            options: default_init_options(),
         };
 
         match init_cmd {
-            Commands::Init { options: _ } => {
-                // Test passes if we match the Init variant
-            }
+            Commands::Init { options: _ } => {}
             Commands::Run { .. } => panic!("Expected Init variant"),
         }
 
-        // Test Run command variant
         let run_cmd = Commands::Run {
             options: RunOptions {
                 manifest_file: "custom_manifest.json".to_string(),
@@ -137,9 +169,7 @@ mod tests {
         };
 
         match run_cmd {
-            Commands::Run { options: _ } => {
-                // Test passes if we match the Run variant
-            }
+            Commands::Run { options: _ } => {}
             Commands::Init { .. } => panic!("Expected Run variant"),
         }
     }
@@ -149,14 +179,13 @@ mod tests {
         let cli = Cli {
             verbose: true,
             command: Some(Commands::Init {
-                options: InitOptions {},
+                options: default_init_options(),
             }),
         };
 
         assert!(cli.verbose);
         assert!(cli.command.is_some());
 
-        // Test with None command
         let cli_no_cmd = Cli {
             verbose: false,
             command: None,
@@ -196,7 +225,7 @@ mod tests {
     #[test]
     fn test_commands_debug_output() {
         let init_cmd = Commands::Init {
-            options: InitOptions {},
+            options: default_init_options(),
         };
         let debug_str = format!("{init_cmd:?}");
         assert!(debug_str.contains("Init"));
@@ -215,7 +244,6 @@ mod tests {
         assert!(debug_str.contains("Run"));
     }
 
-    // Test that we can construct all combinations for better coverage
     #[test]
     fn test_comprehensive_combinations() {
         let test_cases = [
@@ -224,13 +252,13 @@ mod tests {
             (
                 true,
                 Some(Commands::Init {
-                    options: InitOptions {},
+                    options: default_init_options(),
                 }),
             ),
             (
                 false,
                 Some(Commands::Init {
-                    options: InitOptions {},
+                    options: default_init_options(),
                 }),
             ),
         ];

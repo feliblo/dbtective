@@ -1,7 +1,7 @@
 ---
-title: Checks
+title: Rules
 type: docs
-weight: 1
+weight: 2
 prev: docs/docs-main
 sidebar:
   open: true

@@ -121,40 +121,35 @@ Pre-built binaries for Linux, macOS, and Windows are available on the [releases 
 
 ## Quickstart
 
-All possible checks can be found in the [checks documentation](https://feliblo.github.io/dbtective/docs/). Information about configuring `dbtective` is shown at the [config documentation](https://feliblo.github.io/dbtective/docs/config)
+All possible checks can be found in the [checks documentation](https://feliblo.github.io/dbtective/docs/). Information about customizing `dbtective` is shown at the [config documentation](https://feliblo.github.io/dbtective/docs/config)
 
-### Example
+1. Create a `dbtective.yml` config file in the root of your dbt project by running:
 
-1. Create a `dbtective.yml` config file in the root of your dbt project. For example:
+More about the `init` (it also supports `pyproject.toml` or `dbtective.toml`) command is available in the [init documentation](https://feliblo.github.io/dbtective/docs/cli#dbtective-init).
 
-```yaml
-manifest_tests:
-  - name: "models_must_have_description"
-    type: "has_description"
-    severity: "error"
-    applies_to: ["models", "sources"]
-    description: " models and sources must have a description."
-
-  - name: "naming_convention"
-    type: "name_convention"
-    description: "Everything must follow the naming convention."
-    pattern: "snake_case"
-
- - name: "all_marts_must_be_tagged"
-    type: "has_tags"
-    severity: "warning"
-    applies_to: ["models"]
-    tags:
-      - "mart"
-    description: "All marts must be tagged with 'mart'"
+```bash
+dbtective init
 ```
 
-2. Run `dbtective` in the root of your current directory or specify an entry point if your dbt_project is not located in the root/current drectory.
+Inspect the contents of the generated `dbtective.yml` file and modify it to fit your project's needs.
+
+2. (Optional) Generate the dbt manifest and catalog files if you haven't done so already. Most dbt commands automatically generate the `manifest.json`, but if you want to ensure both files are up to date, run:
+
+```bash
+dbt compile
+dbt docs generate
+```
+
+3. Run `dbtective` in the root of your current directory or specify an entry point if your dbt_project is not located in the root/current drectory.
 
 ```bash
 dbtective run
 dbtective run --entry-point "my_dbt_project"
 ```
+
+4. Review the output and fix any issues found.
+
+5. (Optional) Integrate `dbtective` into your CI/CD pipeline or pre-commit hooks to automate checks on every commit and/or pull request.
 
 ## Contributing
 

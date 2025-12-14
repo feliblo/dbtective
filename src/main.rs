@@ -1,6 +1,7 @@
 mod cli;
 mod core;
 use crate::cli::commands::{Cli, Commands};
+use crate::core::init::init;
 use crate::core::run::run;
 use clap::{CommandFactory, Parser};
 use log::debug;
@@ -27,8 +28,8 @@ fn main() {
             if args.verbose {
                 debug!("Initializing dbtective project...");
                 debug!("{options:#?}");
-                todo!();
             }
+            std::process::exit(init(options, args.verbose));
         }
         None => {
             println!(

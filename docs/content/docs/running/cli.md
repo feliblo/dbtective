@@ -38,7 +38,6 @@ Run dbtective analysis on your dbt project.
 | `--manifest-file <PATH>` | `-m` | `target/manifest.json` | Path to dbt manifest.json |
 | `--catalog-file <PATH>` | `-g` | `target/catalog.json` | Path to dbt catalog.json |
 | `--only-manifest` | | `true` | Run only manifest checks |
-| `--only-catalog` | | `false` | Run only catalog checks |
 | `--disable-hyperlinks` | | `false` | Disable file hyperlinks in the output |
 
 #### Config File Auto-Detection
@@ -51,103 +50,57 @@ By default, dbtective automatically searches for configuration files in the foll
 
 If multiple config files exist, dbtective will use the highest priority one and display a warning. You can override this behavior by explicitly specifying `--config-file`.
 
-### `init`
-
-Initialize a new dbtective project.
-
-**Usage:** `dbtective init [OPTIONS]`
-
-**Status:** Placeholder for future functionality to generate a starter `dbtective.yml` configuration.
-
-## Exit Codes
-
-| Code | Description |
-|------|-------------|
-| `0` | Success - all checks passed or only warnings found |
-| `1` | Failure - one or more checks failed with `severity: "error"` |
-
-## Examples
-
-### Basic Usage
+#### Examples
 
 ```bash
 # Run with defaults (auto-detects config, uses target/manifest.json)
 dbtective run
+
+# Run with a specific config file
+dbtective run --config-file ./configs/dbtective.toml
 
 # Run with verbose output
 dbtective run --verbose
 
 # Run on a specific dbt project
 dbtective run --entry-point ./dbt_project
+
+# Run only manifest checks
+dbtective run --only-manifest
+
+# Disable hyperlinks in output table
+dbtective run --disable-hyperlinks
 ```
 
-### Custom Configuration
+### `init`
+
+Initialize a new dbtective configuration file in your dbt project.
+
+**Usage:** `dbtective init [OPTIONS]`
+
+#### Options
+
+| Option | Short | Default | Description |
+|--------|-------|---------|-------------|
+| `--location <PATH>` | `-l` | `.` | Directory where the config file will be created |
+| `--format <FORMAT>` | `-f` | `yml` | Config file format: `yml`, `yaml`, `toml`, or `pyproject` |
+
+#### Examples
 
 ```bash
-# Override auto-detection with a specific config file
-dbtective run --config-file ./configs/custom.yml
+# Create dbtective.yml in current directory (default)
+dbtective init
 
-# Use a specific config file in TOML format
-dbtective run --config-file ./dbtective.toml
+# Create dbtective.toml instead
+dbtective init --format toml
 
-# Use custom manifest location
-dbtective run --manifest-file custom/path/manifest.json
+# Add [tool.dbtective] section to pyproject.toml
+dbtective init --format pyproject
 
-# Combine multiple options
-dbtective run --entry-point ./my_project --config-file config.yml --verbose
+# Create config in a specific directory
+dbtective init --location ./my_dbt_project
 ```
 
-### Catalog Checks
-
-```bash
-# Run catalog checks (requires dbt docs generate)
-dbtective run --only-catalog
-
-# Run both manifest and catalog checks
-dbtective run --only-manifest=false --only-catalog=false
-```
-
-### CI/CD Integration
-
-```bash
-# In CI/CD pipeline - exit with error code on failures
-dbt compile
-dbtective run || exit 1
-```
-
-## Troubleshooting
-
-**Manifest not found:**
-
-```bash
-dbt compile
-dbtective run --manifest-file path/to/manifest.json
-```
-
-**Configuration file not found:**
-
-```bash
-# Check what config files exist
-ls -la dbtective.yml dbtective.yaml dbtective.toml pyproject.toml
-
-# Run from the correct directory
-dbtective run --entry-point path/to/dbt/project
-
-# Or specify config explicitly
-dbtective run --config-file path/to/dbtective.yml
-```
-
-**Multiple config files warning:**
-
-If you see a warning about multiple config files and want to use a specific one:
-
-```bash
-# Explicitly specify which config to use
-dbtective run --config-file dbtective.toml
-
-# Or remove the config files you don't need
-rm dbtective.yml  # if you prefer using dbtective.toml
-```
 
 ## Getting Help
 
