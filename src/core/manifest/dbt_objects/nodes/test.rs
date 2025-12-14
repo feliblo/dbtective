@@ -41,7 +41,7 @@ impl Test {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::core::manifest::dbt_objects::nodes::node::FileHash;
+    use crate::core::manifest::dbt_objects::nodes::node::{DependsOn, FileHash};
 
     impl Default for Test {
         fn default() -> Self {
@@ -65,6 +65,10 @@ mod tests {
                     meta: None,
                     columns: None,
                     config: None,
+                    depends_on: DependsOn {
+                        macros: Some(vec![]),
+                        nodes: Some(vec![]),
+                    },
                 },
                 compiled: CompiledNodeFields { language: None },
                 column_name: None,

@@ -2,18 +2,19 @@ use serde::Deserialize;
 
 use crate::core::{
     checks::rules::{
-        has_description::Descriptable, has_metadata_keys::HasMetadata, name_convention::NameAble,
+        has_description::Descriptable, has_metadata_keys::HasMetadata, has_refs::CanReference,
+        name_convention::NameAble,
     },
     config::{applies_to::RuleTarget, includes_excludes::IncludeExcludable},
     manifest::dbt_objects::Meta,
 };
 
-// #[derive(Debug, Deserialize)]
-// #[allow(dead_code)]
-// pub struct SemanticModelDependsOn {
-//     pub macros: Vec<String>,
-//     pub nodes: Vec<String>,
-// }
+#[derive(Debug, Deserialize)]
+pub struct SemanticModelDependsOn {
+    #[allow(dead_code)]
+    pub macros: Option<Vec<String>>,
+    pub nodes: Option<Vec<String>>,
+}
 
 #[derive(Debug, Deserialize)]
 #[allow(dead_code)]
@@ -34,7 +35,7 @@ pub struct SemanticModel {
     // pub measures: Option<Vec<serde_json::Value>>,
     // pub dimensions: Option<Vec<serde_json::Value>>,
     pub metadata: Option<Meta>,
-    // pub depends_on: Option<SemanticModelDependsOn>,
+    pub depends_on: SemanticModelDependsOn,
     // pub refs: Option<Vec<serde_json::Value>>,
     // pub created_at: Option<f64>,
     // pub config: Option<serde_json::Value>,
@@ -123,6 +124,24 @@ impl HasMetadata for SemanticModel {
         self.get_name()
     }
 
+    fn get_relative_path(&self) -> Option<&String> {
+        Some(self.get_relative_path())
+    }
+}
+
+impl CanReference for SemanticModel {
+    fn get_depends_on_nodes(&self) -> &[String] {
+        match &self.depends_on.nodes {
+            Some(nodes) => nodes,
+            None => &[],
+        }
+    }
+    fn get_object_type(&self) -> &str {
+        Self::get_object_type()
+    }
+    fn get_object_string(&self) -> &str {
+        self.get_name()
+    }
     fn get_relative_path(&self) -> Option<&String> {
         Some(self.get_relative_path())
     }

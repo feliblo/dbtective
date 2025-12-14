@@ -29,6 +29,9 @@ manifest_tests:
     type: "has_metadata_keys"
     required_keys: ["owner"]
 
+  - name: "refs_must_be_used"
+    type: "has_refs"
+
 catalog_tests:
   - name: "all_columns_documented"
     type: "columns_all_documented"
@@ -68,6 +71,9 @@ required_tags = ["daily", "monthly", "yearly", "inactive"]
 criteria = "one_of"
 description = "Resources need to have at least one of the required tags. To decide when a resource should be run."
 
+[[manifest_tests]]
+name = "refs_must_be_used"
+type = "has_refs"
 
 [[catalog_tests]]
 name = "all_columns_documented"
@@ -109,6 +115,10 @@ type = "has_tags"
 required_tags = ["daily", "monthly", "yearly", "inactive"]
 criteria = "one_of"
 description = "Resources need to have at least one of the required tags. To decide when a resource should be run."
+
+[[tool.dbtective.manifest_tests]]
+name = "refs_must_be_used"
+type = "has_refs"
 
 [[tool.dbtective.catalog_tests]]
 name = "all_columns_documented"

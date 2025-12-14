@@ -1,4 +1,8 @@
 manifest_tests:
+  - name: "refs_must_exist"
+    type: "has_refs"
+    description: "All dbt objects must reference at least one source or model."
+
   - name: "naming_convention"
     type: "name_convention"
     description: "All nodes must follow the naming convention."

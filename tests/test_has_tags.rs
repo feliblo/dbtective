@@ -27,6 +27,9 @@ fn test_has_tags() {
       "unique_id": "model.test.model_with_tags",
       "fqn": ["test", "model_with_tags"],
       "alias": "model_with_tags",
+      "depends_on": {
+        "nodes": []
+      },
       "checksum": {"name": "sha256", "checksum": "abc"},
       "tags": ["tag1", "tag2"],
       "description": "Has tags",
@@ -46,6 +49,9 @@ fn test_has_tags() {
       "alias": "model_no_tags",
       "checksum": {"name": "sha256", "checksum": "def"},
       "tags": ["tag3"],
+      "depends_on": {
+        "nodes": []
+      },
       "description": "No tags",
       "columns": {},
       "meta": {}

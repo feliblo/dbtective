@@ -179,6 +179,9 @@ fn test_catalog_columns_documented_pass() {
         "materialized": "view",
         "tags": []
       },
+      "depends_on": {
+        "macros": []
+      },
       "description": "Customer table",
       "columns": {
         "id": {"name": "id", "description": "Customer ID", "tags": []},
@@ -287,6 +290,10 @@ fn test_catalog_applies_to_filter() {
         "materialized": "view",
         "tags": []
       },
+      "depends_on": {
+        "nodes": [],
+        "macros": []
+      },
       "description": "Orders table",
       "columns": {"id": {"name": "id", "description": "Order ID", "tags": []}}
     },
@@ -304,6 +311,9 @@ fn test_catalog_applies_to_filter() {
       "checksum": {"name": "sha256", "checksum": "def456"},
       "config": {"enabled": true},
       "tags": [],
+      "depends_on": {
+        "macros": []
+      },
       "description": "Raw seed data",
       "columns": {"value": {"name": "value", "description": "Data value", "tags": []}}
     }
@@ -411,6 +421,10 @@ fn test_catalog_different_severities() {
         "materialized": "view",
         "tags": []
       },
+      "depends_on": {
+        "nodes": [],
+        "macros": []
+      },
       "description": "Orders table",
       "columns": {}
     }
@@ -516,6 +530,10 @@ fn test_catalog_source_columns_documented() {
       "description": "Raw customer data",
       "columns": {
         "id": {"name": "id", "description": "Customer ID", "tags": []}
+      },
+      "depends_on": {
+        "nodes": [],
+        "macros": []
       }
     }
   },

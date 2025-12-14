@@ -6,6 +6,7 @@ use crate::core::checks::rules::child_map::ChildMappable;
 use crate::core::checks::rules::has_contract_enforced::ContractAble;
 use crate::core::checks::rules::has_description::Descriptable;
 use crate::core::checks::rules::has_metadata_keys::HasMetadata;
+use crate::core::checks::rules::has_refs::CanReference;
 use crate::core::checks::rules::has_tags::Tagable;
 use crate::core::checks::rules::has_unique_test::TestAble;
 use crate::core::checks::rules::name_convention::NameAble;
@@ -220,8 +221,9 @@ pub struct FileHash {
 
 #[derive(Debug, Deserialize)]
 #[allow(dead_code)]
-pub struct MacroDependsOn {
-    pub macros: Vec<String>,
+pub struct DependsOn {
+    pub nodes: Option<Vec<String>>,
+    pub macros: Option<Vec<String>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -257,6 +259,7 @@ pub struct NodeBase {
     pub meta: Option<Meta>,
     pub columns: Option<HashMap<String, Column>>,
     pub config: Option<NodeConfig>,
+    pub depends_on: DependsOn,
     // Currently unused fields that do exist in the data
     // pub group: Option<String>,
     // pub docs: Option<NodeDocs>,
@@ -270,7 +273,6 @@ pub struct NodeBase {
     // pub raw_code: Option<String>,
     // pub doc_blocks: Option<Vec<String>>,
     // pub root_path: Option<String>,
-    // pub depends_on: Option<MacroDependsOn>,
 }
 
 // Layer 2: Compiled node specific fields
@@ -398,6 +400,33 @@ impl HasMetadata for Node {
         self.get_base().meta.as_ref()
     }
 
+    fn get_object_type(&self) -> &str {
+        self.get_object_type()
+    }
+
+    fn get_object_string(&self) -> &str {
+        self.get_object_string()
+    }
+
+    fn get_relative_path(&self) -> Option<&String> {
+        Some(self.get_relative_path())
+    }
+}
+
+impl CanReference for Node {
+    fn get_depends_on_nodes(&self) -> &[String] {
+        match self {
+            Self::Model(_) | Self::Analysis(_) | Self::Snapshot(_) => {
+                match &self.get_base().depends_on.nodes {
+                    Some(nodes) => nodes,
+                    None => &[],
+                }
+            }
+            _ => unreachable!(
+                "CanReference should only be called on models, analyses, and snapshots"
+            ),
+        }
+    }
     fn get_object_type(&self) -> &str {
         self.get_object_type()
     }

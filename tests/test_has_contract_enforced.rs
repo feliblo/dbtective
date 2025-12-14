@@ -53,6 +53,10 @@ fn test_has_contract_enforced() {
             "tags": [
                 "finance"
             ],
+            "depends_on": {
+                "macros": [],
+                "nodes": []
+            },
             "description": "Customer dimension table with all customer information",
             "columns": {
                 "customer_id": {
@@ -93,6 +97,10 @@ fn test_has_contract_enforced() {
                     "enforced": false,
                     "alias_types": true
                 }
+            },
+            "depends_on": {
+                "macros": [],
+                "nodes": []
             },
             "tags": [
                 "finance"

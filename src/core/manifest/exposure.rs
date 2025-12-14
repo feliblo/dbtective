@@ -2,8 +2,8 @@ use serde::Deserialize;
 
 use crate::core::{
     checks::rules::{
-        has_description::Descriptable, has_metadata_keys::HasMetadata, has_tags::Tagable,
-        name_convention::NameAble,
+        has_description::Descriptable, has_metadata_keys::HasMetadata, has_refs::CanReference,
+        has_tags::Tagable, name_convention::NameAble,
     },
     config::{applies_to::RuleTarget, includes_excludes::IncludeExcludable},
     manifest::dbt_objects::{Meta, Tags},
@@ -16,12 +16,12 @@ use crate::core::{
 //     pub name: Option<String>,
 // }
 
-// #[derive(Debug, Deserialize)]
-// #[allow(dead_code)]
-// pub struct ExposureDependsOn {
-//     pub macros: Vec<String>,
-//     pub nodes: Vec<String>,
-// }
+#[derive(Debug, Deserialize)]
+pub struct ExposureDependsOn {
+    #[allow(dead_code)]
+    pub macros: Option<Vec<String>>,
+    pub nodes: Option<Vec<String>>,
+}
 
 #[derive(Debug, Deserialize)]
 #[allow(dead_code)]
@@ -44,7 +44,7 @@ pub struct Exposure {
     // pub config: Option<serde_json::Value>,
     // pub unrendered_config: Option<serde_json::Value>,
     // pub url: Option<String>,
-    // pub depends_on: Option<ExposureDependsOn>,
+    pub depends_on: ExposureDependsOn,
     // pub refs: Option<Vec<serde_json::Value>>,
     // pub Exposures: Option<Vec<serde_json::Value>>,
     // pub metrics: Option<Vec<serde_json::Value>>,
@@ -139,6 +139,27 @@ impl Tagable for Exposure {
 impl HasMetadata for Exposure {
     fn get_metadata(&self) -> Option<&Meta> {
         self.meta.as_ref()
+    }
+
+    fn get_object_type(&self) -> &str {
+        Self::get_object_type()
+    }
+
+    fn get_object_string(&self) -> &str {
+        self.get_name()
+    }
+
+    fn get_relative_path(&self) -> Option<&String> {
+        Some(self.get_relative_path())
+    }
+}
+
+impl CanReference for Exposure {
+    fn get_depends_on_nodes(&self) -> &[String] {
+        match &self.depends_on.nodes {
+            Some(nodes) => nodes,
+            None => &[],
+        }
     }
 
     fn get_object_type(&self) -> &str {

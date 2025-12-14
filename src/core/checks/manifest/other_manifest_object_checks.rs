@@ -1,5 +1,5 @@
 use crate::core::checks::rules::{
-    check_name_convention, has_description, has_metadata_keys, has_tags, has_unique_test,
+    check_name_convention, has_description, has_metadata_keys, has_refs, has_tags, has_unique_test,
     is_not_orphaned,
 };
 use crate::{
@@ -84,7 +84,8 @@ fn apply_source_checks<'a>(
                     } => has_metadata_keys(source, rule, required_keys, custom_message.as_ref()),
 
                     // These can't be implemented for exposures
-                    ManifestSpecificRuleConfig::HasContractEnforced {} => return Ok(acc), // Models only
+                    ManifestSpecificRuleConfig::HasRefs {}
+                    | ManifestSpecificRuleConfig::HasContractEnforced {} => return Ok(acc), // Models only
                 };
 
                 if let Some(check_row) = check_row_result {
@@ -146,6 +147,7 @@ fn apply_macro_checks<'a>(
                         ManifestSpecificRuleConfig::HasTags { .. }
                         | ManifestSpecificRuleConfig::IsNotOrphaned { .. }
                         | ManifestSpecificRuleConfig::HasUniqueTest { .. }
+                        | ManifestSpecificRuleConfig::HasRefs {}
                         | ManifestSpecificRuleConfig::HasContractEnforced {} => return Ok(acc), //
                     };
 
@@ -209,6 +211,7 @@ fn apply_exposure_checks<'a>(
                             required_keys,
                             custom_message.as_ref(),
                         ),
+                        ManifestSpecificRuleConfig::HasRefs {} => has_refs(exposure, rule),
                         // These can't be implemented for exposures
                         ManifestSpecificRuleConfig::IsNotOrphaned { .. }
                         | ManifestSpecificRuleConfig::HasUniqueTest { .. }
@@ -263,6 +266,7 @@ fn apply_semantic_model_checks<'a>(
                         required_keys,
                         custom_message,
                     } => has_metadata_keys(sm, rule, required_keys, custom_message.as_ref()),
+                    ManifestSpecificRuleConfig::HasRefs {} => has_refs(sm, rule),
                     // These can't be implemented for semantic models
                     ManifestSpecificRuleConfig::HasTags { .. }
                     | ManifestSpecificRuleConfig::IsNotOrphaned { .. }
@@ -314,6 +318,7 @@ fn apply_unit_test_checks<'a>(
                     }
                     // Unit Tests do not implement the following rules
                     ManifestSpecificRuleConfig::HasTags { .. }
+                    | ManifestSpecificRuleConfig::HasRefs {}
                     | ManifestSpecificRuleConfig::IsNotOrphaned { .. }
                     | ManifestSpecificRuleConfig::HasUniqueTest { .. }
                     | ManifestSpecificRuleConfig::HasContractEnforced {}

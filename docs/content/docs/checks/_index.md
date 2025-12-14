@@ -63,9 +63,12 @@ Here you can find an overview of all possible checks. Use the filter below to fi
       <td>Check if dbt objects has the provided keys in the metadata</td>
       <td style="font-size: 12px; color: #666;">tests, uniqueness, unique, validation, custom</td>
     </tr>
-
-
-
+    <tr class="check-item" data-keywords="references upstream dependencies ref source hardcoded sql" data-category="manifest">
+      <td><a href="has_refs" class="check-name">has_refs</a></td>
+      <td><span class="check-category-badge badge-manifest">Manifest</span></td>
+      <td>Check if dbt objects have at least one upstream reference using <code>ref()</code> or <code>source()</code>. Identifies objects that may be using hardcoded SQL instead of leveraging dbt's dependency management.</td>
+      <td style="font-size: 12px; color: #666;">references, upstream, dependencies, ref, source</td>
+    </tr>
   </tbody>
 </table>
 

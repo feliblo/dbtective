@@ -69,7 +69,7 @@ fn test_init_yaml_is_valid_config() {
 
     let config = config.unwrap();
     let manifest_tests = config.manifest_tests.expect("manifest_tests should exist");
-    assert_eq!(manifest_tests.len(), 4, "Should have 4 default rules");
+    assert_eq!(manifest_tests.len(), 5, "Should have 5 default rules");
 }
 
 // ===== TOML CONFIG TESTS =====
@@ -105,7 +105,7 @@ fn test_init_toml_is_valid_config() {
 
     let config = config.unwrap();
     let manifest_tests = config.manifest_tests.expect("manifest_tests should exist");
-    assert_eq!(manifest_tests.len(), 4, "Should have 4 default rules");
+    assert_eq!(manifest_tests.len(), 5, "Should have 5 default rules");
 }
 
 // ===== PYPROJECT.TOML TESTS =====

@@ -1,7 +1,7 @@
 use crate::cli::table::RuleResult;
 use crate::core::checks::rules::{
     check_name_convention, child_map::is_not_orphaned, has_contract_enforced, has_description,
-    has_metadata_keys, has_tags, has_unique_test,
+    has_metadata_keys, has_refs, has_tags, has_unique_test,
 };
 use crate::core::config::manifest_rule::ManifestSpecificRuleConfig;
 
@@ -58,6 +58,7 @@ pub fn apply_node_checks<'a>(
                         required_keys,
                         custom_message,
                     } => has_metadata_keys(node, rule, required_keys, custom_message.as_ref()),
+                    ManifestSpecificRuleConfig::HasRefs {} => has_refs(node, rule),
                 };
 
                 if let Some(check_row) = check_row_result {
