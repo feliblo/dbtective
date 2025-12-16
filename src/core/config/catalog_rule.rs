@@ -9,9 +9,11 @@ use strum_macros::{AsRefStr, EnumIter, EnumString};
 #[derive(Debug, Deserialize, EnumIter, AsRefStr, EnumString)]
 #[strum(serialize_all = "snake_case")]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[allow(clippy::enum_variant_names)]
 pub enum CatalogSpecificRuleConfig {
     ColumnsAllDocumented {},
     ColumnsHaveDescription {},
+    ColumnsNameConvention { pattern: String },
 }
 
 impl CatalogSpecificRuleConfig {
@@ -135,12 +137,22 @@ pub fn default_applies_to_for_catalog_rule(rule_type: &CatalogSpecificRuleConfig
             semantic_model_objects: vec![],
             custom_objects: vec![],
         },
+        CatalogSpecificRuleConfig::ColumnsNameConvention { .. } => AppliesTo {
+            node_objects: vec![RuleTarget::Models, RuleTarget::Seeds, RuleTarget::Snapshots],
+            source_objects: vec![],
+            unit_test_objects: vec![],
+            macro_objects: vec![],
+            exposure_objects: vec![],
+            semantic_model_objects: vec![],
+            custom_objects: vec![],
+        },
     }
 }
 
 fn applies_to_options_for_catalog_rule(rule_type: &CatalogSpecificRuleConfig) -> AppliesTo {
     match rule_type {
         CatalogSpecificRuleConfig::ColumnsAllDocumented { .. }
+        | CatalogSpecificRuleConfig::ColumnsNameConvention { .. }
         | CatalogSpecificRuleConfig::ColumnsHaveDescription { .. } => AppliesTo {
             node_objects: vec![RuleTarget::Models, RuleTarget::Seeds, RuleTarget::Snapshots],
             source_objects: vec![RuleTarget::Sources],

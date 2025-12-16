@@ -35,3 +35,8 @@ catalog_tests:
   - name: "columns_have_description"
     type: "columns_have_description"
     description: "All columns in the manifest must have a description."
+
+  - name: "columns_name_convention"
+    type: "columns_name_convention"
+    description: "All column names must follow the naming convention."
+    pattern: "snake_case"

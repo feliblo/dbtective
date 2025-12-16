@@ -55,12 +55,12 @@ pub fn run(options: &RunOptions, verbose: bool) -> i32 {
     };
 
     if let Some(ref catalog) = catalog {
-        findings.extend(apply_catalog_node_checks(
+        findings.extend(unwrap_or_exit(apply_catalog_node_checks(
             &config, catalog, &manifest, verbose,
-        ));
-        findings.extend(apply_catalog_source_checks(
+        )));
+        findings.extend(unwrap_or_exit(apply_catalog_source_checks(
             &config, catalog, &manifest, verbose,
-        ));
+        )));
     }
 
     show_results_and_exit(

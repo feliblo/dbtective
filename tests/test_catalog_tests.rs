@@ -127,7 +127,7 @@ catalog_tests:
 "#;
 
     let env = TestEnvironment::new_with_catalog(manifest, catalog, config);
-    let findings = env.run_catalog_checks(false);
+    let findings = env.run_catalog_checks(false).expect("should not error");
 
     // Should fail: catalog has 3 columns but manifest only documents 1
     assert_eq!(findings.len(), 1);
@@ -242,7 +242,7 @@ catalog_tests:
 "#;
 
     let env = TestEnvironment::new_with_catalog(manifest, catalog, config);
-    let findings = env.run_catalog_checks(false);
+    let findings = env.run_catalog_checks(false).expect("should not error");
 
     // Should pass: all catalog columns are documented in manifest
     assert_eq!(
@@ -373,7 +373,7 @@ catalog_tests:
 "#;
 
     let env = TestEnvironment::new_with_catalog(manifest, catalog, config);
-    let findings = env.run_catalog_checks(false);
+    let findings = env.run_catalog_checks(false).expect("should not error");
 
     // Should only fail for models, not seeds (due to applies_to filter)
     assert_eq!(findings.len(), 1);
@@ -473,7 +473,7 @@ catalog_tests:
 "#;
 
     let env = TestEnvironment::new_with_catalog(manifest, catalog, config_warning);
-    let findings = env.run_catalog_checks(false);
+    let findings = env.run_catalog_checks(false).expect("should not error");
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].0.severity, "WARN");
 
@@ -485,7 +485,7 @@ catalog_tests:
 "#;
 
     let env = TestEnvironment::new_with_catalog(manifest, catalog, config_error);
-    let findings = env.run_catalog_checks(false);
+    let findings = env.run_catalog_checks(false).expect("should not error");
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].0.severity, "FAIL");
 }
@@ -583,7 +583,7 @@ catalog_tests:
 "#;
 
     let env = TestEnvironment::new_with_catalog(manifest, catalog, config);
-    let findings = env.run_catalog_checks(false);
+    let findings = env.run_catalog_checks(false).expect("should not error");
 
     // Should fail: source has 3 columns but only 1 is documented
     assert_eq!(findings.len(), 1);
@@ -713,7 +713,7 @@ catalog_tests:
 "#;
 
     let env = TestEnvironment::new_with_catalog(manifest, catalog, config);
-    let findings = env.run_catalog_checks(false);
+    let findings = env.run_catalog_checks(false).expect("should not error");
 
     // Should pass: all columns have descriptions
     assert_eq!(
@@ -843,7 +843,7 @@ catalog_tests:
 "#;
 
     let env = TestEnvironment::new_with_catalog(manifest, catalog, config);
-    let findings = env.run_catalog_checks(false);
+    let findings = env.run_catalog_checks(false).expect("should not error");
 
     // Should fail: customer_id has empty description
     assert_eq!(findings.len(), 1);
@@ -970,7 +970,7 @@ catalog_tests:
 "#;
 
     let env = TestEnvironment::new_with_catalog(manifest, catalog, config);
-    let findings = env.run_catalog_checks(true);
+    let findings = env.run_catalog_checks(true).expect("should not error");
 
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].0.severity, "FAIL");
@@ -1076,7 +1076,7 @@ catalog_tests:
 "#;
 
     let env = TestEnvironment::new_with_catalog(manifest, catalog, config);
-    let findings = env.run_catalog_checks(false);
+    let findings = env.run_catalog_checks(false).expect("should not error");
 
     // Should fail: username has empty description
     assert_eq!(findings.len(), 1);
@@ -1204,7 +1204,7 @@ catalog_tests:
 "#;
 
     let env = TestEnvironment::new_with_catalog(manifest, catalog, config);
-    let findings = env.run_catalog_checks(false);
+    let findings = env.run_catalog_checks(false).expect("should not error");
 
     // Should produce warning, not error
     assert_eq!(findings.len(), 1);
@@ -1383,7 +1383,7 @@ catalog_tests:
 "#;
 
     let env = TestEnvironment::new_with_catalog(manifest, catalog, config);
-    let findings = env.run_catalog_checks(false);
+    let findings = env.run_catalog_checks(false).expect("should not error");
 
     // Should only fail for models (not seeds) due to applies_to filter
     assert_eq!(findings.len(), 1);
@@ -1391,4 +1391,598 @@ catalog_tests:
     assert_eq!(findings[0].0.object_type, "Model");
     assert!(findings[0].0.message.contains("orders"));
     assert!(findings[0].0.message.contains("id"));
+}
+
+#[test]
+#[allow(clippy::too_many_lines)]
+fn test_column_names_all_preset_cases() {
+    let manifest = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "invocation_id": "test-invocation",
+    "env": {},
+    "project_name": "test_project",
+    "adapter_type": "postgres",
+    "quoting": {
+      "database": true,
+      "schema": true,
+      "identifier": true,
+      "column": null
+    }
+  },
+  "nodes": {
+    "model.test_project.orders": {
+      "database": "analytics",
+      "schema": "public",
+      "name": "orders",
+      "resource_type": "model",
+      "package_name": "test_project",
+      "path": "orders.sql",
+      "original_file_path": "models/orders.sql",
+      "unique_id": "model.test_project.orders",
+      "fqn": ["test_project", "orders"],
+      "alias": "orders",
+      "checksum": {"name": "sha256", "checksum": "abc123"},
+      "tags": [],
+      "config": {
+        "enabled": true,
+        "materialized": "view",
+        "tags": []
+      },
+      "description": "Orders table",
+      "columns": {
+        "id": {"name": "id_snake_case", "description": "", "tags": []}
+      },
+      "meta": {},
+      "group": null,
+      "docs": {"show": true},
+      "patch_path": null,
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {},
+      "created_at": 1704067200.0,
+      "config_call_dict": {},
+      "relation_name": "analytics.public.orders",
+      "raw_code": "select * from source_orders",
+      "language": "sql",
+      "refs": [],
+      "sources": [],
+      "metrics": [],
+      "depends_on": {"macros": [], "nodes": []},
+      "compiled_code": null,
+      "extra_ctes_injected": false,
+      "extra_ctes": [],
+      "contract": {"enforced": false, "checksum": null}
+    },
+    "seed.test_project.raw_data": {
+      "database": "analytics",
+      "schema": "public",
+      "name": "raw_data",
+      "resource_type": "seed",
+      "package_name": "test_project",
+      "path": "raw_data.csv",
+      "original_file_path": "seeds/raw_data.csv",
+      "unique_id": "seed.test_project.raw_data",
+      "fqn": ["test_project", "raw_data"],
+      "alias": "raw_data",
+      "checksum": {"name": "sha256", "checksum": "def456"},
+      "config": {"enabled": true},
+      "tags": [],
+      "description": "Raw seed data",
+      "columns": {
+        "value": {"name": "value_snake_case", "description": "", "tags": []}
+      },
+      "meta": {},
+      "group": null,
+      "docs": {"show": true},
+      "patch_path": null,
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {},
+      "created_at": 1704067200.0,
+      "config_call_dict": {},
+      "relation_name": "analytics.public.raw_data",
+      "raw_code": "",
+      "language": "sql",
+      "refs": [],
+      "sources": [],
+      "metrics": [],
+      "depends_on": {"macros": [], "nodes": []},
+      "compiled_code": null,
+      "extra_ctes_injected": false,
+      "extra_ctes": [],
+      "contract": {"enforced": false, "checksum": null}
+    }
+  },
+  "sources": {},
+  "macros": {},
+  "exposures": {},
+  "metrics": {},
+  "groups": {},
+  "selectors": {},
+  "disabled": {},
+  "parent_map": {},
+  "child_map": {},
+  "group_map": {},
+  "saved_queries": {},
+  "semantic_models": {},
+  "unit_tests": {}
+}"#;
+
+    let catalog = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/catalog/v1.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "env": {}
+  },
+  "nodes": {
+    "model.test_project.orders": {
+      "unique_id": "model.test_project.orders",
+      "metadata": {
+        "type": "BASE TABLE",
+        "schema": "public",
+        "name": "orders",
+        "database": "analytics"
+      },
+      "columns": {
+        "id_snake_case": {"type": "INTEGER", "name": "id_snake_case", "index": 1}
+      },
+      "stats": {}
+    },
+    "seed.test_project.raw_data": {
+      "unique_id": "seed.test_project.raw_data",
+      "metadata": {
+        "type": "BASE TABLE",
+        "schema": "public",
+        "name": "raw_data",
+        "database": "analytics"
+      },
+      "columns": {
+        "value_snake_case": {"type": "INTEGER", "name": "value_snake_case", "index": 1}
+      },
+      "stats": {}
+    }
+  },
+  "sources": {}
+}"#;
+
+    let config_snake = r#"
+catalog_tests:
+  - name: "columns_follow_snakecase"
+    type: "columns_name_convention"
+    description: "All columns must follow snake_case naming convention"
+    pattern: snake_case
+"#;
+
+    let env = TestEnvironment::new_with_catalog(manifest, catalog, config_snake);
+    let findings = env.run_catalog_checks(false).expect("should not error");
+
+    // Should pass: all column names are in snake_case
+    assert_eq!(
+        findings.len(),
+        0,
+        "Expected no findings, but got: {findings:?}"
+    );
+
+    let config_camel = r#"
+catalog_tests:
+  - name: "columns_follow_camelcase"
+    type: "columns_name_convention"
+    description: "All columns must follow camelCase naming convention"
+    pattern: camelCase
+"#;
+
+    let env = TestEnvironment::new_with_catalog(manifest, catalog, config_camel);
+    let findings = env.run_catalog_checks(false).expect("should not error");
+
+    // Should fail: column names are not in camelCase
+    assert_eq!(findings.len(), 2);
+    for finding in findings {
+        assert_eq!(finding.0.severity, "FAIL");
+        assert!(finding.0.message.contains("do not follow the camelCase"));
+    }
+
+    let config_pascal = r#"
+    catalog_tests:
+      - name: "columns_follow_pascalcase"
+        type: "columns_name_convention"
+        description: "All columns must follow PascalCase naming convention"
+        pattern: PascalCase
+    "#;
+    let env = TestEnvironment::new_with_catalog(manifest, catalog, config_pascal);
+    let findings = env.run_catalog_checks(false).expect("should not error");
+
+    // Should fail: column names are not in PascalCase
+    assert_eq!(findings.len(), 2);
+    for finding in findings {
+        assert_eq!(finding.0.severity, "FAIL");
+        assert!(finding.0.message.contains("do not follow the PascalCase"));
+    }
+
+    let config_kebab = r#"
+    catalog_tests:
+      - name: "columns_follow_kebabcase"
+        type: "columns_name_convention"
+        description: "All columns must follow kebab-case naming convention"
+        pattern: kebab-case
+    "#;
+
+    let env = TestEnvironment::new_with_catalog(manifest, catalog, config_kebab);
+    let findings = env.run_catalog_checks(false).expect("should not error");
+
+    // Should fail: column names are not in kebab-case
+    assert_eq!(findings.len(), 2);
+    for finding in findings {
+        assert_eq!(finding.0.severity, "FAIL");
+        assert!(finding.0.message.contains("do not follow the kebab-case"));
+    }
+}
+
+#[test]
+#[allow(clippy::too_many_lines)]
+fn test_column_names_custom_regex() {
+    let manifest = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "invocation_id": "test-invocation",
+    "env": {},
+    "project_name": "test_project",
+    "adapter_type": "postgres",
+    "quoting": {
+      "database": true,
+      "schema": true,
+      "identifier": true,
+      "column": null
+    }
+  },
+  "nodes": {
+    "model.test_project.orders": {
+      "database": "analytics",
+      "schema": "public",
+      "name": "orders",
+      "resource_type": "model",
+      "package_name": "test_project",
+      "path": "orders.sql",
+      "original_file_path": "models/orders.sql",
+      "unique_id": "model.test_project.orders",
+      "fqn": ["test_project", "orders"],
+      "alias": "orders",
+      "checksum": {"name": "sha256", "checksum": "abc123"},
+      "tags": [],
+      "config": {
+        "enabled": true,
+        "materialized": "view",
+        "tags": []
+      },
+      "description": "Orders table",
+      "columns": {
+        "id": {"name": "id_snake_case", "description": "", "tags": []}
+      },
+      "meta": {},
+      "group": null,
+      "docs": {"show": true},
+      "patch_path": null,
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {},
+      "created_at": 1704067200.0,
+      "config_call_dict": {},
+      "relation_name": "analytics.public.orders",
+      "raw_code": "select * from source_orders",
+      "language": "sql",
+      "refs": [],
+      "sources": [],
+      "metrics": [],
+      "depends_on": {"macros": [], "nodes": []},
+      "compiled_code": null,
+      "extra_ctes_injected": false,
+      "extra_ctes": [],
+      "contract": {"enforced": false, "checksum": null}
+    },
+    "seed.test_project.raw_data": {
+      "database": "analytics",
+      "schema": "public",
+      "name": "raw_data",
+      "resource_type": "seed",
+      "package_name": "test_project",
+      "path": "raw_data.csv",
+      "original_file_path": "seeds/raw_data.csv",
+      "unique_id": "seed.test_project.raw_data",
+      "fqn": ["test_project", "raw_data"],
+      "alias": "raw_data",
+      "checksum": {"name": "sha256", "checksum": "def456"},
+      "config": {"enabled": true},
+      "tags": [],
+      "description": "Raw seed data",
+      "columns": {
+        "value": {"name": "value_snake_case", "description": "", "tags": []}
+      },
+      "meta": {},
+      "group": null,
+      "docs": {"show": true},
+      "patch_path": null,
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {},
+      "created_at": 1704067200.0,
+      "config_call_dict": {},
+      "relation_name": "analytics.public.raw_data",
+      "raw_code": "",
+      "language": "sql",
+      "refs": [],
+      "sources": [],
+      "metrics": [],
+      "depends_on": {"macros": [], "nodes": []},
+      "compiled_code": null,
+      "extra_ctes_injected": false,
+      "extra_ctes": [],
+      "contract": {"enforced": false, "checksum": null}
+    }
+  },
+  "sources": {},
+  "macros": {},
+  "exposures": {},
+  "metrics": {},
+  "groups": {},
+  "selectors": {},
+  "disabled": {},
+  "parent_map": {},
+  "child_map": {},
+  "group_map": {},
+  "saved_queries": {},
+  "semantic_models": {},
+  "unit_tests": {}
+}"#;
+
+    let catalog = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/catalog/v1.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "env": {}
+  },
+  "nodes": {
+    "model.test_project.orders": {
+      "unique_id": "model.test_project.orders",
+      "metadata": {
+        "type": "BASE TABLE",
+        "schema": "public",
+        "name": "orders",
+        "database": "analytics"
+      },
+      "columns": {
+        "id_snake_case": {"type": "INTEGER", "name": "id_snake_case", "index": 1}
+      },
+      "stats": {}
+    },
+    "seed.test_project.raw_data": {
+      "unique_id": "seed.test_project.raw_data",
+      "metadata": {
+        "type": "BASE TABLE",
+        "schema": "public",
+        "name": "raw_data",
+        "database": "analytics"
+      },
+      "columns": {
+        "value_snake_case": {"type": "INTEGER", "name": "value_snake_case", "index": 1}
+      },
+      "stats": {}
+    }
+  },
+  "sources": {}
+}"#;
+
+    let config_custom_regex = r#"
+catalog_tests:
+  - name: "columns_follow_snakecase"
+    type: "columns_name_convention"
+    description: "All columns must follow snake_case naming convention"
+    pattern: "^[a-z]+(_[a-z]+)*$"
+"#;
+
+    let env = TestEnvironment::new_with_catalog(manifest, catalog, config_custom_regex);
+    let findings = env.run_catalog_checks(false).expect("should not error");
+    // Should pass: all column names match custom regex for snake_case
+    assert_eq!(
+        findings.len(),
+        0,
+        "Expected no findings, but got: {findings:?}"
+    );
+
+    let config_custom_regex_no_match = r#"
+catalog_tests:
+  - name: "columns_start_with_col"
+    type: "columns_name_convention"
+    description: "All columns must start with 'col_'"
+    pattern: "^col_.*$"
+"#;
+    let env = TestEnvironment::new_with_catalog(manifest, catalog, config_custom_regex_no_match);
+    let findings = env.run_catalog_checks(false).expect("should not error");
+    // Should fail: column names do not start with 'col_'
+    assert_eq!(findings.len(), 2);
+    for finding in findings {
+        assert_eq!(finding.0.severity, "FAIL");
+        assert!(finding.0.message.contains("do not follow the ^col_.*$"));
+    }
+}
+
+#[test]
+#[allow(clippy::too_many_lines)]
+fn test_column_names_invalid_regex() {
+    let manifest = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "invocation_id": "test-invocation",
+    "env": {},
+    "project_name": "test_project",
+    "adapter_type": "postgres",
+    "quoting": {
+      "database": true,
+      "schema": true,
+      "identifier": true,
+      "column": null
+    }
+  },
+  "nodes": {
+    "model.test_project.orders": {
+      "database": "analytics",
+      "schema": "public",
+      "name": "orders",
+      "resource_type": "model",
+      "package_name": "test_project",
+      "path": "orders.sql",
+      "original_file_path": "models/orders.sql",
+      "unique_id": "model.test_project.orders",
+      "fqn": ["test_project", "orders"],
+      "alias": "orders",
+      "checksum": {"name": "sha256", "checksum": "abc123"},
+      "tags": [],
+      "config": {
+        "enabled": true,
+        "materialized": "view",
+        "tags": []
+      },
+      "description": "Orders table",
+      "columns": {
+        "id": {"name": "id_snake_case", "description": "", "tags": []}
+      },
+      "meta": {},
+      "group": null,
+      "docs": {"show": true},
+      "patch_path": null,
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {},
+      "created_at": 1704067200.0,
+      "config_call_dict": {},
+      "relation_name": "analytics.public.orders",
+      "raw_code": "select * from source_orders",
+      "language": "sql",
+      "refs": [],
+      "sources": [],
+      "metrics": [],
+      "depends_on": {"macros": [], "nodes": []},
+      "compiled_code": null,
+      "extra_ctes_injected": false,
+      "extra_ctes": [],
+      "contract": {"enforced": false, "checksum": null}
+    },
+    "seed.test_project.raw_data": {
+      "database": "analytics",
+      "schema": "public",
+      "name": "raw_data",
+      "resource_type": "seed",
+      "package_name": "test_project",
+      "path": "raw_data.csv",
+      "original_file_path": "seeds/raw_data.csv",
+      "unique_id": "seed.test_project.raw_data",
+      "fqn": ["test_project", "raw_data"],
+      "alias": "raw_data",
+      "checksum": {"name": "sha256", "checksum": "def456"},
+      "config": {"enabled": true},
+      "tags": [],
+      "description": "Raw seed data",
+      "columns": {
+        "value": {"name": "value_snake_case", "description": "", "tags": []}
+      },
+      "meta": {},
+      "group": null,
+      "docs": {"show": true},
+      "patch_path": null,
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {},
+      "created_at": 1704067200.0,
+      "config_call_dict": {},
+      "relation_name": "analytics.public.raw_data",
+      "raw_code": "",
+      "language": "sql",
+      "refs": [],
+      "sources": [],
+      "metrics": [],
+      "depends_on": {"macros": [], "nodes": []},
+      "compiled_code": null,
+      "extra_ctes_injected": false,
+      "extra_ctes": [],
+      "contract": {"enforced": false, "checksum": null}
+    }
+  },
+  "sources": {},
+  "macros": {},
+  "exposures": {},
+  "metrics": {},
+  "groups": {},
+  "selectors": {},
+  "disabled": {},
+  "parent_map": {},
+  "child_map": {},
+  "group_map": {},
+  "saved_queries": {},
+  "semantic_models": {},
+  "unit_tests": {}
+}"#;
+
+    let catalog = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/catalog/v1.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "env": {}
+  },
+  "nodes": {
+    "model.test_project.orders": {
+      "unique_id": "model.test_project.orders",
+      "metadata": {
+        "type": "BASE TABLE",
+        "schema": "public",
+        "name": "orders",
+        "database": "analytics"
+      },
+      "columns": {
+        "id_snake_case": {"type": "INTEGER", "name": "id_snake_case", "index": 1}
+      },
+      "stats": {}
+    },
+    "seed.test_project.raw_data": {
+      "unique_id": "seed.test_project.raw_data",
+      "metadata": {
+        "type": "BASE TABLE",
+        "schema": "public",
+        "name": "raw_data",
+        "database": "analytics"
+      },
+      "columns": {
+        "value_snake_case": {"type": "INTEGER", "name": "value_snake_case", "index": 1}
+      },
+      "stats": {}
+    }
+  },
+  "sources": {}
+}"#;
+
+    let config_invalid_regex = r#"
+catalog_tests:
+  - name: "columns_follow_snakecase"
+    type: "columns_name_convention"
+    description: "All columns must follow snake_case naming convention"
+    pattern: "*[a-z]+(_[a-z]+)*$"
+"#;
+
+    let env = TestEnvironment::new_with_catalog(manifest, catalog, config_invalid_regex);
+    let findings = env.run_catalog_checks(false);
+    // Should raise anyhow an error due to invalid regex
+    assert!(findings.is_err());
 }

@@ -2,7 +2,10 @@ use crate::{
     cli::table::RuleResult,
     core::{
         catalog::parse_catalog::Catalog,
-        checks::catalog::{check_columns_are_documented, check_columns_have_description},
+        checks::catalog::{
+            check_column_name_convention, check_columns_are_documented,
+            check_columns_have_description,
+        },
         config::{catalog_rule::CatalogSpecificRuleConfig, severity::Severity, Config},
         manifest::Manifest,
     },
@@ -24,18 +27,17 @@ pub fn apply_catalog_node_checks<'a>(
     catalog: &'a Catalog,
     manifest: &'a Manifest,
     verbose: bool,
-) -> Vec<(RuleResult, &'a Severity)> {
+) -> anyhow::Result<Vec<(RuleResult, &'a Severity)>> {
     let Some(catalog_tests) = &config.catalog_tests else {
-        return Vec::new();
+        return Ok(Vec::new());
     };
 
     catalog
         .nodes
         .values()
         .flat_map(|catalog_node| catalog_tests.iter().map(move |rule| (catalog_node, rule)))
-        .fold(Vec::new(), |mut acc, (catalog_node, rule)| {
+        .try_fold(Vec::new(), |mut acc, (catalog_node, rule)| -> anyhow::Result<_> {
             let Some(manifest_node) = manifest.get_node(catalog_node.get_unique_id()) else {
-                // Mismatch between catalog and manifest nodes
                 println!(
                     "{}",
                     format!(
@@ -46,13 +48,13 @@ pub fn apply_catalog_node_checks<'a>(
                     )
                     .yellow()
                 );
-                return acc;
+                return Ok(acc);
             };
 
-            // `applies_to` filtering has to be done from the manifest node side (only it contains the path)
+            // `applies_to` filtering
             if let Some(applies) = &rule.applies_to {
                 if !applies.node_objects.contains(&manifest_node.ruletarget()) {
-                    return acc;
+                    return Ok(acc);
                 }
             }
 
@@ -67,7 +69,7 @@ pub fn apply_catalog_node_checks<'a>(
                         verbose,
                     )
                 }
-                CatalogSpecificRuleConfig::ColumnsHaveDescription {  }=> {
+                CatalogSpecificRuleConfig::ColumnsHaveDescription {} => {
                     check_columns_have_description(
                         catalog_node,
                         manifest_node,
@@ -75,12 +77,20 @@ pub fn apply_catalog_node_checks<'a>(
                         verbose,
                     )
                 }
+                CatalogSpecificRuleConfig::ColumnsNameConvention { pattern } => {
+                    check_column_name_convention(
+                        catalog_node,
+                        pattern,
+                        rule,
+                        verbose,
+                    )?
+                }
             };
 
             if let Some(check_row) = check_row_result {
                 acc.push((check_row, &rule.severity));
             }
 
-            acc
+            Ok(acc)
         })
 }

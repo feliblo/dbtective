@@ -106,6 +106,13 @@ Here you can find an overview of all possible checks. Use the filter below to fi
       <td><span class="check-category-badge badge-catalog">Catalog</span> </td>
       <td>Check if all documented columns have non-empty descriptions. Ensures column-level documentation is complete</td>
       <td style="font-size: 12px; color: #666;">columns, descriptions, documentation, catalog, database</td>
+    </tr>
+    <tr class="check-item" data-keywords="columns naming pattern regex standards conventions prefixes suffixes name format" data-category="catalog">
+      <td><a href="columns" class="check-name">columns_name_convention</a></td>
+      <td><span class="check-category-badge badge-catalog">Catalog</span> </td>
+      <td>Check if column names follow casing (e.g.<code>snake_case</code>) or custom regex patterns. Enforces naming standards using configurable patterns.</td>
+      <td style="font-size: 12px; color: #666;">columns, naming, pattern, regex, conventions</td>
+    </tr>
   </tbody>
 </table>
 
