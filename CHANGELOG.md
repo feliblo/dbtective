@@ -1,3 +1,14 @@
+## v0.1.27 (2025-12-16)
+
+### Feat
+
+- **rules**: add columns_name_convention rule - ([aa80ee7](https://github.com/feliblo/dbtective/commit/aa80ee78122f3fe3c7288837475da14462f58217)) - Felix Blom
+- **rules**: add 'has_refs' rule - ([5e2a87d](https://github.com/feliblo/dbtective/commit/5e2a87df56d681c2a58c535d3131ef88d8d9ad8c)) - Felix Blom
+
+### Contributors
+
+[@feliblo](https://github.com/feliblo)
+
 ## v0.1.26 (2025-12-14)
 
 ### Feat

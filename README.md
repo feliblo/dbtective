@@ -58,7 +58,7 @@ brew install feliblo/tap/dbtective
 Run dbtective as part of your CI/CD pipeline. See the [GitHub Actions documentation](https://feliblo.github.io/dbtective/docs/github-actions) for more details.
 
 ```yaml
-- uses: feliblo/dbtective@v0.1.21
+- uses: feliblo/dbtective@v0.1.27
   with:
     config-file: "dbtective.yml"
     entry-point: "."
@@ -80,7 +80,7 @@ Add the following to your `.pre-commit-config.yaml`.
 ```yaml
 repos:
   - repo: https://github.com/feliblo/dbtective
-    rev: v0.1.21
+    rev: v0.1.27
     hooks:
       - id: dbtective-run
         args: [--only-manifest]
