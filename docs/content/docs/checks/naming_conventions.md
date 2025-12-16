@@ -7,6 +7,8 @@ sidebar:
 ---
 
 
+For column naming conventions, see the [`columns_name_convention`](../columns#columns_name_convention) check.
+
 ### Check: `name_convention`
 
 <br>

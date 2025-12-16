@@ -102,29 +102,30 @@ impl TestEnvironment {
             .collect()
     }
 
-    pub fn run_catalog_checks(&self, verbose: bool) -> Vec<(RuleResult, Severity)> {
-        let manifest = Manifest::from_file(&self.manifest_path).expect("Failed to load manifest");
-        let config = Config::from_file(&self.config_path).expect("Failed to load config");
+    pub fn run_catalog_checks(&self, verbose: bool) -> anyhow::Result<Vec<(RuleResult, Severity)>> {
+        let manifest = Manifest::from_file(&self.manifest_path)?;
+        let config = Config::from_file(&self.config_path)?;
         let catalog = self
             .catalog_path
             .as_ref()
-            .map(|path| Catalog::from_file(path).expect("Failed to load catalog"));
+            .map(Catalog::from_file)
+            .transpose()?;
 
         let mut findings = Vec::new();
 
         if let Some(ref catalog) = catalog {
             findings.extend(apply_catalog_node_checks(
                 &config, catalog, &manifest, verbose,
-            ));
+            )?);
             findings.extend(apply_catalog_source_checks(
                 &config, catalog, &manifest, verbose,
-            ));
+            )?);
         }
 
-        findings
+        Ok(findings
             .into_iter()
             .map(|(result, severity)| (result, severity.clone()))
-            .collect()
+            .collect())
     }
 
     pub fn run_and_show_results(&self, verbose: bool) -> i32 {

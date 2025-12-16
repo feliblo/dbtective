@@ -2,7 +2,10 @@ use crate::{
     cli::table::RuleResult,
     core::{
         catalog::parse_catalog::Catalog,
-        checks::catalog::{check_columns_are_documented, check_columns_have_description},
+        checks::catalog::{
+            check_column_name_convention, check_columns_are_documented,
+            check_columns_have_description,
+        },
         config::{catalog_rule::CatalogSpecificRuleConfig, severity::Severity, Config},
         manifest::Manifest,
     },
@@ -24,16 +27,16 @@ pub fn apply_catalog_source_checks<'a>(
     catalog: &'a Catalog,
     manifest: &'a Manifest,
     verbose: bool,
-) -> Vec<(RuleResult, &'a Severity)> {
+) -> anyhow::Result<Vec<(RuleResult, &'a Severity)>> {
     let Some(catalog_tests) = &config.catalog_tests else {
-        return Vec::new();
+        return Ok(Vec::new());
     };
 
     catalog
         .sources
         .values()
         .flat_map(|catalog_source| catalog_tests.iter().map(move |rule| (catalog_source, rule)))
-        .fold(Vec::new(), |mut acc, (catalog_source, rule)| {
+        .try_fold(Vec::new(), |mut acc, (catalog_source, rule)| -> anyhow::Result<_> {
             let Some(manifest_source) = manifest.get_source(catalog_source.get_unique_id()) else {
                 // Mismatch between catalog and manifest sources
                 println!(
@@ -46,13 +49,13 @@ pub fn apply_catalog_source_checks<'a>(
                     )
                     .yellow()
                 );
-                return acc;
+                return Ok(acc);
             };
 
             // `applies_to` filtering has to be done from the manifest source side (only it contains the path)
             if let Some(applies) = &rule.applies_to {
                 if !applies.source_objects.contains(&manifest_source.ruletarget()) {
-                    return acc;
+                    return Ok(acc);
                 }
             }
 
@@ -75,12 +78,20 @@ pub fn apply_catalog_source_checks<'a>(
                         verbose,
                     )
                 }
+                CatalogSpecificRuleConfig::ColumnsNameConvention { pattern } => {
+                    check_column_name_convention(
+                        catalog_source,
+                        pattern,
+                        rule,
+                        verbose,
+                    )?
+                }
             };
 
             if let Some(check_row) = check_row_result {
                 acc.push((check_row, &rule.severity));
             }
 
-            acc
+            Ok(acc)
         })
 }

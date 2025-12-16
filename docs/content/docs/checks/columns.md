@@ -1,11 +1,153 @@
 ---
-title: columns (2)
+title: columns (3)
 type: docs
 prev: docs/checks
 sidebar:
   open: true
 ---
 
+### Check: `columns_name_convention`
+
+For object naming conventions, see the [`name_convention`](../naming_conventions#name_convention) check.
+
+<span class="check-category-badge badge-catalog">Catalog Check</span> {{< include-markdown "content/snippets/catalog_info.md" >}}
+
+<br>
+<details closed>
+<summary>columns_name_convention details</summary>
+<br>
+This check ensures that column names follow naming conventions based on a specified pattern.
+
+---
+
+**Configuration**
+
+- **type**: Must be `columns_name_convention`.
+- **applies_to**: *(optional)* List of dbt object types to check.
+  - Default: `["models", "seeds", "snapshots"]`
+  - Options: `models`, `seeds`, `snapshots`, `sources`
+- **pattern**: The naming convention pattern to enforce. Can be one of the following presets or a custom regex pattern.
+  - Presets:
+    - `snake_case`: lowercase letters, numbers, and underscores (e.g., `user_id`, `created_at`)
+    - `kebab-case`: lowercase letters, numbers, and hyphens (e.g., `user-id`, `created-at`)
+    - `camelCase`: starts with a lowercase letter, followed by uppercase letters for new words (e.g., `userId`, `createdAt`)
+    - `PascalCase`: starts with an uppercase letter, followed by uppercase letters for new words (e.g., `UserId`, `CreatedAt`)
+  - Custom Regex: Any valid regex pattern to match against column names.
+
+{{< include-markdown "content/snippets/common_check_config.md" >}}
+
+**Example Config**
+
+{{< tabs items="dbtective.yml,dbtective.toml,pyproject.toml" >}}
+
+{{< tab >}}
+
+```yaml
+catalog_tests:
+  - name: "columns_snake_case"
+    type: "columns_name_convention"
+    description: "All column names must be snake_case."
+    pattern: "snake_case"
+    # severity: "warning"  (optional)
+    # applies_to: ['models', 'sources']  (optional)
+    # includes: ["path/to/include/*"]  (optional)
+    # excludes: ["path/to/exclude/*"]  (optional)
+```
+
+{{< /tab >}}
+
+{{< tab >}}
+
+```toml
+[[catalog_tests]]
+name = "columns_snake_case"
+type = "columns_name_convention"
+description = "All column names must be snake_case."
+pattern = "snake_case"
+# severity = "warning"  # (optional)
+# applies_to = ["models", "sources"]  # (optional)
+# includes = ["path/to/include/*"]  # (optional)
+# excludes = ["path/to/exclude/*"]  # (optional)
+```
+
+{{< /tab >}}
+
+{{< tab >}}
+
+```toml
+[[tool.dbtective.catalog_tests]]
+name = "columns_snake_case"
+type = "columns_name_convention"
+description = "All column names must be snake_case."
+pattern = "snake_case"
+# severity = "warning"  # (optional)
+# applies_to = ["models", "sources"]  # (optional)
+# includes = ["path/to/include/*"]  # (optional)
+# excludes = ["path/to/exclude/*"]  # (optional)
+```
+
+{{< /tab >}}
+
+{{< /tabs >}}
+
+**Example with Custom Regex**
+
+{{< tabs items="dbtective.yml,dbtective.toml,pyproject.toml" >}}
+
+{{< tab >}}
+
+```yaml
+catalog_tests:
+  - name: "columns_snake_case"
+    type: "columns_name_convention"
+    description: "All column must be snake_case."
+    pattern: "snake_case"
+```
+
+{{< /tab >}}
+
+{{< tab >}}
+
+```toml
+[[catalog_tests]]
+name = "columns_snake_case"
+type = "columns_name_convention"
+description = "All column names must be snake_case."
+pattern = "snake_case"
+```
+
+{{< /tab >}}
+
+{{< tab >}}
+
+```toml
+[[tool.dbtective.catalog_tests]]
+name = "columns_snake_case"
+type = "columns_name_convention"
+description = "All column names must be snake_case."
+pattern = "snake_case"
+```
+
+{{< /tab >}}
+
+{{< /tabs >}}
+
+<details closed>
+<summary>Relevant dbt code</summary>
+
+```sql
+-- Example model SQL
+SELECT
+    snake_case,           -- PASS: snake_case
+    camelCase,            -- PASS: camelCase
+    PascalCase            -- PASS: PascalCase
+FROM users
+```
+
+</details>
+</details>
+
+<hr style="border: 2px solid #444; margin: 2em 0;">
 
 ### Check: `columns_all_documented`
 
