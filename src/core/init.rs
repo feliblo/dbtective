@@ -6,6 +6,7 @@ use std::path::Path;
 
 const DEFAULT_YAML_CONFIG: &str = r#"# dbtective configuration file
 # Documentation: https://feliblo.github.io/dbtective/docs/config
+# Rules: https://feliblo.github.io/dbtective/docs/rules/
 
 manifest_tests:
   - name: "has_description"
@@ -41,10 +42,16 @@ catalog_tests:
   - name: "all_columns_described"
     type: "columns_have_description"
     description: "All columns must have a description."
+
+  - name: "column_names_snake_case"
+    type: "columns_name_convention"
+    description: "All column names must be snake_case."
+    pattern: "snake_case"
 "#;
 
 const DEFAULT_TOML_CONFIG: &str = r#"# dbtective configuration file
 # Documentation: https://feliblo.github.io/dbtective/docs/config
+# Rules: https://feliblo.github.io/dbtective/docs/rules/
 
 [[manifest_tests]]
 name = "has_description"
@@ -84,11 +91,19 @@ description = "All columns must exist in the documentation."
 name = "all_columns_described"
 type = "columns_have_description"
 description = "All columns must have a description."
+
+[[catalog_tests]]
+name = "column_names_snake_case"
+type = "columns_name_convention"
+description = "All column names must be snake_case."
+pattern = "snake_case"
 "#;
 
 const DEFAULT_PYPROJECT_CONFIG: &str = r#"
 # dbtective configuration
 # Documentation: https://feliblo.github.io/dbtective/docs/config
+# Rules: https://feliblo.github.io/dbtective/docs/rules/
+
 
 [tool.dbtective]
 
@@ -129,6 +144,12 @@ description = "All columns must exist in the documentation."
 name = "all_columns_described"
 type = "columns_have_description"
 description = "All columns must have a description."
+
+[[tool.dbtective.catalog_tests]]
+name = "column_names_snake_case"
+type = "columns_name_convention"
+description = "All column names must be snake_case."
+pattern = "snake_case"
 "#;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -165,7 +186,7 @@ pub fn init(options: &InitOptions, verbose: bool) -> i32 {
                 "dbt docs generate".yellow()
             );
             println!(
-                "  4. Run {} to inspect your project",
+                "  6. Run {} to inspect your project",
                 "dbtective run".yellow()
             );
             0
@@ -325,6 +346,12 @@ mod tests {
         assert!(content.contains("has_description"));
         assert!(content.contains("name_convention"));
         assert!(content.contains("has_metadata_keys"));
+        assert!(content.contains("has_tags"));
+        assert!(content.contains("has_refs"));
+        assert!(content.contains("catalog_tests:"));
+        assert!(content.contains("all_columns_documented"));
+        assert!(content.contains("all_columns_described"));
+        assert!(content.contains("column_names_snake_case"));
     }
 
     #[test]
@@ -345,6 +372,13 @@ mod tests {
         assert!(content.contains("[[manifest_tests]]"));
         assert!(content.contains("has_description"));
         assert!(content.contains("name_convention"));
+        assert!(content.contains("has_metadata_keys"));
+        assert!(content.contains("has_tags"));
+        assert!(content.contains("has_refs"));
+        assert!(content.contains("[[catalog_tests]]"));
+        assert!(content.contains("all_columns_documented"));
+        assert!(content.contains("all_columns_described"));
+        assert!(content.contains("column_names_snake_case"));
     }
 
     #[test]
@@ -388,6 +422,15 @@ requires = ["setuptools"]
         assert!(content.contains("[project]"));
         assert!(content.contains("[tool.dbtective]"));
         assert!(content.contains("[[tool.dbtective.manifest_tests]]"));
+        assert!(content.contains("has_description"));
+        assert!(content.contains("name_convention"));
+        assert!(content.contains("has_metadata_keys"));
+        assert!(content.contains("has_tags"));
+        assert!(content.contains("has_refs"));
+        assert!(content.contains("[[tool.dbtective.catalog_tests]]"));
+        assert!(content.contains("all_columns_documented"));
+        assert!(content.contains("all_columns_described"));
+        assert!(content.contains("column_names_snake_case"));
     }
 
     #[test]
