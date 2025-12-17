@@ -1,28 +1,28 @@
 ---
 title: naming_conventions
 type: docs
-prev: docs/checks
+prev: docs/rules
 sidebar:
   open: true
 ---
 
 
-For column naming conventions, see the [`columns_name_convention`](../columns#columns_name_convention) check.
+For column naming conventions, see the [`columns_name_convention`](../columns#columns_name_convention) rule.
 
-### Check: `name_convention`
+### Rule: `name_convention`
 
 <br>
 <details open>
 <summary>name_convention details</summary>
 <br>
-This check ensures that a dbt object's name applies to naming conventions given in the arguments.
+This rule ensures that a dbt object's name applies to naming conventions given in the arguments.
 
 ---
 
 **Configuration**
 
 - **type**: Must be `name_convention`.
-- **applies_to**: *(optional)* List of dbt object types to check.
+- **applies_to**: *(optional)* List of dbt object types to include.
   - Default: `["models", "seeds", "snapshots", "analyses", "sources", "unit_tests", "macros", "exposures", "semantic_models"]`
   - Options: `models`, `seeds`, `snapshots`, `analyses`, `sources`, `unit_tests`, `macros`, `exposures`, `semantic_models`
 - **pattern**: The naming convention pattern to enforce. Can be one of the following presets or a custom regex pattern.
@@ -33,7 +33,7 @@ This check ensures that a dbt object's name applies to naming conventions given 
     - `PascalCase`: starts with an uppercase letter, followed by uppercase letters for new words (e.g., `MyModelName`)
   - Custom Regex: Any valid regex pattern to match against the dbt object names.
 
-{{< include-markdown "content/snippets/common_check_config.md" >}}
+{{< include-markdown "content/snippets/common_rule_config.md" >}}
 
 **Example Config**
 

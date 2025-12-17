@@ -70,7 +70,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_checks(false);
+    let findings = env.run_maniest_rules(false);
 
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].0.severity, "FAIL");
@@ -197,7 +197,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_checks(false);
+    let findings = env.run_maniest_rules(false);
 
     // Should pass: source is referenced by a model
     assert_eq!(findings.len(), 0);
@@ -294,7 +294,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_checks(false);
+    let findings = env.run_maniest_rules(false);
 
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].0.severity, "WARN");
@@ -427,7 +427,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_checks(false);
+    let findings = env.run_maniest_rules(false);
 
     // Should pass: model is referenced by an exposure
     assert_eq!(findings.len(), 0);
@@ -567,7 +567,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_checks(false);
+    let findings = env.run_maniest_rules(false);
 
     // Should fail: model is only referenced by a test, which is not in allowed_references
     assert_eq!(findings.len(), 1);
@@ -761,7 +761,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_checks(false);
+    let findings = env.run_maniest_rules(false);
 
     // Should find 2 orphaned models: orphaned_model (no children) and downstream_model (no children)
     assert_eq!(findings.len(), 2);

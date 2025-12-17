@@ -1,4 +1,4 @@
-use crate::core::checks::rules::{
+use crate::core::rules::rule_config::{
     check_name_convention, has_description, has_metadata_keys, has_refs, has_tags, has_unique_test,
     is_not_orphaned,
 };
@@ -17,32 +17,32 @@ use crate::{
 // It can be refactored later if needed, but honestly I need a bit more Rust experience to do that well.
 // If you read this and have ideas, please open an issue or PR, I'm curious to see better implementations!
 
-/// Applies macro checks to the manifest.
+/// Applies macro rules to the manifest.
 /// # Errors
 /// Returns an error if a rule has invalid configuration (e.g., invalid regex pattern).
 /// //
-pub fn apply_manifest_object_checks<'a>(
+pub fn apply_manifest_object_rules<'a>(
     manifest: &'a Manifest,
     config: &'a Config,
     verbose: bool,
 ) -> anyhow::Result<Vec<(RuleResult, &'a Severity)>> {
     Ok([
-        apply_source_checks(manifest, config, verbose)?,
-        apply_macro_checks(manifest, config, verbose)?,
-        apply_exposure_checks(manifest, config, verbose)?,
-        apply_semantic_model_checks(manifest, config, verbose)?,
-        apply_unit_test_checks(manifest, config, verbose)?,
+        apply_source_rules(manifest, config, verbose)?,
+        apply_macro_rules(manifest, config, verbose)?,
+        apply_exposure_rules(manifest, config, verbose)?,
+        apply_semantic_model_rules(manifest, config, verbose)?,
+        apply_unit_test_rules(manifest, config, verbose)?,
     ]
     .into_iter()
     .flatten()
     .collect())
 }
 
-/// Applies source checks to the manifest.
+/// Applies source rules to the manifest.
 ///
 /// # Errors
 /// Returns an error if a rule has invalid configuration (e.g., invalid regex pattern).
-fn apply_source_checks<'a>(
+fn apply_source_rules<'a>(
     manifest: &'a Manifest,
     config: &'a Config,
     _verbose: bool,
@@ -63,7 +63,7 @@ fn apply_source_checks<'a>(
                     }
                 }
 
-                let check_row_result = match &rule.rule {
+                let rule_row_result = match &rule.rule {
                     ManifestSpecificRuleConfig::HasDescription {} => has_description(source, rule),
                     ManifestSpecificRuleConfig::NameConvention { pattern } => {
                         check_name_convention(source, rule, pattern)?
@@ -88,8 +88,8 @@ fn apply_source_checks<'a>(
                     | ManifestSpecificRuleConfig::HasContractEnforced {} => return Ok(acc), // Models only
                 };
 
-                if let Some(check_row) = check_row_result {
-                    acc.push((check_row, &rule.severity));
+                if let Some(rule_row) = rule_row_result {
+                    acc.push((rule_row, &rule.severity));
                 }
 
                 Ok(acc)
@@ -101,10 +101,10 @@ fn apply_source_checks<'a>(
     Ok(results)
 }
 
-/// Applies unit test checks to the manifest.
+/// Applies unit test rules to the manifest.
 /// # Errors
 /// Returns an error if a rule has invalid configuration (e.g., invalid regex pattern).
-fn apply_macro_checks<'a>(
+fn apply_macro_rules<'a>(
     manifest: &'a Manifest,
     config: &'a Config,
     _verbose: bool,
@@ -127,7 +127,7 @@ fn apply_macro_checks<'a>(
                         }
                     }
 
-                    let check_row_result = match &rule.rule {
+                    let rule_row_result = match &rule.rule {
                         ManifestSpecificRuleConfig::HasDescription {} => {
                             has_description(macro_obj, rule)
                         }
@@ -151,8 +151,8 @@ fn apply_macro_checks<'a>(
                         | ManifestSpecificRuleConfig::HasContractEnforced {} => return Ok(acc), //
                     };
 
-                    if let Some(check_row) = check_row_result {
-                        acc.push((check_row, &rule.severity));
+                    if let Some(rule_row) = rule_row_result {
+                        acc.push((rule_row, &rule.severity));
                     }
 
                     Ok(acc)
@@ -165,10 +165,10 @@ fn apply_macro_checks<'a>(
     Ok(results)
 }
 
-/// Applies exposure checks to the manifest.
+/// Applies exposure rules to the manifest.
 /// # Errors
 /// Returns an error if a rule has invalid configuration (e.g., invalid regex pattern).
-fn apply_exposure_checks<'a>(
+fn apply_exposure_rules<'a>(
     manifest: &'a Manifest,
     config: &'a Config,
     _verbose: bool,
@@ -191,7 +191,7 @@ fn apply_exposure_checks<'a>(
                         }
                     }
 
-                    let check_row_result = match &rule.rule {
+                    let rule_row_result = match &rule.rule {
                         ManifestSpecificRuleConfig::HasDescription {} => {
                             has_description(exposure, rule)
                         }
@@ -218,8 +218,8 @@ fn apply_exposure_checks<'a>(
                         | ManifestSpecificRuleConfig::HasContractEnforced {} => return Ok(acc),
                     };
 
-                    if let Some(check_row) = check_row_result {
-                        acc.push((check_row, &rule.severity));
+                    if let Some(rule_row) = rule_row_result {
+                        acc.push((rule_row, &rule.severity));
                     }
 
                     Ok(acc)
@@ -232,11 +232,11 @@ fn apply_exposure_checks<'a>(
     Ok(results)
 }
 
-/// Applies semantic model checks to the manifest.
+/// Applies semantic model rules to the manifest.
 ///
 /// # Errors
 /// Returns an error if a rule has invalid configuration (e.g., invalid regex pattern).
-fn apply_semantic_model_checks<'a>(
+fn apply_semantic_model_rules<'a>(
     manifest: &'a Manifest,
     config: &'a Config,
     _verbose: bool,
@@ -257,7 +257,7 @@ fn apply_semantic_model_checks<'a>(
                     }
                 }
 
-                let check_row_result = match &rule.rule {
+                let rule_row_result = match &rule.rule {
                     ManifestSpecificRuleConfig::HasDescription {} => has_description(sm, rule),
                     ManifestSpecificRuleConfig::NameConvention { pattern } => {
                         check_name_convention(sm, rule, pattern)?
@@ -274,8 +274,8 @@ fn apply_semantic_model_checks<'a>(
                     | ManifestSpecificRuleConfig::HasContractEnforced {} => return Ok(acc),
                 };
 
-                if let Some(check_row) = check_row_result {
-                    acc.push((check_row, &rule.severity));
+                if let Some(rule_row) = rule_row_result {
+                    acc.push((rule_row, &rule.severity));
                 }
 
                 Ok(acc)
@@ -287,10 +287,10 @@ fn apply_semantic_model_checks<'a>(
     Ok(results)
 }
 
-/// Applies unit test checks to the manifest.
+/// Applies unit test rules to the manifest.
 /// # Errors
 /// Returns an error if a rule has invalid configuration (e.g., invalid regex pattern).
-fn apply_unit_test_checks<'a>(
+fn apply_unit_test_rules<'a>(
     manifest: &'a Manifest,
     config: &'a Config,
     _verbose: bool,
@@ -311,7 +311,7 @@ fn apply_unit_test_checks<'a>(
                     }
                 }
 
-                let check_row_result = match &rule.rule {
+                let rule_row_result = match &rule.rule {
                     ManifestSpecificRuleConfig::HasDescription {} => has_description(ut, rule),
                     ManifestSpecificRuleConfig::NameConvention { pattern } => {
                         check_name_convention(ut, rule, pattern)?
@@ -325,8 +325,8 @@ fn apply_unit_test_checks<'a>(
                     | ManifestSpecificRuleConfig::HasMetadataKeys { .. } => return Ok(acc),
                 };
 
-                if let Some(check_row) = check_row_result {
-                    acc.push((check_row, &rule.severity));
+                if let Some(rule_row) = rule_row_result {
+                    acc.push((rule_row, &rule.severity));
                 }
 
                 Ok(acc)

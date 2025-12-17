@@ -3,16 +3,16 @@ title: Creating a New Rule
 weight: 2
 ---
 
-This guide walks you through creating a new rule (check) for dbtective.
+This guide walks you through creating a new rule for dbtective.
 
 ## Prerequisites
 
-Before starting, determine whether your rule is a **Manifest Check** or a **Catalog Check**:
+Before starting, determine whether your rule is a **Manifest Rule** or a **Catalog Rule**:
 
-- **Manifest checks** use only `manifest.json` - contains model definitions, configs, and metadata
-- **Catalog checks** use both `manifest.json` and `catalog.json` - includes actual database column information
+- **Manifest rules** use only `manifest.json` - contains model definitions, configs, and metadata
+- **Catalog rules** use both `manifest.json` and `catalog.json` - includes actual database column information
 
-See the [checks overview](/docs/checks) or the dbt docs on [manifest](https://docs.getdbt.com/reference/artifacts/manifest-json) and [catalog](https://docs.getdbt.com/reference/artifacts/catalog-json) artifacts.
+See the [rules overview](/docs/rules) or the dbt docs on [manifest](https://docs.getdbt.com/reference/artifacts/manifest-json) and [catalog](https://docs.getdbt.com/reference/artifacts/catalog-json) artifacts.
 
 ---
 
@@ -85,7 +85,7 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
 
 ### Step 3: Create or Find a Trait
 
-Check `src/core/checks/rules/` for an existing trait that matches your rule's needs:
+Check `src/core/rules/rule_config/` for an existing trait that matches your rule's needs:
 
 | Trait | Purpose | File |
 |-------|---------|------|
@@ -94,22 +94,22 @@ Check `src/core/checks/rules/` for an existing trait that matches your rule's ne
 | `HasMetadata` | Objects with metadata | `has_metadata_keys.rs` |
 | `Nameable` | Objects with names | `name_convention.rs` |
 
-**If a suitable trait exists**, add your function to it. **If not**, create a new file in `src/core/checks/rules/`.
+**If a suitable trait exists**, add your function to it. **If not**, create a new file in `src/core/rules/rule_config/`.
 
 If re-using a trait, we might need to rename some files. This is okay since the trait represents a broader concept.
 
 All traits contain at least the following methods (needed for RuleResult (table reporting)):
+
 - `fn get_object_type(&self) -> &str;` - Returns the dbt object type (e.g., "model", "source")
 - `fn get_object_string(&self) -> &str;` - Returns a string representation
 - `fn get_relative_path(&self) -> Option<&String>;` - Returns the object's relative file path
-
 
 ### Step 4: Implement the Rule Logic
 
 Create your rule function. Here's an example pattern:
 
 ```rust
-// src/core/checks/rules/has_owner.rs
+// src/core/rules/rule_config/your_rule.rs
 use crate::{
     cli::table::RuleResult,
     core::config::manifest_rule::ManifestRule,
@@ -160,15 +160,15 @@ impl YourRule for Node {
 }
 ```
 
-### Step 6: Add the Rule in Node Checks
+### Step 6: Add the Rule in Node Rules
 
-Add your rule to `src/core/checks/manifest/node_checks.rs`. If you haven't implemented the trait yet, you will get a compile error prompting you to do so.
+Add your rule to `src/core/rules/manifest/node_rules.rs`. If you haven't implemented the trait yet, you will get a compile error prompting you to do so.
 
 ```rust
-use crate::core::checks::rules::your_rule;
+use crate::core::rules::rule_config::your_rule;
 
-// In the apply_node_checks function, add to the match statement:
-let check_row_result = match &rule.rule {
+// In the apply_node_rules function, add to the match statement:
+let row_result = match &rule.rule {
     // ... existing rules ...
 
     ManifestSpecificRuleConfig::YourRuleName {
@@ -178,13 +178,13 @@ let check_row_result = match &rule.rule {
 };
 ```
 
-Similarly, update `src/core/checks/manifest/other_manifest_object_checks.rs`.
+Similarly, update `src/core/rules/manifest/apply_other_manifest_object_rules.rs`.
 
 If any object doesn't apply to your rule, simply return the accumulator of ruleresults (acc) unchanged.
 
 ### Step 7: Export the Module
 
-Add your new module to `src/core/checks/rules/mod.rs`:
+Add your new module to `src/core/rules/rule_config/mod.rs`:
 
 ```rust
 mod your_rule;
@@ -241,10 +241,9 @@ mod tests {
 
 Create tests in the `tests/` folder. Copy the structure from existing tests and adapt it to your rule.
 
-
 ### Step 10: Document the Rule
 
-Create documentation in `docs/content/docs/checks/your_rule.md`. Copy the structure from existing rule docs & fill in the details to fit your rule. Remember to include the applies_to options from the `src/core/config/manifest_rule.rs` file.
+Create documentation in `docs/content/docs/rules/your_rule.md`. Copy the structure from existing rule docs & fill in the details to fit your rule. Remember to include the applies_to options from the `src/core/config/manifest_rule.rs` file.
 
 ## Tips
 

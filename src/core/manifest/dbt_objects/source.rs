@@ -5,18 +5,18 @@ use std::collections::HashMap;
 // use super::{Meta, Tags};
 use super::tags::Tags;
 use crate::core::{
-    checks::{
-        common_traits::Columnable,
-        rules::{
-            child_map::ChildMappable, has_description::Descriptable,
-            has_metadata_keys::HasMetadata, has_tags::Tagable, has_unique_test::TestAble,
-            name_convention::NameAble,
-        },
-    },
     config::{applies_to::RuleTarget, includes_excludes::IncludeExcludable},
     manifest::{
         dbt_objects::{column::Column, Meta},
         Manifest,
+    },
+    rules::{
+        common_traits::Columnable,
+        rule_config::{
+            child_map::ChildMappable, has_description::Descriptable,
+            has_metadata_keys::HasMetadata, has_tags::Tagable, has_unique_test::TestAble,
+            name_convention::NameAble,
+        },
     },
 };
 use serde::Deserialize;

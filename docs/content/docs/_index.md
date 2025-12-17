@@ -11,7 +11,7 @@ Keep your dbt project organized, documented, and production-ready.
 
 ## Quick Navigation
 
-- [Checks](checks/)
+- [Rules](rules/)
 - [Configuration](config/)
 - **Running dbtective**
   - [CLI usage](running/cli/) - Run dbtective from the command line

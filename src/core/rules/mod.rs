@@ -1,4 +1,4 @@
 pub mod catalog;
 pub mod common_traits;
 pub mod manifest;
-pub mod rules;
+pub mod rule_config;

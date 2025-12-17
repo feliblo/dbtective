@@ -19,7 +19,7 @@ inputs:
     required: false
   only-manifest:
     default: "false"
-    description: "Run only manifest-based checks, skip catalog checks."
+    description: "Run only manifest-based rules, skip catalog rules."
     required: false
   version:
     default: "latest"

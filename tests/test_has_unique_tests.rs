@@ -93,7 +93,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_checks(false);
+    let findings = env.run_maniest_rules(false);
 
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].0.severity, "FAIL");
@@ -243,7 +243,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_checks(false);
+    let findings = env.run_maniest_rules(false);
 
     // Should pass: model has a unique test
     assert_eq!(findings.len(), 0);
@@ -391,7 +391,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_checks(false);
+    let findings = env.run_maniest_rules(false);
 
     // Should pass: model has dbt_utils.unique_combination_of_columns test
     assert_eq!(findings.len(), 0);
@@ -538,7 +538,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_checks(false);
+    let findings = env.run_maniest_rules(false);
 
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].0.severity, "FAIL");
@@ -738,7 +738,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_checks(false);
+    let findings = env.run_maniest_rules(false);
 
     // Should pass: model has both not_null and unique tests
     assert_eq!(findings.len(), 0);
@@ -887,7 +887,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_checks(false);
+    let findings = env.run_maniest_rules(false);
 
     // Should pass: model has custom unique test that's in allowed_test_names
     assert_eq!(findings.len(), 0);
@@ -1203,7 +1203,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_checks(false);
+    let findings = env.run_maniest_rules(false);
 
     // Should find 1 failure: orders model (missing unique test)
     assert_eq!(findings.len(), 1);
@@ -1329,7 +1329,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_checks(false);
+    let findings = env.run_maniest_rules(false);
 
     // Should pass: source has a unique test
     assert_eq!(findings.len(), 0);
@@ -1403,7 +1403,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_checks(false);
+    let findings = env.run_maniest_rules(false);
 
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].0.severity, "FAIL");
@@ -1598,7 +1598,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_checks(false);
+    let findings = env.run_maniest_rules(false);
 
     // Should pass: model has two unique tests (one for customer_id and one for email)
     assert_eq!(findings.len(), 0);

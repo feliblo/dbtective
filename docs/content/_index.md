@@ -15,7 +15,7 @@ Keep your dbt project organized, documented, and production-ready.
 ## Explore
 
 {{< cards >}}
-  {{< card link="docs/checks" title="Checks" icon="book-open" >}}
+  {{< card link="docs/rules" title="Rules" icon="book-open" >}}
   {{< card link="docs/config" title="Config" icon="book-open" >}}
   {{< card link="docs/quickstart" title="Quickstart" icon="book-open" >}}
   {{< card link="docs/faq" title="FAQ" icon="book-open" >}}

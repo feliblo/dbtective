@@ -1,29 +1,29 @@
 ---
 title: columns (3)
 type: docs
-prev: docs/checks
+prev: docs/rules
 sidebar:
   open: true
 ---
 
-### Check: `columns_name_convention`
+### Rule: `columns_name_convention`
 
-For object naming conventions, see the [`name_convention`](../naming_conventions#name_convention) check.
+For object naming conventions, see the [`name_convention`](../naming_conventions#name_convention) rule.
 
-<span class="check-category-badge badge-catalog">Catalog Check</span> {{< include-markdown "content/snippets/catalog_info.md" >}}
+<span class="rule-category-badge badge-catalog">Catalog Rule</span> {{< include-markdown "content/snippets/catalog_info.md" >}}
 
 <br>
 <details closed>
 <summary>columns_name_convention details</summary>
 <br>
-This check ensures that column names follow naming conventions based on a specified pattern.
+This rule ensures that column names follow naming conventions based on a specified pattern.
 
 ---
 
 **Configuration**
 
 - **type**: Must be `columns_name_convention`.
-- **applies_to**: *(optional)* List of dbt object types to check.
+- **applies_to**: *(optional)* List of dbt object types to include.
   - Default: `["models", "seeds", "snapshots"]`
   - Options: `models`, `seeds`, `snapshots`, `sources`
 - **pattern**: The naming convention pattern to enforce. Can be one of the following presets or a custom regex pattern.
@@ -34,7 +34,7 @@ This check ensures that column names follow naming conventions based on a specif
     - `PascalCase`: starts with an uppercase letter, followed by uppercase letters for new words (e.g., `UserId`, `CreatedAt`)
   - Custom Regex: Any valid regex pattern to match against column names.
 
-{{< include-markdown "content/snippets/common_check_config.md" >}}
+{{< include-markdown "content/snippets/common_rule_config.md" >}}
 
 **Example Config**
 
@@ -149,25 +149,25 @@ FROM users
 
 <hr style="border: 2px solid #444; margin: 2em 0;">
 
-### Check: `columns_all_documented`
+### Rule: `columns_all_documented`
 
-<span class="check-category-badge badge-catalog">Catalog Check</span> {{< include-markdown "content/snippets/catalog_info.md" >}}
+<span class="rule-category-badge badge-catalog">Catalog Rule</span> {{< include-markdown "content/snippets/catalog_info.md" >}}
 
 <details closed>
 <summary>columns_all_documented details</summary>
 <br>
-This check ensures that every dbt object  (model, seed, source, macro, etc.) documented their columns (e.g. mentioned them in a `.yaml` file).
+This rule ensures that every dbt object  (model, seed, source, macro, etc.) documented their columns (e.g. mentioned them in a `.yaml` file).
 
 ---
 
 **Configuration**
 
 - **type**: Must be `columns_all_documented`.
-- **applies_to**: *(optional)* List of dbt object types to check.
+- **applies_to**: *(optional)* List of dbt object types to include.
   - Default: `["models", "seeds", "snapshots", "sources", "semantic_models"]`
   - Options: `models`, `seeds`, `snapshots`, `sources`, `macros`,`semantic_models`
 
-{{< include-markdown "content/snippets/common_check_config.md" >}}
+{{< include-markdown "content/snippets/common_rule_config.md" >}}
 
 **Example Config**
 
@@ -242,25 +242,25 @@ models:
 
 <hr style="border: 2px solid #444; margin: 2em 0;">
 
-### Check: `columns_have_description`
+### Rule: `columns_have_description`
 
-<span class="check-category-badge badge-catalog">Catalog Check</span> {{< include-markdown "content/snippets/catalog_info.md" >}}
+<span class="rule-category-badge badge-catalog">Catalog Rule</span> {{< include-markdown "content/snippets/catalog_info.md" >}}
 
 <details closed>
 <summary>columns_have_description details</summary>
 <br>
-This check ensures that every documented column has a non-empty description. Unlike `columns_all_documented` which checks that columns are mentioned in YAML files, this check verifies that those columns actually have meaningful descriptions.
+This rule ensures that every documented column has a non-empty description. Unlike `columns_all_documented` which checks that columns are mentioned in YAML files, this rule verifies that those columns actually have meaningful descriptions.
 
 ---
 
 **Configuration**
 
 - **type**: Must be `columns_have_description`.
-- **applies_to**: *(optional)* List of dbt object types to check.
+- **applies_to**: *(optional)* List of dbt object types to include.
   - Default: `["models", "seeds", "snapshots", "sources", "semantic_models"]`
   - Options: `models`, `seeds`, `snapshots`, `sources`, `macros`,`semantic_models`
 
-{{< include-markdown "content/snippets/common_check_config.md" >}}
+{{< include-markdown "content/snippets/common_rule_config.md" >}}
 
 **Example Config**
 

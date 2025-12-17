@@ -26,8 +26,8 @@ Run dbtective analysis on your dbt project.
 
 **Important:**
 
-- Before running manifest-based checks, run `dbt compile`, `dbt build`, `dbt run` or any of the [documented commands](https://docs.getdbt.com/reference/artifacts/manifest-json) to ensure `manifest.json` is up to date.
-- Before running catalog-based checks, run `dbt docs generate` to ensure `catalog.json` is available.
+- Before running manifest-based rules, run `dbt compile`, `dbt build`, `dbt run` or any of the [documented commands](https://docs.getdbt.com/reference/artifacts/manifest-json) to ensure `manifest.json` is up to date.
+- Before running catalog-based rules, run `dbt docs generate` to ensure `catalog.json` is available.
 
 #### Options
 
@@ -37,7 +37,7 @@ Run dbtective analysis on your dbt project.
 | `--config-file <PATH>` | `-c` | Auto-detected | Path to dbtective configuration from the entry-point (overrides auto-detection) |
 | `--manifest-file <PATH>` | `-m` | `target/manifest.json` | Path to dbt manifest.json |
 | `--catalog-file <PATH>` | `-g` | `target/catalog.json` | Path to dbt catalog.json |
-| `--only-manifest` | | `true` | Run only manifest checks |
+| `--only-manifest` | | `true` | Run only manifest rules |
 | `--disable-hyperlinks` | | `false` | Disable file hyperlinks in the output |
 
 #### Config File Auto-Detection
@@ -65,7 +65,7 @@ dbtective run --verbose
 # Run on a specific dbt project
 dbtective run --entry-point ./dbt_project
 
-# Run only manifest checks
+# Run only manifest rules
 dbtective run --only-manifest
 
 # Disable hyperlinks in output table
@@ -100,7 +100,6 @@ dbtective init --format pyproject
 # Create config in a specific directory
 dbtective init --location ./my_dbt_project
 ```
-
 
 ## Getting Help
 

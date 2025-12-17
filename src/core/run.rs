@@ -1,17 +1,18 @@
 use crate::cli::commands::RunOptions;
 use crate::cli::table::{show_results_and_exit, RuleResult};
 use crate::core::catalog::parse_catalog::Catalog;
-use crate::core::checks::catalog::{
-    catalog_node_checks::apply_catalog_node_checks,
-    catalog_source_checks::apply_catalog_source_checks,
-};
-use crate::core::checks::manifest::{
-    node_checks::apply_node_checks, other_manifest_object_checks::apply_manifest_object_checks,
-};
 use crate::core::config::parse_config::resolve_config_path;
 use crate::core::config::severity::Severity;
 use crate::core::config::Config;
 use crate::core::manifest::Manifest;
+use crate::core::rules::catalog::{
+    apply_catalog_node_rules::apply_catalog_node_rules,
+    apply_catalog_source_rules::apply_catalog_source_rules,
+};
+use crate::core::rules::manifest::{
+    apply_manifest_node_rules::apply_manifest_node_rules,
+    apply_other_manifest_object_rules::apply_manifest_object_rules,
+};
 use crate::core::utils::unwrap_or_exit;
 use log::debug;
 use std::time::Instant;
@@ -28,21 +29,21 @@ pub fn run(options: &RunOptions, verbose: bool) -> i32 {
     // Store all findings in a result vector
     let mut findings: Vec<(RuleResult, &Severity)> = Vec::new();
 
-    // Manifest-based checks
+    // Manifest-based rules
     let manifest_path =
         std::path::PathBuf::from(format!("{}/{}", options.entry_point, options.manifest_file));
     let manifest = unwrap_or_exit(Manifest::from_file(&manifest_path));
 
-    // Manifest-node object checks
-    findings.extend(unwrap_or_exit(apply_node_checks(
+    // Manifest-node object rules
+    findings.extend(unwrap_or_exit(apply_manifest_node_rules(
         &manifest, &config, verbose,
     )));
-    // Manifest-non-node object checks (source macro exposures semantic_models unit_tests)
-    findings.extend(unwrap_or_exit(apply_manifest_object_checks(
+    // Manifest-non-node object rules (source macro exposures semantic_models unit_tests)
+    findings.extend(unwrap_or_exit(apply_manifest_object_rules(
         &manifest, &config, verbose,
     )));
 
-    // Catalog-based checks (need both manifest and catalog)
+    // Catalog-based rules (need both manifest and catalog)
     // This can error in the following case:
     // The manifest has been rebuild using a `dbt` command,
     // yet the `catalog.json` has not been updated with `dbt docs generate`
@@ -55,10 +56,10 @@ pub fn run(options: &RunOptions, verbose: bool) -> i32 {
     };
 
     if let Some(ref catalog) = catalog {
-        findings.extend(unwrap_or_exit(apply_catalog_node_checks(
+        findings.extend(unwrap_or_exit(apply_catalog_node_rules(
             &config, catalog, &manifest, verbose,
         )));
-        findings.extend(unwrap_or_exit(apply_catalog_source_checks(
+        findings.extend(unwrap_or_exit(apply_catalog_source_rules(
             &config, catalog, &manifest, verbose,
         )));
     }

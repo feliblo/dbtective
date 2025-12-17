@@ -2,13 +2,13 @@ use regex::Regex;
 
 use crate::{
     cli::table::RuleResult,
-    core::{checks::common_traits::Columnable, config::catalog_rule::CatalogRule},
+    core::{config::catalog_rule::CatalogRule, rules::common_traits::Columnable},
 };
 
 /// C => Catalog object only in this test
 /// # Errors
 /// Returns an `anyhow::Error` if the provided pattern is an invalid regex
-pub fn check_column_name_convention<C: Columnable>(
+pub fn column_name_convention<C: Columnable>(
     catalog_object: &C,
     pattern: &str,
     rule: &CatalogRule,
@@ -105,7 +105,7 @@ mod tests {
             columns: vec!["first_column".to_string(), "second_column".to_string()],
         };
         assert_eq!(
-            check_column_name_convention(&item, "snake_case", &rule, false).unwrap(),
+            column_name_convention(&item, "snake_case", &rule, false).unwrap(),
             None
         );
     }
@@ -128,7 +128,7 @@ mod tests {
             columns: vec!["FirstColumn".to_string(), "second_column".to_string()],
         };
         assert_eq!(
-            check_column_name_convention(&item, "snake_case", &rule, false).unwrap(),
+            column_name_convention(&item, "snake_case", &rule, false).unwrap(),
             Some(RuleResult::new(
                 &rule.severity,
                 "TestItem",
@@ -166,7 +166,7 @@ mod tests {
                 columns: test_columns[i].iter().map(|s| (*s).to_string()).collect(),
             };
             assert_eq!(
-                check_column_name_convention(&item, pattern, &rule, false).unwrap(),
+                column_name_convention(&item, pattern, &rule, false).unwrap(),
                 None,
                 "Failed for pattern: {pattern}",
             );
@@ -200,7 +200,7 @@ mod tests {
                 columns: test_columns[i].iter().map(|s| (*s).to_string()).collect(),
             };
             assert!(
-                check_column_name_convention(&item, pattern, &rule, false)
+                column_name_convention(&item, pattern, &rule, false)
                     .unwrap()
                     .is_some(),
                 "Failed for pattern: {pattern}",
@@ -226,7 +226,7 @@ mod tests {
             columns: vec!["abc12".to_string(), "def34".to_string()],
         };
         assert_eq!(
-            check_column_name_convention(&item, r"^[a-z]{3}[0-9]{2}$", &rule, false).unwrap(),
+            column_name_convention(&item, r"^[a-z]{3}[0-9]{2}$", &rule, false).unwrap(),
             None
         );
     }
@@ -249,7 +249,7 @@ mod tests {
             columns: vec!["ab12".to_string(), "defg34".to_string()],
         };
         assert_eq!(
-            check_column_name_convention(&item, r"^[a-z]{3}[0-9]{2}$", &rule, false).unwrap(),
+            column_name_convention(&item, r"^[a-z]{3}[0-9]{2}$", &rule, false).unwrap(),
             Some(RuleResult::new(
                 &rule.severity,
                 "TestItem",
@@ -277,7 +277,7 @@ mod tests {
             name: "test_item".to_string(),
             columns: vec!["valid_column".to_string()],
         };
-        let result = check_column_name_convention(&item, r"*[a-z", &rule, false);
+        let result = column_name_convention(&item, r"*[a-z", &rule, false);
         assert!(result.is_err());
     }
 }

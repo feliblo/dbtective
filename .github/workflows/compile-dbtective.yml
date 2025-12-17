@@ -1,7 +1,7 @@
 name: "🕵️ Test dbtective"
 
 # This workflow compiles dbtective and runs it on a small test dbt project
-# Since the dbtective check can fail, we don't care about failures when it
+# Since the dbtective rules can fail, we don't care about failures when it
 # Contains '🕵️  dbtective detected some issues:', meaning it compiled and ran.
 
 on:

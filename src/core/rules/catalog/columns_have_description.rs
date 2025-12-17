@@ -1,12 +1,12 @@
 use crate::{
     cli::table::RuleResult,
-    core::{checks::common_traits::Columnable, config::catalog_rule::CatalogRule},
+    core::{config::catalog_rule::CatalogRule, rules::common_traits::Columnable},
 };
 
 // Remember, the manifest object contains the descriptions, but the manifest isn't always exhaustive
 // We need the names of the catalog columns (to check they exist in the manifest)
 // Manifest only relies on actually documented columns.
-pub fn check_columns_have_description<C: Columnable, M: Columnable>(
+pub fn columns_have_description<C: Columnable, M: Columnable>(
     catalog_object: &C,
     manifest_object: &M,
     rule: &CatalogRule,
@@ -44,7 +44,6 @@ pub fn check_columns_have_description<C: Columnable, M: Columnable>(
         }
     };
 
-    // Checks:
     // 1. Is there a column for each catalog column in the manifest columns?
     // 2. Does that column have a description?
     let missing_column_descriptions: Vec<&str> = manifest_columns
@@ -155,8 +154,7 @@ mod tests {
 
         let rule = create_test_catalog_rule();
 
-        let result =
-            check_columns_have_description(&catalog_object, &manifest_object, &rule, false);
+        let result = columns_have_description(&catalog_object, &manifest_object, &rule, false);
 
         assert!(result.is_some());
         let rule_result = result.unwrap();
@@ -181,8 +179,7 @@ mod tests {
             column_descriptions: None,
         };
         let rule = create_test_catalog_rule();
-        let result =
-            check_columns_have_description(&catalog_object, &manifest_object, &rule, false);
+        let result = columns_have_description(&catalog_object, &manifest_object, &rule, false);
         assert!(result.is_some());
         let rule_result = result.unwrap();
         assert_eq!(
@@ -221,8 +218,7 @@ mod tests {
         };
 
         let rule = create_test_catalog_rule();
-        let result =
-            check_columns_have_description(&catalog_object, &manifest_object, &rule, false);
+        let result = columns_have_description(&catalog_object, &manifest_object, &rule, false);
         assert!(result.is_some());
         let rule_result = result.unwrap();
         assert_eq!(
@@ -260,8 +256,7 @@ mod tests {
             ]),
         };
         let rule = create_test_catalog_rule();
-        let result =
-            check_columns_have_description(&catalog_object, &manifest_object, &rule, false);
+        let result = columns_have_description(&catalog_object, &manifest_object, &rule, false);
         assert!(result.is_none());
     }
 }

@@ -8,10 +8,12 @@ Our mission: help teams keep their dbt projects organized, documented, and produ
 
 ## What does dbtective do?
 
+Helps you maintain high-quality dbt metadata by enforcing best practices. For example, dbtective:
+
 - **Finds missing documentation** in models and seeds
 - **Checks column types** for completeness
 - **Verifies ownership** for sources
-- **Enforces naming conventions** for marts and more
+- **Enforces naming conventions** for objects and columns
 
 ## Why dbtective?
 

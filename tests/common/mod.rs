@@ -2,13 +2,13 @@
 
 use dbtective::cli::table::{show_results_and_exit, RuleResult};
 use dbtective::core::catalog::parse_catalog::Catalog;
-use dbtective::core::checks::catalog::catalog_node_checks::apply_catalog_node_checks;
-use dbtective::core::checks::catalog::catalog_source_checks::apply_catalog_source_checks;
-use dbtective::core::checks::manifest::node_checks::apply_node_checks;
-use dbtective::core::checks::manifest::other_manifest_object_checks::apply_manifest_object_checks;
 use dbtective::core::config::severity::Severity;
 use dbtective::core::config::Config;
 use dbtective::core::manifest::Manifest;
+use dbtective::core::rules::catalog::apply_catalog_node_rules::apply_catalog_node_rules;
+use dbtective::core::rules::catalog::apply_catalog_source_rules::apply_catalog_source_rules;
+use dbtective::core::rules::manifest::apply_manifest_node_rules::apply_manifest_node_rules;
+use dbtective::core::rules::manifest::apply_other_manifest_object_rules::apply_manifest_object_rules;
 use std::io::Write;
 use tempfile::TempDir;
 
@@ -84,15 +84,15 @@ impl TestEnvironment {
         }
     }
 
-    pub fn run_checks(&self, verbose: bool) -> Vec<(RuleResult, Severity)> {
+    pub fn run_maniest_rules(&self, verbose: bool) -> Vec<(RuleResult, Severity)> {
         let manifest = Manifest::from_file(&self.manifest_path).expect("Failed to load manifest");
         let config = Config::from_file(&self.config_path).expect("Failed to load config");
 
-        let mut findings =
-            apply_node_checks(&manifest, &config, verbose).expect("Failed to apply node checks");
+        let mut findings = apply_manifest_node_rules(&manifest, &config, verbose)
+            .expect("Failed to apply node rules");
         findings.extend(
-            apply_manifest_object_checks(&manifest, &config, verbose)
-                .expect("Failed to apply source checks"),
+            apply_manifest_object_rules(&manifest, &config, verbose)
+                .expect("Failed to apply source rules"),
         );
 
         // Convert from Vec<(RuleResult, &Severity)> to Vec<(RuleResult, Severity)>
@@ -102,7 +102,7 @@ impl TestEnvironment {
             .collect()
     }
 
-    pub fn run_catalog_checks(&self, verbose: bool) -> anyhow::Result<Vec<(RuleResult, Severity)>> {
+    pub fn run_catalog_rules(&self, verbose: bool) -> anyhow::Result<Vec<(RuleResult, Severity)>> {
         let manifest = Manifest::from_file(&self.manifest_path)?;
         let config = Config::from_file(&self.config_path)?;
         let catalog = self
@@ -114,10 +114,10 @@ impl TestEnvironment {
         let mut findings = Vec::new();
 
         if let Some(ref catalog) = catalog {
-            findings.extend(apply_catalog_node_checks(
+            findings.extend(apply_catalog_node_rules(
                 &config, catalog, &manifest, verbose,
             )?);
-            findings.extend(apply_catalog_source_checks(
+            findings.extend(apply_catalog_source_rules(
                 &config, catalog, &manifest, verbose,
             )?);
         }
@@ -132,11 +132,11 @@ impl TestEnvironment {
         let manifest = Manifest::from_file(&self.manifest_path).expect("Failed to load manifest");
         let config = Config::from_file(&self.config_path).expect("Failed to load config");
 
-        let mut findings =
-            apply_node_checks(&manifest, &config, verbose).expect("Failed to apply node checks");
+        let mut findings = apply_manifest_node_rules(&manifest, &config, verbose)
+            .expect("Failed to apply node rules");
         findings.extend(
-            apply_manifest_object_checks(&manifest, &config, verbose)
-                .expect("Failed to apply source checks"),
+            apply_manifest_object_rules(&manifest, &config, verbose)
+                .expect("Failed to apply source rules"),
         );
 
         show_results_and_exit(

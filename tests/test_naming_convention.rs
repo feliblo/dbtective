@@ -2,7 +2,8 @@ mod common;
 
 use common::TestEnvironment;
 use dbtective::core::{
-    checks::manifest::node_checks::apply_node_checks, config::Config, manifest::Manifest,
+    config::Config, manifest::Manifest,
+    rules::manifest::apply_manifest_node_rules::apply_manifest_node_rules,
 };
 
 #[test]
@@ -99,7 +100,7 @@ manifest_tests:
     let manifest = Manifest::from_file(&env.manifest_path).expect("Failed to load manifest");
     let config = Config::from_file(&env.config_path).expect("Failed to load config");
 
-    let result = apply_node_checks(&manifest, &config, false);
+    let result = apply_manifest_node_rules(&manifest, &config, false);
     assert!(
         result.is_err(),
         "Expected error for invalid regex pattern, but got success"

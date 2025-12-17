@@ -1,33 +1,33 @@
 ---
 title: has_metadata_keys
 type: docs
-prev: docs/checks
+prev: docs/rules
 sidebar:
   open: true
 ---
 
 
-### Check: `has_metadata_keys`
+### Rule: `has_metadata_keys`
 
 <br>
 <details open>
 <summary>has_metadata_keys details</summary>
 <br>
-This check ensures that dbt objects have specific required keys in their <code>meta</code> property. This is useful for enforcing governance standards such as requiring an owner, domain, or other organizational metadata.
+This rule ensures that dbt objects have specific required keys in their <code>meta</code> property. This is useful for enforcing governance standards such as requiring an owner, domain, or other organizational metadata.
 
 ---
 
 **Configuration**
 
 - **type**: Must be `has_metadata_keys`.
-- **applies_to**: *(optional)* List of dbt object types to check.
+- **applies_to**: *(optional)* List of dbt object types to include.
   - Default: `["models", "sources"]`
   - Options: `models`, `seeds`, `snapshots`, `sources`, `macros`, `exposures`, `semantic_models`
 - **required_keys**: List of metadata keys that must be present in the `meta` property of each dbt object.
-- **custom_message** (Optional): Custom message to display when the check fails. It will insert the {Object name} **before** the message.
-    - The custom message `is missing an owner` would produce a message like `{Object name} is missing an owner`
+- **custom_message** (Optional): Custom message to display when the rule fails. It will insert the {Object name} **before** the message.
+  - The custom message `is missing an owner` would produce a message like `{Object name} is missing an owner`
 
-{{< include-markdown "content/snippets/common_check_config.md" >}}
+{{< include-markdown "content/snippets/common_rule_config.md" >}}
 
 **Example Config**
 

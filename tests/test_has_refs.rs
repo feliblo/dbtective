@@ -128,7 +128,7 @@ fn test_has_refs() {
     "#;
 
     let env = TestEnvironment::new(manifest, has_refs_config);
-    let findings = env.run_checks(false);
+    let findings = env.run_maniest_rules(false);
 
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].0.severity, "FAIL");
@@ -153,7 +153,7 @@ fn test_has_refs() {
     "#;
 
     let env = TestEnvironment::new(manifest, has_refs_with_exclude_config);
-    let findings = env.run_checks(false);
+    let findings = env.run_maniest_rules(false);
     assert_eq!(findings.len(), 0);
 
     // Test case 3: Warning severity
@@ -167,7 +167,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, has_refs_warning_config);
-    let findings = env.run_checks(false);
+    let findings = env.run_maniest_rules(false);
 
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].0.severity, "WARN");

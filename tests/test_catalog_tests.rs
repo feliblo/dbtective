@@ -127,7 +127,7 @@ catalog_tests:
 "#;
 
     let env = TestEnvironment::new_with_catalog(manifest, catalog, config);
-    let findings = env.run_catalog_checks(false).expect("should not error");
+    let findings = env.run_catalog_rules(false).expect("should not error");
 
     // Should fail: catalog has 3 columns but manifest only documents 1
     assert_eq!(findings.len(), 1);
@@ -242,7 +242,7 @@ catalog_tests:
 "#;
 
     let env = TestEnvironment::new_with_catalog(manifest, catalog, config);
-    let findings = env.run_catalog_checks(false).expect("should not error");
+    let findings = env.run_catalog_rules(false).expect("should not error");
 
     // Should pass: all catalog columns are documented in manifest
     assert_eq!(
@@ -373,7 +373,7 @@ catalog_tests:
 "#;
 
     let env = TestEnvironment::new_with_catalog(manifest, catalog, config);
-    let findings = env.run_catalog_checks(false).expect("should not error");
+    let findings = env.run_catalog_rules(false).expect("should not error");
 
     // Should only fail for models, not seeds (due to applies_to filter)
     assert_eq!(findings.len(), 1);
@@ -473,7 +473,7 @@ catalog_tests:
 "#;
 
     let env = TestEnvironment::new_with_catalog(manifest, catalog, config_warning);
-    let findings = env.run_catalog_checks(false).expect("should not error");
+    let findings = env.run_catalog_rules(false).expect("should not error");
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].0.severity, "WARN");
 
@@ -485,7 +485,7 @@ catalog_tests:
 "#;
 
     let env = TestEnvironment::new_with_catalog(manifest, catalog, config_error);
-    let findings = env.run_catalog_checks(false).expect("should not error");
+    let findings = env.run_catalog_rules(false).expect("should not error");
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].0.severity, "FAIL");
 }
@@ -583,7 +583,7 @@ catalog_tests:
 "#;
 
     let env = TestEnvironment::new_with_catalog(manifest, catalog, config);
-    let findings = env.run_catalog_checks(false).expect("should not error");
+    let findings = env.run_catalog_rules(false).expect("should not error");
 
     // Should fail: source has 3 columns but only 1 is documented
     assert_eq!(findings.len(), 1);
@@ -713,7 +713,7 @@ catalog_tests:
 "#;
 
     let env = TestEnvironment::new_with_catalog(manifest, catalog, config);
-    let findings = env.run_catalog_checks(false).expect("should not error");
+    let findings = env.run_catalog_rules(false).expect("should not error");
 
     // Should pass: all columns have descriptions
     assert_eq!(
@@ -843,7 +843,7 @@ catalog_tests:
 "#;
 
     let env = TestEnvironment::new_with_catalog(manifest, catalog, config);
-    let findings = env.run_catalog_checks(false).expect("should not error");
+    let findings = env.run_catalog_rules(false).expect("should not error");
 
     // Should fail: customer_id has empty description
     assert_eq!(findings.len(), 1);
@@ -970,7 +970,7 @@ catalog_tests:
 "#;
 
     let env = TestEnvironment::new_with_catalog(manifest, catalog, config);
-    let findings = env.run_catalog_checks(true).expect("should not error");
+    let findings = env.run_catalog_rules(false).expect("should not error");
 
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].0.severity, "FAIL");
@@ -1076,7 +1076,7 @@ catalog_tests:
 "#;
 
     let env = TestEnvironment::new_with_catalog(manifest, catalog, config);
-    let findings = env.run_catalog_checks(false).expect("should not error");
+    let findings = env.run_catalog_rules(false).expect("should not error");
 
     // Should fail: username has empty description
     assert_eq!(findings.len(), 1);
@@ -1204,7 +1204,7 @@ catalog_tests:
 "#;
 
     let env = TestEnvironment::new_with_catalog(manifest, catalog, config);
-    let findings = env.run_catalog_checks(false).expect("should not error");
+    let findings = env.run_catalog_rules(false).expect("should not error");
 
     // Should produce warning, not error
     assert_eq!(findings.len(), 1);
@@ -1383,7 +1383,7 @@ catalog_tests:
 "#;
 
     let env = TestEnvironment::new_with_catalog(manifest, catalog, config);
-    let findings = env.run_catalog_checks(false).expect("should not error");
+    let findings = env.run_catalog_rules(false).expect("should not error");
 
     // Should only fail for models (not seeds) due to applies_to filter
     assert_eq!(findings.len(), 1);
@@ -1560,7 +1560,7 @@ catalog_tests:
 "#;
 
     let env = TestEnvironment::new_with_catalog(manifest, catalog, config_snake);
-    let findings = env.run_catalog_checks(false).expect("should not error");
+    let findings = env.run_catalog_rules(false).expect("should not error");
 
     // Should pass: all column names are in snake_case
     assert_eq!(
@@ -1578,7 +1578,7 @@ catalog_tests:
 "#;
 
     let env = TestEnvironment::new_with_catalog(manifest, catalog, config_camel);
-    let findings = env.run_catalog_checks(false).expect("should not error");
+    let findings = env.run_catalog_rules(false).expect("should not error");
 
     // Should fail: column names are not in camelCase
     assert_eq!(findings.len(), 2);
@@ -1595,7 +1595,7 @@ catalog_tests:
         pattern: PascalCase
     "#;
     let env = TestEnvironment::new_with_catalog(manifest, catalog, config_pascal);
-    let findings = env.run_catalog_checks(false).expect("should not error");
+    let findings = env.run_catalog_rules(false).expect("should not error");
 
     // Should fail: column names are not in PascalCase
     assert_eq!(findings.len(), 2);
@@ -1613,7 +1613,7 @@ catalog_tests:
     "#;
 
     let env = TestEnvironment::new_with_catalog(manifest, catalog, config_kebab);
-    let findings = env.run_catalog_checks(false).expect("should not error");
+    let findings = env.run_catalog_rules(false).expect("should not error");
 
     // Should fail: column names are not in kebab-case
     assert_eq!(findings.len(), 2);
@@ -1790,7 +1790,7 @@ catalog_tests:
 "#;
 
     let env = TestEnvironment::new_with_catalog(manifest, catalog, config_custom_regex);
-    let findings = env.run_catalog_checks(false).expect("should not error");
+    let findings = env.run_catalog_rules(false).expect("should not error");
     // Should pass: all column names match custom regex for snake_case
     assert_eq!(
         findings.len(),
@@ -1806,7 +1806,7 @@ catalog_tests:
     pattern: "^col_.*$"
 "#;
     let env = TestEnvironment::new_with_catalog(manifest, catalog, config_custom_regex_no_match);
-    let findings = env.run_catalog_checks(false).expect("should not error");
+    let findings = env.run_catalog_rules(false).expect("should not error");
     // Should fail: column names do not start with 'col_'
     assert_eq!(findings.len(), 2);
     for finding in findings {
@@ -1982,7 +1982,7 @@ catalog_tests:
 "#;
 
     let env = TestEnvironment::new_with_catalog(manifest, catalog, config_invalid_regex);
-    let findings = env.run_catalog_checks(false);
+    let findings = env.run_catalog_rules(false);
     // Should raise anyhow an error due to invalid regex
     assert!(findings.is_err());
 }
