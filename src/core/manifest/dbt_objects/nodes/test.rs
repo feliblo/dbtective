@@ -61,6 +61,7 @@ mod tests {
                         name: String::new(),
                         checksum: String::new(),
                     },
+                    raw_code: None,
                     tags: None,
                     meta: None,
                     columns: None,

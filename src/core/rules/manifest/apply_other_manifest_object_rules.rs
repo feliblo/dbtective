@@ -1,6 +1,6 @@
 use crate::core::rules::rule_config::{
     check_name_convention, has_description, has_metadata_keys, has_refs, has_tags, has_unique_test,
-    is_not_orphaned,
+    is_not_orphaned, max_code_lines,
 };
 use crate::{
     cli::table::RuleResult,
@@ -85,6 +85,7 @@ fn apply_source_rules<'a>(
 
                     // These can't be implemented for exposures
                     ManifestSpecificRuleConfig::HasRefs {}
+                    | ManifestSpecificRuleConfig::MaxCodeLines { .. }
                     | ManifestSpecificRuleConfig::HasContractEnforced {} => return Ok(acc), // Models only
                 };
 
@@ -143,6 +144,9 @@ fn apply_macro_rules<'a>(
                             required_keys,
                             custom_message.as_ref(),
                         ),
+                        ManifestSpecificRuleConfig::MaxCodeLines { max_lines } => {
+                            max_code_lines(macro_obj, rule, *max_lines)
+                        }
                         // These can't be implemented for macros
                         ManifestSpecificRuleConfig::HasTags { .. }
                         | ManifestSpecificRuleConfig::IsNotOrphaned { .. }
@@ -214,6 +218,7 @@ fn apply_exposure_rules<'a>(
                         ManifestSpecificRuleConfig::HasRefs {} => has_refs(exposure, rule),
                         // These can't be implemented for exposures
                         ManifestSpecificRuleConfig::IsNotOrphaned { .. }
+                        | ManifestSpecificRuleConfig::MaxCodeLines { .. }
                         | ManifestSpecificRuleConfig::HasUniqueTest { .. }
                         | ManifestSpecificRuleConfig::HasContractEnforced {} => return Ok(acc),
                     };
@@ -269,6 +274,7 @@ fn apply_semantic_model_rules<'a>(
                     ManifestSpecificRuleConfig::HasRefs {} => has_refs(sm, rule),
                     // These can't be implemented for semantic models
                     ManifestSpecificRuleConfig::HasTags { .. }
+                    | ManifestSpecificRuleConfig::MaxCodeLines { .. }
                     | ManifestSpecificRuleConfig::IsNotOrphaned { .. }
                     | ManifestSpecificRuleConfig::HasUniqueTest { .. }
                     | ManifestSpecificRuleConfig::HasContractEnforced {} => return Ok(acc),
@@ -316,8 +322,10 @@ fn apply_unit_test_rules<'a>(
                     ManifestSpecificRuleConfig::NameConvention { pattern } => {
                         check_name_convention(ut, rule, pattern)?
                     }
+
                     // Unit Tests do not implement the following rules
-                    ManifestSpecificRuleConfig::HasTags { .. }
+                    ManifestSpecificRuleConfig::MaxCodeLines { .. }
+                    | ManifestSpecificRuleConfig::HasTags { .. }
                     | ManifestSpecificRuleConfig::HasRefs {}
                     | ManifestSpecificRuleConfig::IsNotOrphaned { .. }
                     | ManifestSpecificRuleConfig::HasUniqueTest { .. }

@@ -12,6 +12,7 @@ use crate::core::rules::rule_config::has_metadata_keys::HasMetadata;
 use crate::core::rules::rule_config::has_refs::CanReference;
 use crate::core::rules::rule_config::has_tags::Tagable;
 use crate::core::rules::rule_config::has_unique_test::TestAble;
+use crate::core::rules::rule_config::max_code_lines::HasCode;
 use crate::core::rules::rule_config::name_convention::NameAble;
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -212,6 +213,27 @@ impl Tagable for Node {
     }
 }
 
+impl HasCode for Node {
+    fn get_code(&self) -> Option<&str> {
+        match self {
+            Self::Model(_) | Self::Snapshot(_) => self.get_base().raw_code.as_deref(),
+            _ => unreachable!("MaxCodeLines can only be called on models and snapshots nodes"),
+        }
+    }
+
+    fn get_name(&self) -> &str {
+        self.get_name()
+    }
+
+    fn get_relative_path(&self) -> Option<&String> {
+        Some(&self.get_base().original_file_path)
+    }
+
+    fn get_object_type(&self) -> &str {
+        self.get_object_type()
+    }
+}
+
 #[derive(Debug, Deserialize)]
 #[allow(dead_code)]
 pub struct FileHash {
@@ -260,6 +282,7 @@ pub struct NodeBase {
     pub columns: Option<HashMap<String, Column>>,
     pub config: Option<NodeConfig>,
     pub depends_on: DependsOn,
+    pub raw_code: Option<String>,
     // Currently unused fields that do exist in the data
     // pub group: Option<String>,
     // pub docs: Option<NodeDocs>,
@@ -270,7 +293,6 @@ pub struct NodeBase {
     // pub config_call_dict: Option<serde_json::Value>,
     // pub unrendered_config_call_dict: Option<serde_json::Value>,
     // pub relation_name: Option<String>,
-    // pub raw_code: Option<String>,
     // pub doc_blocks: Option<Vec<String>>,
     // pub root_path: Option<String>,
 }

@@ -2,7 +2,7 @@ use crate::cli::table::RuleResult;
 use crate::core::config::manifest_rule::ManifestSpecificRuleConfig;
 use crate::core::rules::rule_config::{
     check_name_convention, child_map::is_not_orphaned, has_contract_enforced, has_description,
-    has_metadata_keys, has_refs, has_tags, has_unique_test,
+    has_metadata_keys, has_refs, has_tags, has_unique_test, max_code_lines,
 };
 
 use crate::core::config::severity::Severity;
@@ -58,6 +58,9 @@ pub fn apply_manifest_node_rules<'a>(
                         required_keys,
                         custom_message,
                     } => has_metadata_keys(node, rule, required_keys, custom_message.as_ref()),
+                    ManifestSpecificRuleConfig::MaxCodeLines { max_lines } => {
+                        max_code_lines(node, rule, *max_lines)
+                    }
                     ManifestSpecificRuleConfig::HasRefs {} => has_refs(node, rule),
                 };
 

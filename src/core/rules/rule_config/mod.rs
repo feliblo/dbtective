@@ -5,6 +5,7 @@ pub mod has_metadata_keys;
 pub mod has_refs;
 pub mod has_tags;
 pub mod has_unique_test;
+pub mod max_code_lines;
 pub mod name_convention;
 
 pub use child_map::is_not_orphaned;
@@ -14,4 +15,5 @@ pub use has_metadata_keys::has_metadata_keys;
 pub use has_refs::has_refs;
 pub use has_tags::has_tags;
 pub use has_unique_test::has_unique_test;
+pub use max_code_lines::max_code_lines;
 pub use name_convention::check_name_convention;

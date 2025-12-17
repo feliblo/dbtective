@@ -48,3 +48,7 @@ pub fn default_allowed_test_names() -> Vec<String> {
         "unique".to_string(),
     ]
 }
+
+pub const fn default_max_code_lines() -> usize {
+    150
+}

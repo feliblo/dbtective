@@ -4,7 +4,8 @@ use crate::core::{
     config::{applies_to::RuleTarget, includes_excludes::IncludeExcludable},
     manifest::dbt_objects::Meta,
     rules::rule_config::{
-        has_description::Descriptable, has_metadata_keys::HasMetadata, name_convention::NameAble,
+        has_description::Descriptable, has_metadata_keys::HasMetadata, max_code_lines::HasCode,
+        name_convention::NameAble,
     },
 };
 
@@ -31,7 +32,7 @@ pub struct Macro {
     // pub path: String,
     pub original_file_path: String,
     // pub unique_id: String,
-    // pub macro_sql: String,
+    pub macro_sql: String,
     // pub depends_on: MacroDependsOn,
     pub description: Option<String>,
     pub meta: Option<Meta>,
@@ -128,5 +129,20 @@ impl HasMetadata for Macro {
 
     fn get_relative_path(&self) -> Option<&String> {
         Some(self.get_relative_path())
+    }
+}
+
+impl HasCode for Macro {
+    fn get_code(&self) -> Option<&str> {
+        Some(&self.macro_sql)
+    }
+    fn get_name(&self) -> &str {
+        self.get_name()
+    }
+    fn get_relative_path(&self) -> Option<&String> {
+        Some(self.get_relative_path())
+    }
+    fn get_object_type(&self) -> &str {
+        Self::get_object_type()
     }
 }

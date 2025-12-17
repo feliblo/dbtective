@@ -7,7 +7,8 @@ use serde::Deserialize;
 use crate::core::config::applies_to::AppliesTo;
 use crate::core::config::applies_to::RuleTarget;
 use crate::core::config::check_config_options::{
-    default_allowed_references, default_allowed_test_names, HasTagsCriteria, OrphanedReferenceType,
+    default_allowed_references, default_allowed_test_names, default_max_code_lines,
+    HasTagsCriteria, OrphanedReferenceType,
 };
 use crate::core::config::severity::Severity;
 use strum_macros::{AsRefStr, EnumIter, EnumString};
@@ -40,6 +41,10 @@ pub enum ManifestSpecificRuleConfig {
         custom_message: Option<String>,
     },
     HasRefs {},
+    MaxCodeLines {
+        #[serde(default = "default_max_code_lines")]
+        max_lines: usize,
+    },
 }
 
 impl ManifestSpecificRuleConfig {
@@ -214,7 +219,7 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             semantic_model_objects: vec![],
             custom_objects: vec![],
         },
-
+        // has_contract_enforced
         ManifestSpecificRuleConfig::HasContractEnforced { .. } => AppliesTo {
             node_objects: vec![RuleTarget::Models],
             macro_objects: vec![],
@@ -224,7 +229,16 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             semantic_model_objects: vec![],
             custom_objects: vec![],
         },
-
+        ManifestSpecificRuleConfig::MaxCodeLines { .. } => AppliesTo {
+            node_objects: vec![RuleTarget::Models, RuleTarget::Snapshots],
+            source_objects: vec![],
+            unit_test_objects: vec![],
+            macro_objects: vec![RuleTarget::Macros],
+            exposure_objects: vec![],
+            semantic_model_objects: vec![],
+            custom_objects: vec![],
+        },
+        // has_unique_test & has_metadata_keys
         ManifestSpecificRuleConfig::HasUniqueTest { .. }
         | ManifestSpecificRuleConfig::HasMetadataKeys { .. } => AppliesTo {
             node_objects: vec![RuleTarget::Models],
@@ -329,6 +343,15 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
             macro_objects: vec![RuleTarget::Macros],
             exposure_objects: vec![RuleTarget::Exposures],
             semantic_model_objects: vec![RuleTarget::SemanticModels],
+            custom_objects: vec![],
+        },
+        ManifestSpecificRuleConfig::MaxCodeLines { .. } => AppliesTo {
+            node_objects: vec![RuleTarget::Models, RuleTarget::Snapshots],
+            source_objects: vec![],
+            unit_test_objects: vec![],
+            macro_objects: vec![RuleTarget::Macros],
+            exposure_objects: vec![],
+            semantic_model_objects: vec![],
             custom_objects: vec![],
         },
         ManifestSpecificRuleConfig::HasRefs {} => AppliesTo {
