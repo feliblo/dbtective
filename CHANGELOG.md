@@ -1,3 +1,18 @@
+## v0.1.28 (2025-12-17)
+
+### Feat
+
+- **rules**: add max_code_lines rule - ([b26d293](https://github.com/feliblo/dbtective/commit/b26d293992a619fe275402384f090e0d525656c9)) - Felix Blom
+- **init**: add column_name_convention to init - ([d0a5d73](https://github.com/feliblo/dbtective/commit/d0a5d73f3efba8a61c160722f963c97c49564e76)) - Felix Blom
+
+### Refactor
+
+- **rename**: massive renaming of all occurances of checks -> rules - ([b326876](https://github.com/feliblo/dbtective/commit/b326876f1b42ff76bdaea9f659b1b3680cd97726)) - Felix Blom
+
+### Contributors
+
+[@feliblo](https://github.com/feliblo)
+
 ## v0.1.27 (2025-12-16)
 
 ### Feat
