@@ -53,7 +53,7 @@ brew install feliblo/tap/dbtective
 <details>
 <summary>GitHub Actions</summary>
 
-Run dbtective as part of your CI/CD pipeline. See the [GitHub Actions documentation](https://feliblo.github.io/dbtective/docs/github-actions) for more details.
+Run dbtective as part of your CI/CD pipeline. See the [GitHub Actions documentation](https://feliblo.github.io/dbtective/docs/running/github-actions) for more details.
 
 ```yaml
 - uses: feliblo/dbtective@v0.1.28
@@ -71,7 +71,7 @@ Run dbtective as part of your CI/CD pipeline. See the [GitHub Actions documentat
 
 Prerequisite: `dbtective` is installed via one of the methods above.
 
-We (currently) recommend using the `--only-manifest` flag with prek/pre-commit to avoid issues caused by `catalog.json` mismatches. For more details, see the explanation in the [rules documentation](https://feliblo.github.io/dbtective/docs/).
+We (currently) recommend using the `--only-manifest` flag with prek/pre-commit to avoid issues caused by `catalog.json` mismatches. For more details, see the explanation in the [rules documentation](https://feliblo.github.io/dbtective/docs/rules).
 
 Add the following to your `.pre-commit-config.yaml`.
 
@@ -123,11 +123,11 @@ Pre-built binaries for Linux, macOS, and Windows are available on the [releases 
 
 ## Quickstart
 
-All possible rules can be found in the [rules documentation](https://feliblo.github.io/dbtective/docs/). Information about customizing `dbtective` is shown at the [config documentation](https://feliblo.github.io/dbtective/docs/config)
+All possible rules can be found in the [rules documentation](https://feliblo.github.io/dbtective/docs/rules). Information about customizing `dbtective` is shown at the [config documentation](https://feliblo.github.io/dbtective/docs/config)
 
 1. Create a `dbtective.yml` config file in the root of your dbt project by running:
 
-More about the `init` (it also supports `pyproject.toml` or `dbtective.toml`) command is available in the [init documentation](https://feliblo.github.io/dbtective/docs/cli#dbtective-init).
+More about the `init` (it also supports `pyproject.toml` or `dbtective.toml`) command is available in the [init documentation](https://feliblo.github.io/dbtective/docs/running/cli#dbtective-init).
 
 ```bash
 dbtective init
