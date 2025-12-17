@@ -1,18 +1,18 @@
 use super::super::column::Column;
 use super::super::{Meta, Tags};
 use super::{Analysis, HookNode, Model, Seed, Snapshot, SqlOperation, Test};
-use crate::core::checks::common_traits::Columnable;
-use crate::core::checks::rules::child_map::ChildMappable;
-use crate::core::checks::rules::has_contract_enforced::ContractAble;
-use crate::core::checks::rules::has_description::Descriptable;
-use crate::core::checks::rules::has_metadata_keys::HasMetadata;
-use crate::core::checks::rules::has_refs::CanReference;
-use crate::core::checks::rules::has_tags::Tagable;
-use crate::core::checks::rules::has_unique_test::TestAble;
-use crate::core::checks::rules::name_convention::NameAble;
 use crate::core::config::applies_to::RuleTarget;
 use crate::core::config::includes_excludes::IncludeExcludable;
 use crate::core::manifest::Manifest;
+use crate::core::rules::common_traits::Columnable;
+use crate::core::rules::rule_config::child_map::ChildMappable;
+use crate::core::rules::rule_config::has_contract_enforced::ContractAble;
+use crate::core::rules::rule_config::has_description::Descriptable;
+use crate::core::rules::rule_config::has_metadata_keys::HasMetadata;
+use crate::core::rules::rule_config::has_refs::CanReference;
+use crate::core::rules::rule_config::has_tags::Tagable;
+use crate::core::rules::rule_config::has_unique_test::TestAble;
+use crate::core::rules::rule_config::name_convention::NameAble;
 use serde::Deserialize;
 use std::collections::HashMap;
 

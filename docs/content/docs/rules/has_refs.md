@@ -1,19 +1,19 @@
 ---
 title: has_refs
 type: docs
-prev: docs/checks
+prev: docs/rules
 sidebar:
   open: true
 ---
 
-### Check: `has_refs`
+### Rule: `has_refs`
 
-<span class="check-category-badge badge-manifest">Manifest Check</span>
+<span class="rule-category-badge badge-manifest">Manifest Rule</span>
 
 <details open>
 <summary>has_refs details</summary>
 <br>
-This check ensures that dbt objects have at least one upstream reference. An upstream reference is created using <code>ref()</code> or <code>source()</code> in your dbt model.
+This rule ensures that dbt objects have at least one upstream reference. An upstream reference is created using <code>ref()</code> or <code>source()</code> in your dbt model.
 
 This may indicate that you're using hardcoded SQL to reference data directly from the warehouse instead of leveraging dbt's dependency management. Or that an object is simply not being used.
 
@@ -22,11 +22,11 @@ This may indicate that you're using hardcoded SQL to reference data directly fro
 **Configuration**
 
 - **type**: Must be `has_refs`.
-- **applies_to**: *(optional)* List of dbt object types to check.
+- **applies_to**: *(optional)* List of dbt object types to include.
   - Default: `["models", "snapshots", "analyses", "exposures"]`
   - Options: `models`, `seeds`, `snapshots` , `analyses`, `exposures`, `semantics_models`
 
-{{< include-markdown "content/snippets/common_check_config.md" >}}
+{{< include-markdown "content/snippets/common_rule_config.md" >}}
 
 **Example Config**
 

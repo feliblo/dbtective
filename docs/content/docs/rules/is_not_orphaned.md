@@ -1,19 +1,19 @@
 ---
 title: is_not_orphaned
 type: docs
-prev: docs/checks
+prev: docs/rules
 sidebar:
   open: true
 ---
 
-### Check: `is_not_orphaned`
+### Rule: `is_not_orphaned`
 
-<span class="check-category-badge badge-manifest">Manifest Check</span>
+<span class="rule-category-badge badge-manifest">Manifest Rule</span>
 
 <details open>
 <summary>is_not_orphaned details</summary>
 <br>
-This check ensures that dbt objects (models, seeds, sources) are being referenced by other objects in your project. An object is considered "orphaned" if it has no child objects consuming it, or if it's only referenced by non-allowed object types.
+This rule ensures that dbt objects (models, seeds, sources) are being referenced by other objects in your project. An object is considered "orphaned" if it has no child objects consuming it, or if it's only referenced by non-allowed object types.
 
 An object is not orphaned if it is referenced by at least one `allowed_references` using:
 
@@ -33,11 +33,11 @@ This helps identify unused or underutilized data assets that may be candidates f
   - Default: `["models"]`
   - Options: `models`, `snapshots`, `exposures`, `unit_tests`
   - This indicates which objects count as val
-- **applies_to**: *(optional)* List of dbt object types to check.
+- **applies_to**: *(optional)* List of dbt object types to include.
   - Default: `["sources"]`
   - Options: `models`, `seeds`, `sources`
 
-{{< include-markdown "content/snippets/common_check_config.md" >}}
+{{< include-markdown "content/snippets/common_rule_config.md" >}}
 
 **Example Config**
 

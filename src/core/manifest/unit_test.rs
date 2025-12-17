@@ -1,8 +1,8 @@
 use serde::Deserialize;
 
 use crate::core::{
-    checks::rules::{has_description::Descriptable, name_convention::NameAble},
     config::{applies_to::RuleTarget, includes_excludes::IncludeExcludable},
+    rules::rule_config::{has_description::Descriptable, name_convention::NameAble},
 };
 
 // #[derive(Debug, Deserialize)]

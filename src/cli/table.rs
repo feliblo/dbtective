@@ -54,7 +54,7 @@ pub fn show_results_and_exit(
     if results.is_empty() {
         println!(
             "{} 🕵️",
-            "All checks passed successfully! - dbtective off the case.".green(),
+            "All rules passed successfully! - dbtective off the case.".green(),
         );
     } else {
         println!("\n {}", "🕵️  dbtective detected some issues:".red());

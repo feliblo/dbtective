@@ -67,7 +67,6 @@ pub fn is_not_orphaned<T: ChildMappable>(
 
 #[cfg(test)]
 mod tests {
-    use crate::core::checks::rules::child_map::{is_not_orphaned, ChildMappable};
     use crate::core::config::check_config_options::{
         default_allowed_references, OrphanedReferenceType,
     };
@@ -75,6 +74,7 @@ mod tests {
     use crate::core::config::manifest_rule::ManifestSpecificRuleConfig::IsNotOrphaned;
     use crate::core::config::severity::Severity;
     use crate::core::manifest::Manifest;
+    use crate::core::rules::rule_config::child_map::{is_not_orphaned, ChildMappable};
 
     struct MockTaggable {
         object_type: String,

@@ -1,10 +1,10 @@
-.checks-table {
+.rules-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
 }
 
-.checks-table th {
+.rules-table th {
     background-color: var(--hx-color-gray-100);
     padding: 12px;
     text-align: left;
@@ -12,23 +12,23 @@
     font-weight: 600;
 }
 
-.checks-table td {
+.rules-table td {
     padding: 12px;
     border-bottom: 1px solid var(--hx-color-gray-200);
     vertical-align: top;
 }
 
-.checks-table tr:hover {
+.rules-table tr:hover {
     background-color: var(--hx-color-gray-100);
 }
 
-.check-name {
+.rule-name {
     font-family: var(--hx-font-mono);
     font-weight: 600;
     color: var(--hx-color-primary-600);
 }
 
-.check-category-badge {
+.rule-category-badge {
     display: inline-block;
     padding: 2px 8px;
     border-radius: var(--hx-radius-sm);
@@ -47,15 +47,15 @@
 }
 
 /* Dark mode support */
-html.dark .checks-table th {
+html.dark .rules-table th {
     background-color: var(--hx-color-neutral-800);
     border-bottom-color: var(--hx-color-neutral-700);
 }
 
-html.dark .checks-table td {
+html.dark .rules-table td {
     border-bottom-color: var(--hx-color-neutral-800);
 }
 
-html.dark .checks-table tr:hover {
+html.dark .rules-table tr:hover {
     background-color: var(--hx-color-neutral-800);
 }

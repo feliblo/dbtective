@@ -2,7 +2,7 @@ use crate::core::catalog::{
     columns::CatalogColumn, resource_metadata::CatalogResourceMetadata, stats::CatalogStat,
 };
 
-use crate::core::checks::common_traits::Columnable;
+use crate::core::rules::common_traits::Columnable;
 use serde::{Deserialize, Deserializer};
 use std::collections::HashMap;
 

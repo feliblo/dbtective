@@ -5,7 +5,7 @@ use crate::core::{
     catalog::{
         columns::CatalogColumn, resource_metadata::CatalogResourceMetadata, stats::CatalogStat,
     },
-    checks::common_traits::Columnable,
+    rules::common_traits::Columnable,
 };
 
 #[derive(Debug, Deserialize)]

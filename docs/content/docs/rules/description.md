@@ -1,30 +1,30 @@
 ---
 title: has_description
 type: docs
-prev: docs/checks
+prev: docs/rules
 sidebar:
   open: true
 ---
 
 
-### Check: `has_description`
+### Rule: `has_description`
 
 <br>
 <details open>
 <summary>has_description details</summary>
 <br>
-This check ensures that every dbt objectshas a description provided in the configuration.
+This rule ensures that every dbt object has a description provided in the configuration.
 
 ---
 
 **Configuration**
 
 - **type**: Must be `has_description`.
-- **applies_to**: *(optional)* List of dbt object types to check.
+- **applies_to**: *(optional)* List of dbt object types to include.
   - Default: `["models", "seeds", "snapshots", "sources", "unit_tests", "macros", "exposures", "semantic_models"]`
   - Options: `models`, `seeds`, `snapshots`, `sources`, `unit_tests`, `macros`, `exposures`, `semantic_models`
 
-{{< include-markdown "content/snippets/common_check_config.md" >}}
+{{< include-markdown "content/snippets/common_rule_config.md" >}}
 
 **Example Config**
 

@@ -47,6 +47,6 @@ Yes! `dbtective` is designed to work in CI/CD pipelines. It returns a non-zero e
 
 {{% details title="How do I disable or configure a specific rule?" closed="true" %}}
 
-You can configure rules in your `dbtective.toml` (or equivalent) configuration file. Each rule can be enabled, disabled, or customized with specific parameters. See the [Rules](/docs/checks) documentation for available options.
+You can configure rules in your `dbtective.toml` (or equivalent) configuration file. Each rule can be enabled, disabled, or customized with specific parameters. See the [Rules](/docs/rules) documentation for available options.
 
 {{% /details %}}

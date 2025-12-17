@@ -164,11 +164,11 @@ dbtective automatically detects and loads your configuration file. If you have m
 
 | Property | Required | Description |
 |----------|----------|-------------|
-| `type` | **Yes** | The type of check to perform see [individual check documentation](/docs/checks) |
+| `type` | **Yes** | The type of rule to perform see [individual rule documentation](/docs/rules) |
 | `name` | No | Custom name to show for the rule. Defaults to the rule type if not specified |
-| `severity` | No | `error` (fails check, default) or `warning` (reports but doesn't fail) |
-| `description` | No | Human-readable description of what the rule checks |
-| `applies_to` | No | List of dbt object types to check (e.g., `["models", "sources"]`). See [individual check documentation](/docs/checks) for valid targets |
+| `severity` | No | `error` (fails rule, default) or `warning` (reports but doesn't fail) |
+| `description` | No | Human-readable description of the rule |
+| `applies_to` | No | List of dbt object types to include (e.g., `["models", "sources"]`). See [individual rule documentation](/docs/rules) for valid targets |
 | `includes` | No | File path patterns to include. Supports glob syntax (e.g., `models/staging/**`) |
 | `excludes` | No | File path patterns to exclude. Supports glob syntax (e.g., `models/deprecated/**`) |
-| `custom_fiels` | Sometimes | Custom fields for checks. See [individual check documentation](/docs/checks) |
+| `custom_fields` | Sometimes | Custom fields for rules. See [individual rule documentation](/docs/rules) |

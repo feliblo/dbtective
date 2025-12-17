@@ -84,7 +84,7 @@ manifest_tests:
 
     // Failure: 2nd model is missing tag1
     let env = TestEnvironment::new(manifest, tag_available_config);
-    let findings = env.run_checks(false);
+    let findings = env.run_maniest_rules(false);
 
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].0.severity, "FAIL");
@@ -104,7 +104,7 @@ manifest_tests:
       - "models"
 "#;
     let env = TestEnvironment::new(manifest, tag_any_config);
-    let findings = env.run_checks(false);
+    let findings = env.run_maniest_rules(false);
     assert_eq!(findings.len(), 0);
 
     // OneOf: Failure, model one has both tags, model two has only one of the required tags
@@ -120,7 +120,7 @@ manifest_tests:
       - "models"
 "#;
     let env = TestEnvironment::new(manifest, tag_one_of_config);
-    let findings = env.run_checks(false);
+    let findings = env.run_maniest_rules(false);
     assert_eq!(findings.len(), 2);
     assert_eq!(findings[0].0.severity, "WARN");
     assert_eq!(findings[0].0.object_type, "Model");

@@ -96,7 +96,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_checks(false);
+    let findings = env.run_maniest_rules(false);
 
     // Error 1: orders model missing description (fail)
     assert_eq!(findings.len(), 2);

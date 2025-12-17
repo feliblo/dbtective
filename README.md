@@ -2,11 +2,9 @@
 
 dbtective is a Rust-powered 'detective' for `dbt metadata` best practices. As your dbt project grows, keeping metadata consistent and high-quality can become a real challenge.
 
-
 ![CLI demo](/docs/static/demo.gif)
 
-
-Explore the [full documentation](https://feliblo.github.io/dbtective/docs) or the [possible checks](https://feliblo.github.io/dbtective/docs/checks).
+Explore the [full documentation](https://feliblo.github.io/dbtective/docs) or the [possible rules](https://feliblo.github.io/dbtective/docs/rules).
 
 > [!WARNING]
 > dbtective is currently in very early stages.
@@ -73,7 +71,7 @@ Run dbtective as part of your CI/CD pipeline. See the [GitHub Actions documentat
 
 Prerequisite: `dbtective` is installed via one of the methods above.
 
-We (currently) recommend using the `--only-manifest` flag with prek/pre-commit to avoid issues caused by `catalog.json` mismatches. For more details, see the explanation in the [checks documentation](https://feliblo.github.io/dbtective/docs/).
+We (currently) recommend using the `--only-manifest` flag with prek/pre-commit to avoid issues caused by `catalog.json` mismatches. For more details, see the explanation in the [rules documentation](https://feliblo.github.io/dbtective/docs/).
 
 Add the following to your `.pre-commit-config.yaml`.
 
@@ -125,7 +123,7 @@ Pre-built binaries for Linux, macOS, and Windows are available on the [releases 
 
 ## Quickstart
 
-All possible checks can be found in the [checks documentation](https://feliblo.github.io/dbtective/docs/). Information about customizing `dbtective` is shown at the [config documentation](https://feliblo.github.io/dbtective/docs/config)
+All possible rules can be found in the [rules documentation](https://feliblo.github.io/dbtective/docs/). Information about customizing `dbtective` is shown at the [config documentation](https://feliblo.github.io/dbtective/docs/config)
 
 1. Create a `dbtective.yml` config file in the root of your dbt project by running:
 
@@ -153,14 +151,13 @@ dbtective run --entry-point "my_dbt_project"
 
 4. Review the output and fix any issues found.
 
-5. (Optional) Integrate `dbtective` into your CI/CD pipeline or pre-commit hooks to automate checks on every commit and/or pull request.
+5. (Optional) Integrate `dbtective` into your CI/CD pipeline or pre-commit hooks to automate rules on every commit and/or pull request.
 
 ## Contributing
 
 We welcome contributions! Whether you're fixing bugs, adding features, or improving documentation, your help makes dbtective better for everyone.
 
 For detailed contributing guidelines, development setup, and coding standards, please see the [contributing documentation](https://feliblo.github.io/dbtective/docs/).
-
 
 # Acknowledgements
 

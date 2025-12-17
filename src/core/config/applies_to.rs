@@ -149,7 +149,7 @@ impl<'de> Deserialize<'de> for AppliesTo {
             }
         }
 
-        // First check if there are any unknown targets - fail immediately if so
+        // First validate if there are any unknown targets - fail immediately if so
         if !unknown_targets.is_empty() {
             debug!("{unknown_targets:?}");
             let msg = format!(
@@ -160,7 +160,7 @@ impl<'de> Deserialize<'de> for AppliesTo {
             return Err(de::Error::custom(msg));
         }
 
-        // Then check if all target lists are empty
+        // Then validate if all target lists are empty
         if node_objects.is_empty()
             && source_objects.is_empty()
             && unit_test_objects.is_empty()

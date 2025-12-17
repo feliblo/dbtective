@@ -1,13 +1,13 @@
 use crate::{
     cli::table::RuleResult,
     core::{
-        checks::common_traits::Columnable, config::catalog_rule::CatalogRule, manifest::Manifest,
+        config::catalog_rule::CatalogRule, manifest::Manifest, rules::common_traits::Columnable,
     },
 };
 
 // Both the catalog and the manifest object are matched to the same object
 // Using the unique_id
-pub fn check_columns_are_documented<C: Columnable, M: Columnable>(
+pub fn columns_are_documented<C: Columnable, M: Columnable>(
     catalog_object: &C,
     manifest_object: &M,
     rule: &CatalogRule,
@@ -221,13 +221,8 @@ mod tests {
         let rule = create_test_catalog_rule();
         let manifest = create_test_manifest();
 
-        let result = check_columns_are_documented(
-            &catalog_object,
-            &manifest_object,
-            &rule,
-            &manifest,
-            false,
-        );
+        let result =
+            columns_are_documented(&catalog_object, &manifest_object, &rule, &manifest, false);
         assert!(result.is_some());
         let rule_result = result.unwrap();
         assert_eq!(
@@ -255,13 +250,8 @@ mod tests {
 
         let rule = create_test_catalog_rule();
         let manifest = create_test_manifest();
-        let result = check_columns_are_documented(
-            &catalog_object,
-            &manifest_object,
-            &rule,
-            &manifest,
-            false,
-        );
+        let result =
+            columns_are_documented(&catalog_object, &manifest_object, &rule, &manifest, false);
         assert!(result.is_some());
         let rule_result = result.unwrap();
         assert_eq!(
@@ -291,13 +281,8 @@ mod tests {
 
         let rule = create_test_catalog_rule();
         let manifest = create_test_manifest();
-        let result = check_columns_are_documented(
-            &catalog_object,
-            &manifest_object,
-            &rule,
-            &manifest,
-            false,
-        );
+        let result =
+            columns_are_documented(&catalog_object, &manifest_object, &rule, &manifest, false);
         assert!(result.is_some());
         let rule_result = result.unwrap();
         assert_eq!(

@@ -9,7 +9,7 @@ Run dbtective as part of your CI/CD pipeline using the official GitHub Action.
 
 ### Basic Setup
 
-Add `dbtective` to your workflow file (e.g., `.github/workflows/ci.yml`).If you don't have access to your warehouse in the CI environment, you can set `only_manifest: true` to skip catalog based checks. We recommend pinning both a major and minor version number.
+Add `dbtective` to your workflow file (e.g., `.github/workflows/ci.yml`).If you don't have access to your warehouse in the CI environment, you can set `only_manifest: true` to skip catalog based rules. We recommend pinning both a major and minor version number.
 
 ```yaml
     - name: Run dbtective
@@ -65,8 +65,8 @@ jobs:
 
 The action will:
 
-- Exit with code `0` if all checks pass or only warnings are found
-- Exit with code `1` if any checks fail with `severity: "error"`
+- Exit with code `0` if all rules pass or only warnings are found
+- Exit with code `1` if any rules fail with `severity: "error"`
 
 This allows you to fail the CI pipeline when dbtective detects issues.
 

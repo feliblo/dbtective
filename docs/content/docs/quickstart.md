@@ -5,7 +5,7 @@ toc: false
 ---
 
 
-All possible checks can be found in the [checks documentation](/docs/checks). Information about customizing `dbtective` is shown at the [config documentation](/docs/config)
+All possible rules can be found in the [rules documentation](/docs/rules). Information about customizing `dbtective` is shown at the [config documentation](/docs/config)
 
 1. Create a `dbtective.yml` config file in the root of your dbt project by running:
 
@@ -33,4 +33,4 @@ dbtective run --entry-point "my_dbt_project"
 
 4. Review the output and fix any issues found.
 
-5. (Optional) Integrate `dbtective` into your CI/CD pipeline or pre-commit hooks to automate checks on every commit and/or pull request.
+5. (Optional) Integrate `dbtective` into your CI/CD pipeline or pre-commit hooks to automate rules on every commit and/or pull request.

@@ -1,19 +1,19 @@
 use crate::cli::table::RuleResult;
-use crate::core::checks::rules::{
+use crate::core::config::manifest_rule::ManifestSpecificRuleConfig;
+use crate::core::rules::rule_config::{
     check_name_convention, child_map::is_not_orphaned, has_contract_enforced, has_description,
     has_metadata_keys, has_refs, has_tags, has_unique_test,
 };
-use crate::core::config::manifest_rule::ManifestSpecificRuleConfig;
 
 use crate::core::config::severity::Severity;
 use crate::core::config::{includes_excludes::should_run_test, Config};
 use crate::core::manifest::Manifest;
 
-/// Applies node checks to the manifest.
+/// Applies node rules to the manifest.
 ///
 /// # Errors
 /// Returns an error if a rule has invalid configuration (e.g., invalid regex pattern).
-pub fn apply_node_checks<'a>(
+pub fn apply_manifest_node_rules<'a>(
     manifest: &'a Manifest,
     config: &'a Config,
     _verbose: bool,
@@ -36,7 +36,7 @@ pub fn apply_node_checks<'a>(
                     return Ok(acc);
                 }
 
-                let check_row_result = match &rule.rule {
+                let rule_row_result = match &rule.rule {
                     ManifestSpecificRuleConfig::HasDescription {} => has_description(node, rule),
                     ManifestSpecificRuleConfig::NameConvention { pattern } => {
                         check_name_convention(node, rule, pattern)?
@@ -61,8 +61,8 @@ pub fn apply_node_checks<'a>(
                     ManifestSpecificRuleConfig::HasRefs {} => has_refs(node, rule),
                 };
 
-                if let Some(check_row) = check_row_result {
-                    acc.push((check_row, &rule.severity));
+                if let Some(rule_row) = rule_row_result {
+                    acc.push((rule_row, &rule.severity));
                 }
 
                 Ok(acc)

@@ -1,12 +1,12 @@
 use serde::Deserialize;
 
 use crate::core::{
-    checks::rules::{
+    config::{applies_to::RuleTarget, includes_excludes::IncludeExcludable},
+    manifest::dbt_objects::{Meta, Tags},
+    rules::rule_config::{
         has_description::Descriptable, has_metadata_keys::HasMetadata, has_refs::CanReference,
         has_tags::Tagable, name_convention::NameAble,
     },
-    config::{applies_to::RuleTarget, includes_excludes::IncludeExcludable},
-    manifest::dbt_objects::{Meta, Tags},
 };
 
 // #[derive(Debug, Deserialize)]

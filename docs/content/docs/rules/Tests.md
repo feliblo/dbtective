@@ -2,31 +2,31 @@
 
 title: has_unique_tests
 type: docs
-prev: docs/checks
+prev: docs/rules
 sidebar:
   open: true
 ---
 
-### Check: `has_unique_test`
+### Rule: `has_unique_test`
 
 <details open>
 <summary>has_unique_test details</summary>
 <br>
-This check ensures that dbt objects (models, sources, etc.) have at least one uniqueness test attached to them. By default, it recognizes the standard <code>unique</code> test and <code>dbt_utils.unique_combination_of_columns</code> and <code>dbt_expectations.expect_compound_columns_to_be_unique</code>, but can be configured to accept custom uniqueness test names.
+This rule ensures that dbt objects (models, sources, etc.) have at least one uniqueness test attached to them. By default, it recognizes the standard <code>unique</code> test and <code>dbt_utils.unique_combination_of_columns</code> and <code>dbt_expectations.expect_compound_columns_to_be_unique</code>, but can be configured to accept custom uniqueness test names.
 
 ---
 
 **Configuration**
 
 - **type**: Must be `has_unique_test`.
-- **applies_to**: *(optional)* List of dbt object types to check.
+- **applies_to**: *(optional)* List of dbt object types to include.
   - Default: `["models", "sources"]`
   - Options: `models`, `sources`, `seeds`, `snapshots`
 - **allowed_test_names**: *(optional)* List of test names that qualify as uniqueness tests.
   - Default: `["unique", "dbt_utils.unique_combination_of_columns", "dbt_expectations.expect_compound_columns_to_be_unique"]`
   - Accepts any custom test names (e.g., `["unique", "my_custom_unique_test"]`)
 
-{{< include-markdown "content/snippets/common_check_config.md" >}}
+{{< include-markdown "content/snippets/common_rule_config.md" >}}
 
 **Example Config**
 
