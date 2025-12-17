@@ -157,7 +157,7 @@ dbtective run --entry-point "my_dbt_project"
 
 We welcome contributions! Whether you're fixing bugs, adding features, or improving documentation, your help makes dbtective better for everyone.
 
-For detailed contributing guidelines, development setup, and coding standards, please see the [contributing documentation](https://feliblo.github.io/dbtective/docs/).
+For detailed contributing guidelines, development setup, and coding standards, please see the [contributing documentation](https://feliblo.github.io/dbtective/docs/contributing).
 
 # Acknowledgements
 
