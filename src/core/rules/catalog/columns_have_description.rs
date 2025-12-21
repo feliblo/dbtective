@@ -110,6 +110,10 @@ mod tests {
             }
         }
 
+        fn get_columns_with_types(&self) -> Option<Vec<(&String, &String)>> {
+            None
+        }
+
         fn get_object_type(&self) -> &str {
             &self.object_type
         }
