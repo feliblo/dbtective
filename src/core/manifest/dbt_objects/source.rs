@@ -164,6 +164,19 @@ impl Columnable for Source {
         })
     }
 
+    fn get_columns_with_types(&self) -> Option<Vec<(&String, &String)>> {
+        self.columns.as_ref().map(|cols| {
+            cols.iter()
+                .filter_map(|(name, col)| {
+                    col.data_type
+                        .as_ref()
+                        .or(col.datatype.as_ref())
+                        .map(|dtype| (name, dtype))
+                })
+                .collect::<Vec<(&String, &String)>>()
+        })
+    }
+
     fn get_object_type(&self) -> &str {
         Self::get_object_type()
     }

@@ -33,6 +33,10 @@ This rule ensures that column names follow naming conventions based on a specifi
     - `camelCase`: starts with a lowercase letter, followed by uppercase letters for new words (e.g., `userId`, `createdAt`)
     - `PascalCase`: starts with an uppercase letter, followed by uppercase letters for new words (e.g., `UserId`, `CreatedAt`)
   - Custom Regex: Any valid regex pattern to match against column names.
+- **data_types**: *(optional)* List of SQL data types to filter columns by. Only columns with these data types will be checked included in the naming convention rule. If not specified, all columns are included.
+  - *Default*: All data types
+  - *Example*: If you want all datetime columns to end with 'dt', you can set `data_types: ['date', 'date_time', 'timestamp', 'timestamptz']` with pattern `.*_dt$`
+  - *Available types*: `integer`, `big_int`, `small_int`, `tiny_int`, `decimal`, `numeric`, `float`, `double`, `real`, `string`, `text`, `varchar`, `char`, `date`, `date_time`, `time`, `timestamp`, `timestamptz`, `boolean`, `json`, `jsonb`, `array`, `object`, `variant`, `binary`, `varbinary`, `uuid`, `interval`
 
 {{< include-markdown "content/snippets/common_rule_config.md" >}}
 

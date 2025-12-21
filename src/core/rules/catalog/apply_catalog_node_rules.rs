@@ -76,10 +76,11 @@ pub fn apply_catalog_node_rules<'a>(
                         verbose,
                     )
                 }
-                CatalogSpecificRuleConfig::ColumnsNameConvention { pattern } => {
+                CatalogSpecificRuleConfig::ColumnsNameConvention { pattern, data_types } => {
                     column_name_convention(
                         catalog_node,
                         pattern,
+                        data_types.as_ref(),
                         rule,
                         verbose,
                     )?

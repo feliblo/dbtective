@@ -119,6 +119,15 @@ impl Columnable for CatalogNode {
         None
     }
 
+    fn get_columns_with_types(&self) -> Option<Vec<(&String, &String)>> {
+        self.get_base()
+            .columns
+            .iter()
+            .map(|(name, col)| (name, &col.type_))
+            .collect::<Vec<(&String, &String)>>()
+            .into()
+    }
+
     fn get_object_type(&self) -> &str {
         self.get_object_type()
     }
@@ -140,6 +149,10 @@ impl Columnable for &CatalogNode {
 
     fn get_columns_with_descriptions(&self) -> Option<Vec<(&String, &String)>> {
         (*self).get_columns_with_descriptions()
+    }
+
+    fn get_columns_with_types(&self) -> Option<Vec<(&String, &String)>> {
+        (*self).get_columns_with_types()
     }
 
     fn get_object_type(&self) -> &str {

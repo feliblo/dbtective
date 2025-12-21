@@ -13,7 +13,57 @@ use strum_macros::{AsRefStr, EnumIter, EnumString};
 pub enum CatalogSpecificRuleConfig {
     ColumnsAllDocumented {},
     ColumnsHaveDescription {},
-    ColumnsNameConvention { pattern: String },
+    ColumnsNameConvention {
+        pattern: String,
+        data_types: Option<Vec<DataTypes>>,
+    },
+}
+
+#[derive(Debug, Deserialize, EnumIter, AsRefStr, EnumString, PartialEq, Eq, Hash, Clone)]
+#[strum(serialize_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
+pub enum DataTypes {
+    // Numeric types
+    Integer,
+    BigInt,
+    SmallInt,
+    TinyInt,
+    Decimal,
+    Numeric,
+    Float,
+    Double,
+    Real,
+
+    // String types
+    String,
+    Text,
+    Varchar,
+    Char,
+
+    // Date/Time types
+    Date,
+    DateTime,
+    Time,
+    Timestamp,
+    Timestamptz,
+
+    // Boolean
+    Boolean,
+
+    // Semi-structured types
+    Json,
+    Jsonb,
+    Array,
+    Object,
+    Variant,
+
+    // Binary types
+    Binary,
+    Varbinary,
+
+    // Other types
+    Uuid,
+    Interval,
 }
 
 impl CatalogSpecificRuleConfig {
