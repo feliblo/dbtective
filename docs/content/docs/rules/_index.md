@@ -7,7 +7,7 @@ sidebar:
   open: true
 ---
 
-Here you can find an overview of all possible rules. Use the filter below to find the rules you need, or search using `ctrl + K`.
+Here you can find an overview of all possible rules. Use the filter below to find the rules you need, or search using <kbd>Ctrl</kbd> or <kbd>Cmd</kbd> + <kbd>K</kbd>.
 
 <div id="rulesContent">
 
