@@ -8,7 +8,7 @@ Explore the [full documentation](https://feliblo.github.io/dbtective/docs) or th
 
 > [!WARNING]
 > dbtective is currently in very early stages.
-> Issues and commits are welcome, but don't rely on us yet!
+> Issues and commits are more than welcome!
 
 **dbtective** makes it easy to spot and fix common issues, examples:
 
@@ -135,23 +135,23 @@ dbtective init
 
 Inspect the contents of the generated `dbtective.yml` file and modify it to fit your project's needs.
 
-2. (Optional) Generate the dbt manifest and catalog files if you haven't done so already. Most dbt commands automatically generate the `manifest.json`, but if you want to ensure both files are up to date, run:
+1. (Optional) Generate the dbt manifest and catalog files if you haven't done so already. Most dbt commands automatically generate the `manifest.json`, but if you want to ensure both files are up to date, run:
 
 ```bash
 dbt compile
 dbt docs generate
 ```
 
-3. Run `dbtective` in the root of your current directory or specify an entry point if your dbt_project is not located in the root/current drectory.
+1. Run `dbtective` in the root of your current directory or specify an entry point if your dbt_project is not located in the root/current drectory.
 
 ```bash
 dbtective run
 dbtective run --entry-point "my_dbt_project"
 ```
 
-4. Review the output and fix any issues found.
+1. Review the output and fix any issues found.
 
-5. (Optional) Integrate `dbtective` into your CI/CD pipeline or pre-commit hooks to automate rules on every commit and/or pull request.
+2. (Optional) Integrate `dbtective` into your CI/CD pipeline or pre-commit hooks to automate rules on every commit and/or pull request.
 
 ## Contributing
 
