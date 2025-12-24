@@ -1,3 +1,13 @@
+## v0.1.29 (2025-12-24)
+
+### Feat
+
+- **rules**: add data type filter to column naming conventions - ([9ce56b1](https://github.com/feliblo/dbtective/commit/9ce56b19e283b34b6883306f7ff1393c76b2e2df)) - Felix Blom
+
+### Contributors
+
+[@feliblo](https://github.com/feliblo)
+
 ## v0.1.28 (2025-12-17)
 
 ### Feat
