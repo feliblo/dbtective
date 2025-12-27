@@ -110,6 +110,7 @@ mod tests {
             applies_to: None,
             includes: None,
             excludes: None,
+            model_materializations: None,
             rule: IsNotOrphaned {
                 allowed_references: default_allowed_references(),
             },
@@ -138,6 +139,7 @@ mod tests {
             applies_to: None,
             includes: None,
             excludes: None,
+            model_materializations: None,
             rule: IsNotOrphaned {
                 allowed_references: default_allowed_references(),
             },
@@ -165,6 +167,7 @@ mod tests {
             applies_to: None,
             includes: None,
             excludes: None,
+            model_materializations: None,
             rule: IsNotOrphaned {
                 allowed_references: default_allowed_references(),
             },

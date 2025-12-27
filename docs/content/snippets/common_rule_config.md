@@ -17,6 +17,10 @@
   &nbsp;&nbsp;&nbsp;&nbsp;`models/legacy_model.sql`
   &nbsp;&nbsp;&nbsp;&nbsp;`models/archive/*`
   &nbsp;&nbsp;&nbsp;&nbsp;`seeds/old_data.csv`
+- **model_materializations**: Filter models by materialization type. Only applies when `applies_to` includes `models`.<br>
+  &nbsp;&nbsp;*(optional, if not specified all materializations are included)*<br>
+  &nbsp;&nbsp;**Built-in types:** `table`, `view`, `incremental`, `ephemeral`, `materialized_view`. Custom materializations are also supported.<br>
+  &nbsp;&nbsp;**Example:** `["table", "incremental"]`
 
 <hr>
 

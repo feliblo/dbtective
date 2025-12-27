@@ -114,6 +114,7 @@ mod tests {
             description: None,
             severity: Severity::Warning,
             applies_to: None,
+            model_materializations: None,
             includes: None,
             excludes: None,
             rule: ManifestSpecificRuleConfig::HasMetadataKeys {
@@ -155,6 +156,7 @@ mod tests {
             description: None,
             severity: Severity::Warning,
             applies_to: None,
+            model_materializations: None,
             includes: None,
             excludes: None,
             rule: ManifestSpecificRuleConfig::HasMetadataKeys {
@@ -190,6 +192,7 @@ mod tests {
             description: None,
             severity: Severity::Warning,
             applies_to: None,
+            model_materializations: None,
             includes: None,
             excludes: None,
             rule: ManifestSpecificRuleConfig::HasMetadataKeys {
@@ -220,7 +223,7 @@ mod tests {
             description: None,
             severity: Severity::Warning,
             applies_to: None,
-
+            model_materializations: None,
             includes: None,
             excludes: None,
             rule: ManifestSpecificRuleConfig::HasMetadataKeys {

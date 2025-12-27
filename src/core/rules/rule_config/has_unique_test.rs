@@ -122,6 +122,7 @@ mod tests {
             severity: Severity::Error,
             description: None,
             applies_to: None,
+            model_materializations: None,
             includes: None,
             excludes: None,
             rule: ManifestSpecificRuleConfig::HasUniqueTest {
@@ -147,6 +148,7 @@ mod tests {
             severity: Severity::Error,
             description: None,
             applies_to: None,
+            model_materializations: None,
             includes: None,
             excludes: None,
             rule: ManifestSpecificRuleConfig::HasUniqueTest {
@@ -185,6 +187,7 @@ mod tests {
             severity: Severity::Error,
             description: None,
             applies_to: None,
+            model_materializations: None,
             includes: None,
             excludes: None,
             rule: ManifestSpecificRuleConfig::HasUniqueTest {
@@ -217,6 +220,7 @@ mod tests {
             severity: Severity::Error,
             description: None,
             applies_to: None,
+            model_materializations: None,
             includes: None,
             excludes: None,
             rule: ManifestSpecificRuleConfig::HasUniqueTest {

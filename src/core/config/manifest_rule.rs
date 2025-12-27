@@ -10,6 +10,7 @@ use crate::core::config::check_config_options::{
     default_allowed_references, default_allowed_test_names, default_max_code_lines,
     HasTagsCriteria, OrphanedReferenceType,
 };
+use crate::core::config::materialization::Materialization;
 use crate::core::config::naming_convention::NamingConvention;
 use crate::core::config::severity::Severity;
 use strum_macros::{AsRefStr, EnumIter, EnumString};
@@ -69,6 +70,7 @@ pub struct ManifestRule {
     pub applies_to: Option<AppliesTo>,
     pub includes: Option<Vec<String>>,
     pub excludes: Option<Vec<String>>,
+    pub model_materializations: Option<Vec<Materialization>>,
     #[serde(flatten)]
     pub rule: ManifestSpecificRuleConfig,
 }

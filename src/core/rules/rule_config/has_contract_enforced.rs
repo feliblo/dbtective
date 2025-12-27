@@ -59,6 +59,7 @@ mod tests {
             includes: None,
             excludes: None,
             description: None,
+            model_materializations: None,
             rule: ManifestSpecificRuleConfig::HasContractEnforced {},
         };
         let model_with_enforced_contract = TestModel {

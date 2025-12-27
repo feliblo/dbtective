@@ -36,6 +36,14 @@ pub fn apply_manifest_node_rules<'a>(
                     return Ok(acc);
                 }
 
+                if let Some(allowed_materializations) = &rule.model_materializations {
+                    if let Some(node_materialization) = node.get_materialization() {
+                        if !allowed_materializations.contains(node_materialization) {
+                            return Ok(acc);
+                        }
+                    }
+                }
+
                 let rule_row_result = match &rule.rule {
                     ManifestSpecificRuleConfig::HasDescription {} => has_description(node, rule),
                     ManifestSpecificRuleConfig::NameConvention { convention } => {

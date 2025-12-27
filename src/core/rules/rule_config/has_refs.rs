@@ -72,6 +72,7 @@ mod tests {
             applies_to: None,
             includes: None,
             excludes: None,
+            model_materializations: None,
             rule: ManifestSpecificRuleConfig::HasRefs {},
             name: Some("has_refs".to_string()),
             severity: Severity::Error,
@@ -101,6 +102,7 @@ mod tests {
         let rule = ManifestRule {
             description: Some("Test rule for has_refs".to_string()),
             applies_to: None,
+            model_materializations: None,
             includes: None,
             excludes: None,
             rule: ManifestSpecificRuleConfig::HasRefs {},

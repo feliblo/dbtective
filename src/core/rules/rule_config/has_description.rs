@@ -64,6 +64,7 @@ mod tests {
             applies_to: Some(AppliesTo::empty()),
             includes: None,
             excludes: None,
+            model_materializations: None,
             rule: ManifestSpecificRuleConfig::HasDescription {},
         };
         let node_with_desc = TestNode {
@@ -95,6 +96,7 @@ mod tests {
             applies_to: None,
             includes: None,
             excludes: None,
+            model_materializations: None,
             rule: ManifestSpecificRuleConfig::HasDescription {},
         };
         let node_with_desc = TestNode {
@@ -127,6 +129,7 @@ mod tests {
             includes: None,
             excludes: None,
             applies_to: None,
+            model_materializations: None,
             rule: ManifestSpecificRuleConfig::HasDescription {},
         };
         let node_with_empty_desc = TestNode {

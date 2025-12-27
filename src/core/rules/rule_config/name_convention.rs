@@ -67,6 +67,7 @@ mod tests {
             severity: Severity::Warning,
             description: None,
             applies_to: Some(AppliesTo::empty()),
+            model_materializations: None,
             includes: None,
             excludes: None,
             rule: ManifestSpecificRuleConfig::NameConvention {
@@ -100,6 +101,7 @@ mod tests {
             severity: Severity::Error,
             description: None,
             applies_to: Some(AppliesTo::empty()),
+            model_materializations: None,
             includes: None,
             excludes: None,
             rule: ManifestSpecificRuleConfig::NameConvention {
@@ -133,6 +135,7 @@ mod tests {
             severity: Severity::Warning,
             description: None,
             applies_to: Some(AppliesTo::empty()),
+            model_materializations: None,
             includes: None,
             excludes: None,
             rule: ManifestSpecificRuleConfig::NameConvention {
@@ -166,6 +169,7 @@ mod tests {
             severity: Severity::Error,
             description: None,
             applies_to: Some(AppliesTo::empty()),
+            model_materializations: None,
             includes: None,
             excludes: None,
             rule: ManifestSpecificRuleConfig::NameConvention {
@@ -200,6 +204,7 @@ mod tests {
             description: None,
             applies_to: Some(AppliesTo::empty()),
             includes: None,
+            model_materializations: None,
             excludes: None,
             rule: ManifestSpecificRuleConfig::NameConvention {
                 convention: NamingConvention::from_pattern(r"^[A-Z]{3}-[0-9]{4}$").unwrap(),

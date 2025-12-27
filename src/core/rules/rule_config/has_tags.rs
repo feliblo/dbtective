@@ -125,6 +125,7 @@ mod tests {
             severity: Severity::Warning,
             description: None,
             applies_to: None,
+            model_materializations: None,
             includes: None,
             excludes: None,
             rule: ManifestSpecificRuleConfig::HasTags {
@@ -154,6 +155,7 @@ mod tests {
             severity: Severity::Error,
             description: None,
             applies_to: None,
+            model_materializations: None,
             includes: None,
             excludes: None,
             rule: ManifestSpecificRuleConfig::HasTags {
@@ -180,6 +182,7 @@ mod tests {
             severity: Severity::Warning,
             description: None,
             applies_to: None,
+            model_materializations: None,
             includes: None,
             excludes: None,
             rule: ManifestSpecificRuleConfig::HasTags {
