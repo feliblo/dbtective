@@ -20,38 +20,49 @@ Thank you for your interest in contributing to dbtective! We're excited to have 
 
 ### Setting up your development environment
 
-1. **Fork the repository** on GitHub
-2. **Clone your fork** locally:
+{{% steps %}}
 
-   ```bash
-   git clone https://github.com/your-username/dbtective.git
-   cd dbtective
-   ```
+### Fork the repository
 
-3. **Set up the upstream remote**:
+Fork the repository on GitHub.
 
-   ```bash
-   git remote add upstream https://github.com/feliblo/dbtective.git
-   ```
+### Clone your fork
 
-4. **Install dependencies and build**:
+Clone your fork locally:
 
-   ```bash
-   cargo build
-   ```
+```bash
+git clone https://github.com/your-username/dbtective.git
+cd dbtective
+```
 
-5. **Run the application**:
+### Set up the upstream remote
+
+```bash
+git remote add upstream https://github.com/feliblo/dbtective.git
+```
+
+### Install dependencies and build
+
+```bash
+cargo build
+```
+
+### Run the application
 
 Use the commands shown in the `justfile` or install [just](https://github.com/casey/just) and run:
 
-   ```bash
-   just run
-   just run-verbose
-   ```
+```bash
+just run
+just run-release
+```
+
+{{% /steps %}}
 
 ## Development Workflow
 
-### 1. Create an Issue
+{{% steps %}}
+
+### Create an Issue
 
 Before starting work, please:
 
@@ -59,24 +70,24 @@ Before starting work, please:
 - Create a new issue describing the feature, bug, or improvement
 - Wait for discussion and approval before starting significant work
 
-### 2. Branch Strategy
+### Branch Strategy
 
-- Create a feature branch from `main`:
+Create a feature branch from `main`:
 
-  ```bash
-  git checkout main
-  git pull upstream main
-  git checkout -b feature/your-feature-name
-  ```
+```bash
+git checkout main
+git pull upstream main
+git checkout -b feature/your-feature-name
+```
 
-- Use descriptive branch names:
-  - `feature/add-yaml-parsing`
-  - `fix/logging-timestamp-format`
-  - `docs/update-installation-guide`
+Use descriptive branch names:
+- `feature/add-yaml-parsing`
+- `fix/logging-timestamp-format`
+- `docs/update-installation-guide`
 
-### 3. Development Guidelines
+### Development Guidelines
 
-#### Code Style
+**Code Style**
 
 - Install prek on the repository using `prek install` to enable pre-commit checks.
 - Follow Rust conventions and use `cargo fmt` to format code
@@ -84,40 +95,36 @@ Before starting work, please:
 - Write clear, self-documenting code with meaningful variable names
 - Add comments for complex logic
 
-#### Testing
+**Testing**
 
 - Write unit tests in the corresponding file.
 - Write integration tests in the test folder.
 - Ensure all tests pass: `cargo test`
 - Add integration tests where appropriate
 
-### 4. Commit Guidelines
+### Commit Guidelines
 
 Please use [commitizen](https://commitizen-tools.github.io/commitizen/) or use the same style to write informative commit messages using traditional format.
 
-### 5. Pull Request Process
+### Pull Request Process
 
-1. **Update your branch** with the latest main:
+**Update your branch** with the latest main:
 
-   ```bash
-   git rebase -i  origin/main
-   ```
+```bash
+git rebase -i origin/main
+```
 
-2. **Run the full test suite**:
+**Run the full test suite** using the commands shown in the `justfile` or install [just](https://github.com/casey/just) and run:
 
-   Use the commands shown in the `justfile` or install [just](https://github.com/casey/just) and run:
+```bash
+just test
+just lint
+just fmt
+```
 
-   ```bash
-   just test
-   just lint
-   just fmt
-   ```
+**Create a Pull Request**, wait for **Code Review**, and then **Merge!**
 
-3. **Create a Pull Request**
-
-4. **Code Review**
-
-5. **Merge!**
+{{% /steps %}}
 
 ## Documentation
 

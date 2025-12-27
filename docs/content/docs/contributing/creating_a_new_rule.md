@@ -20,7 +20,9 @@ See the [rules overview](/docs/rules) or the dbt docs on [manifest](https://docs
 
 Here I explain how to add a new `ManifestRule`. For a catalog rule, add your rule to the `CatalogSpecificRuleConfig` enum in `src/core/config/catalog_rule.rs` and follow the same steps as above (with the compiler helping you along the way). It works almost identically.
 
-### Step 1: Add the Rule Enum Variant
+{{% steps %}}
+
+### Add the Rule Enum Variant
 
 Add a new entry to the `ManifestSpecificRuleConfig` enum in `src/core/config/manifest_rule.rs`:
 
@@ -43,7 +45,7 @@ pub enum ManifestSpecificRuleConfig {
 - The `snake_case` serialization converts it automatically (e.g., `HasOwner` → `has_owner` in confor the user config)
 - Add rule-specific arguments inside the `{}` braces
 
-### Step 2: Configure Applies To
+### Configure Applies To
 
 In the same file, update two functions:
 
@@ -83,7 +85,7 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
 }
 ```
 
-### Step 3: Create or Find a Trait
+### Create or Find a Trait
 
 Check `src/core/rules/rule_config/` for an existing trait that matches your rule's needs:
 
@@ -104,7 +106,7 @@ All traits contain at least the following methods (needed for RuleResult (table 
 - `fn get_object_string(&self) -> &str;` - Returns a string representation
 - `fn get_relative_path(&self) -> Option<&String>;` - Returns the object's relative file path
 
-### Step 4: Implement the Rule Logic
+### Implement the Rule Logic
 
 Create your rule function. Here's an example pattern:
 
@@ -133,7 +135,7 @@ pub fn has_your_rule<T: YourRule>(
 }
 ```
 
-### Step 5: Implement the Trait for dbt Objects
+### Implement the Trait for dbt Objects
 
 Implement your trait for the relevant structs in `src/core/manifest/dbt_objects/`.
 Don't worry if you miss any, the Rust compiler will guide you, (so you can also skip this for now and move to step 6).
@@ -160,7 +162,7 @@ impl YourRule for Node {
 }
 ```
 
-### Step 6: Add the Rule in Node Rules
+### Add the Rule in Node Rules
 
 Add your rule to `src/core/rules/manifest/node_rules.rs`. If you haven't implemented the trait yet, you will get a compile error prompting you to do so.
 
@@ -182,7 +184,7 @@ Similarly, update `src/core/rules/manifest/apply_other_manifest_object_rules.rs`
 
 If any object doesn't apply to your rule, simply return the accumulator of ruleresults (acc) unchanged.
 
-### Step 7: Export the Module
+### Export the Module
 
 Add your new module to `src/core/rules/rule_config/mod.rs`:
 
@@ -191,7 +193,7 @@ mod your_rule;
 pub use your_rule::{your_rule, YourRule};
 ```
 
-### Step 8: Write Unit Tests
+### Write Unit Tests
 
 Add tests in your rule file:
 
@@ -237,13 +239,15 @@ mod tests {
 }
 ```
 
-### Step 9: Write Integration Tests
+### Write Integration Tests
 
 Create tests in the `tests/` folder. Copy the structure from existing tests and adapt it to your rule.
 
-### Step 10: Document the Rule
+### Document the Rule
 
 Create documentation in `docs/content/docs/rules/your_rule.md`. Copy the structure from existing rule docs & fill in the details to fit your rule. Remember to include the applies_to options from the `src/core/config/manifest_rule.rs` file.
+
+{{% /steps %}}
 
 ## Tips
 
