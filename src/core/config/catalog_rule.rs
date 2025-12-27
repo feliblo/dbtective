@@ -3,6 +3,7 @@ use anyhow::Result;
 use serde::Deserialize;
 
 use crate::core::config::applies_to::RuleTarget;
+use crate::core::config::naming_convention::NamingConvention;
 use crate::core::config::{applies_to::AppliesTo, severity::Severity};
 use strum_macros::{AsRefStr, EnumIter, EnumString};
 
@@ -14,7 +15,8 @@ pub enum CatalogSpecificRuleConfig {
     ColumnsAllDocumented {},
     ColumnsHaveDescription {},
     ColumnsNameConvention {
-        pattern: String,
+        #[serde(rename = "pattern")]
+        convention: NamingConvention,
         data_types: Option<Vec<DataTypes>>,
     },
 }

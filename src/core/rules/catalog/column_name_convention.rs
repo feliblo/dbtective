@@ -1,11 +1,13 @@
-use regex::Regex;
 use std::collections::HashSet;
 use std::str::FromStr;
 
 use crate::{
     cli::table::RuleResult,
     core::{
-        config::catalog_rule::{CatalogRule, DataTypes},
+        config::{
+            catalog_rule::{CatalogRule, DataTypes},
+            naming_convention::NamingConvention,
+        },
         rules::common_traits::Columnable,
     },
 };
@@ -63,36 +65,18 @@ fn parse_data_type(db_type: &str) -> Option<DataTypes> {
 }
 
 /// C => Catalog object only in this test
-/// # Errors
-/// Returns an `anyhow::Error` if the provided pattern is an invalid regex
 pub fn column_name_convention<C: Columnable>(
     catalog_object: &C,
-    pattern: &str,
+    convention: &NamingConvention,
     data_types_filter: Option<&Vec<DataTypes>>,
     rule: &CatalogRule,
     _verbose: bool,
-) -> anyhow::Result<Option<RuleResult>> {
-    let (regex, convention) = match pattern {
-        "snake_case" | "snakecase" => (r"^[a-z][a-z0-9_]*$", "snake_case"),
-        "kebab_case" | "kebabcase" | "kebab-case" => (r"^[a-z][a-z0-9-]*$", "kebab-case"),
-        "camelCase" | "camel_case" | "camelcase" => (r"^[a-z][a-zA-Z0-9]*$", "camelCase"),
-        "pascal_case" | "pascalcase" | "pascal-case" | "PascalCase" => {
-            (r"^[A-Z][a-zA-Z0-9]*$", "PascalCase")
-        }
-        _ => (pattern, pattern),
-    };
-
-    let re = Regex::new(regex)
-        .map_err(|e| anyhow::anyhow!("Invalid regex for '{}'. {}", rule.get_name(), e))?;
-
+) -> Option<RuleResult> {
     // Get columns to check - either all columns or filtered by data type
     let columns_to_check: Vec<&String> = if let Some(data_types) = data_types_filter {
-        // Filter by data type
         let type_set: HashSet<_> = data_types.iter().collect();
 
-        let Some(columns_with_types) = catalog_object.get_columns_with_types() else {
-            return Ok(None);
-        };
+        let columns_with_types = catalog_object.get_columns_with_types()?;
 
         columns_with_types
             .into_iter()
@@ -103,20 +87,16 @@ pub fn column_name_convention<C: Columnable>(
             })
             .collect()
     } else {
-        // No filter - check all columns
-        let Some(columns) = catalog_object.get_column_names() else {
-            return Ok(None);
-        };
-        columns
+        catalog_object.get_column_names()?
     };
 
     let invalid_columns: Vec<&String> = columns_to_check
         .into_iter()
-        .filter(|col_name| !re.is_match(col_name))
+        .filter(|col_name| !convention.is_match(col_name))
         .collect();
 
     if invalid_columns.is_empty() {
-        return Ok(None);
+        return None;
     }
 
     let invalid_column_list = invalid_columns
@@ -125,18 +105,18 @@ pub fn column_name_convention<C: Columnable>(
         .collect::<Vec<&str>>()
         .join(", ");
 
-    Ok(Some(RuleResult::new(
+    Some(RuleResult::new(
         &rule.severity,
         C::get_object_type(catalog_object),
         rule.get_name(),
         format!(
             "{} has columns that do not follow the {} naming convention: {}.",
             catalog_object.get_object_string(),
-            convention,
+            convention.name(),
             invalid_column_list
         ),
         catalog_object.get_relative_path().cloned(),
-    )))
+    ))
 }
 
 #[cfg(test)]
@@ -172,6 +152,7 @@ mod tests {
 
     #[test]
     fn test_column_name_convention_passes_snake_case() {
+        let convention = NamingConvention::from_pattern("snake_case").unwrap();
         let rule = CatalogRule {
             name: Some("columns_name_convention".to_string()),
             severity: Severity::Warning,
@@ -180,7 +161,7 @@ mod tests {
             includes: None,
             excludes: None,
             rule: CatalogSpecificRuleConfig::ColumnsNameConvention {
-                pattern: "snake_case".to_string(),
+                convention: NamingConvention::from_pattern("snake_case").unwrap(),
                 data_types: None,
             },
         };
@@ -189,13 +170,14 @@ mod tests {
             columns: vec!["first_column".to_string(), "second_column".to_string()],
         };
         assert_eq!(
-            column_name_convention(&item, "snake_case", None, &rule, false).unwrap(),
+            column_name_convention(&item, &convention, None, &rule, false),
             None
         );
     }
 
     #[test]
     fn test_column_name_convention_fails_snake_case() {
+        let convention = NamingConvention::from_pattern("snake_case").unwrap();
         let rule = CatalogRule {
             name: Some("columns_name_convention".to_string()),
             severity: Severity::Warning,
@@ -204,7 +186,7 @@ mod tests {
             includes: None,
             excludes: None,
             rule: CatalogSpecificRuleConfig::ColumnsNameConvention {
-                pattern: "snake_case".to_string(),
+                convention: NamingConvention::from_pattern("snake_case").unwrap(),
                 data_types: None,
             },
         };
@@ -213,7 +195,7 @@ mod tests {
             columns: vec!["FirstColumn".to_string(), "second_column".to_string()],
         };
         assert_eq!(
-            column_name_convention(&item, "snake_case", None, &rule, false).unwrap(),
+            column_name_convention(&item, &convention, None, &rule, false),
             Some(RuleResult::new(
                 &rule.severity,
                 "TestItem",
@@ -235,6 +217,7 @@ mod tests {
         ];
 
         for (i, pattern) in patterns.iter().enumerate() {
+            let convention = NamingConvention::from_pattern(pattern).unwrap();
             let rule = CatalogRule {
                 name: Some("columns_name_convention".to_string()),
                 severity: Severity::Warning,
@@ -243,7 +226,7 @@ mod tests {
                 includes: None,
                 excludes: None,
                 rule: CatalogSpecificRuleConfig::ColumnsNameConvention {
-                    pattern: (*pattern).to_string(),
+                    convention: NamingConvention::from_pattern(pattern).unwrap(),
                     data_types: None,
                 },
             };
@@ -252,7 +235,7 @@ mod tests {
                 columns: test_columns[i].iter().map(|s| (*s).to_string()).collect(),
             };
             assert_eq!(
-                column_name_convention(&item, pattern, None, &rule, false).unwrap(),
+                column_name_convention(&item, &convention, None, &rule, false),
                 None,
                 "Failed for pattern: {pattern}",
             );
@@ -270,6 +253,7 @@ mod tests {
         ];
 
         for (i, pattern) in patterns.iter().enumerate() {
+            let convention = NamingConvention::from_pattern(pattern).unwrap();
             let rule = CatalogRule {
                 name: Some("columns_name_convention".to_string()),
                 severity: Severity::Warning,
@@ -278,7 +262,7 @@ mod tests {
                 includes: None,
                 excludes: None,
                 rule: CatalogSpecificRuleConfig::ColumnsNameConvention {
-                    pattern: (*pattern).to_string(),
+                    convention: NamingConvention::from_pattern(pattern).unwrap(),
                     data_types: None,
                 },
             };
@@ -287,9 +271,7 @@ mod tests {
                 columns: test_columns[i].iter().map(|s| (*s).to_string()).collect(),
             };
             assert!(
-                column_name_convention(&item, pattern, None, &rule, false)
-                    .unwrap()
-                    .is_some(),
+                column_name_convention(&item, &convention, None, &rule, false).is_some(),
                 "Failed for pattern: {pattern}",
             );
         }
@@ -297,6 +279,7 @@ mod tests {
 
     #[test]
     fn test_column_name_convention_passes_custom_regex() {
+        let convention = NamingConvention::from_pattern(r"^[a-z]{3}[0-9]{2}$").unwrap();
         let rule = CatalogRule {
             name: Some("columns_name_convention".to_string()),
             severity: Severity::Warning,
@@ -305,7 +288,7 @@ mod tests {
             includes: None,
             excludes: None,
             rule: CatalogSpecificRuleConfig::ColumnsNameConvention {
-                pattern: r"^[a-z]{3}[0-9]{2}$".to_string(), // custom pattern: 3 letters followed by 2 digits
+                convention: NamingConvention::from_pattern(r"^[a-z]{3}[0-9]{2}$").unwrap(),
                 data_types: None,
             },
         };
@@ -314,13 +297,14 @@ mod tests {
             columns: vec!["abc12".to_string(), "def34".to_string()],
         };
         assert_eq!(
-            column_name_convention(&item, r"^[a-z]{3}[0-9]{2}$", None, &rule, false).unwrap(),
+            column_name_convention(&item, &convention, None, &rule, false),
             None
         );
     }
 
     #[test]
     fn test_column_name_convention_fails_custom_regex() {
+        let convention = NamingConvention::from_pattern(r"^[a-z]{3}[0-9]{2}$").unwrap();
         let rule = CatalogRule {
             name: Some("columns_name_convention".to_string()),
             severity: Severity::Warning,
@@ -329,7 +313,7 @@ mod tests {
             includes: None,
             excludes: None,
             rule: CatalogSpecificRuleConfig::ColumnsNameConvention {
-                pattern: r"^[a-z]{3}[0-9]{2}$".to_string(), // custom pattern: 3 letters followed by 2 digits
+                convention: NamingConvention::from_pattern(r"^[a-z]{3}[0-9]{2}$").unwrap(),
                 data_types: None,
             },
         };
@@ -338,7 +322,7 @@ mod tests {
             columns: vec!["ab12".to_string(), "defg34".to_string()],
         };
         assert_eq!(
-            column_name_convention(&item, r"^[a-z]{3}[0-9]{2}$", None, &rule, false).unwrap(),
+            column_name_convention(&item, &convention, None, &rule, false),
             Some(RuleResult::new(
                 &rule.severity,
                 "TestItem",
@@ -350,24 +334,9 @@ mod tests {
     }
 
     #[test]
-    fn test_column_name_convention_invalid_regex() {
-        let rule = CatalogRule {
-            name: Some("columns_name_convention".to_string()),
-            severity: Severity::Warning,
-            applies_to: None,
-            description: None,
-            includes: None,
-            excludes: None,
-            rule: CatalogSpecificRuleConfig::ColumnsNameConvention {
-                pattern: r"*[a-z".to_string(), // invalid regex
-                data_types: None,
-            },
-        };
-        let item = TestItem {
-            name: "test_item".to_string(),
-            columns: vec!["valid_column".to_string()],
-        };
-        let result = column_name_convention(&item, r"*[a-z", None, &rule, false);
+    fn test_column_name_convention_invalid_regex_caught_at_parse() {
+        // Invalid regex patterns are now caught during NamingConvention::from_pattern
+        let result = NamingConvention::from_pattern(r"*[a-z");
         assert!(result.is_err());
     }
 }

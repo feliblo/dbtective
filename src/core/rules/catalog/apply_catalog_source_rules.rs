@@ -77,14 +77,14 @@ pub fn apply_catalog_source_rules<'a>(
                         verbose,
                     )
                 }
-                CatalogSpecificRuleConfig::ColumnsNameConvention { pattern, data_types } => {
+                CatalogSpecificRuleConfig::ColumnsNameConvention { convention, data_types } => {
                     column_name_convention(
                         catalog_source,
-                        pattern,
+                        convention,
                         data_types.as_ref(),
                         rule,
                         verbose,
-                    )?
+                    )
                 }
             };
 

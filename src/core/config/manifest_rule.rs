@@ -10,6 +10,7 @@ use crate::core::config::check_config_options::{
     default_allowed_references, default_allowed_test_names, default_max_code_lines,
     HasTagsCriteria, OrphanedReferenceType,
 };
+use crate::core::config::naming_convention::NamingConvention;
 use crate::core::config::severity::Severity;
 use strum_macros::{AsRefStr, EnumIter, EnumString};
 
@@ -19,7 +20,8 @@ use strum_macros::{AsRefStr, EnumIter, EnumString};
 pub enum ManifestSpecificRuleConfig {
     HasDescription {},
     NameConvention {
-        pattern: String,
+        #[serde(rename = "pattern")]
+        convention: NamingConvention,
     },
     HasTags {
         required_tags: Vec<String>,

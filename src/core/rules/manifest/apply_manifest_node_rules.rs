@@ -38,8 +38,8 @@ pub fn apply_manifest_node_rules<'a>(
 
                 let rule_row_result = match &rule.rule {
                     ManifestSpecificRuleConfig::HasDescription {} => has_description(node, rule),
-                    ManifestSpecificRuleConfig::NameConvention { pattern } => {
-                        check_name_convention(node, rule, pattern)?
+                    ManifestSpecificRuleConfig::NameConvention { convention } => {
+                        check_name_convention(node, rule, convention)
                     }
                     ManifestSpecificRuleConfig::HasTags {
                         required_tags,
