@@ -1,5 +1,6 @@
 pub mod applies_to;
 pub mod includes_excludes;
+pub mod materialization;
 pub mod naming_convention;
 pub mod parse_config;
 pub mod severity;

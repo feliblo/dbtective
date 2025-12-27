@@ -3,6 +3,7 @@ use super::super::{Meta, Tags};
 use super::{Analysis, HookNode, Model, Seed, Snapshot, SqlOperation, Test};
 use crate::core::config::applies_to::RuleTarget;
 use crate::core::config::includes_excludes::IncludeExcludable;
+use crate::core::config::materialization::Materialization;
 use crate::core::manifest::Manifest;
 use crate::core::rules::common_traits::Columnable;
 use crate::core::rules::rule_config::child_map::ChildMappable;
@@ -97,6 +98,17 @@ impl Node {
 
     pub const fn get_relative_path(&self) -> &String {
         &self.get_base().original_file_path
+    }
+
+    pub fn get_materialization(&self) -> Option<&Materialization> {
+        match self {
+            Self::Model(_) => self
+                .get_base()
+                .config
+                .as_ref()
+                .and_then(|c| c.materialized.as_ref()),
+            _ => None,
+        }
     }
 }
 
@@ -264,6 +276,7 @@ pub struct DependsOn {
 #[derive(Debug, Deserialize)]
 pub struct NodeConfig {
     pub contract: Option<Contract>,
+    pub materialized: Option<Materialization>,
 }
 
 #[derive(Debug, Deserialize)]

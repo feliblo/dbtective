@@ -3,6 +3,7 @@ use anyhow::Result;
 use serde::Deserialize;
 
 use crate::core::config::applies_to::RuleTarget;
+use crate::core::config::materialization::Materialization;
 use crate::core::config::naming_convention::NamingConvention;
 use crate::core::config::{applies_to::AppliesTo, severity::Severity};
 use strum_macros::{AsRefStr, EnumIter, EnumString};
@@ -80,17 +81,15 @@ const fn catalog_default_severity() -> Severity {
 
 #[derive(Debug, Deserialize)]
 #[allow(dead_code)]
-// Rules that require access to the catalog
-// Catalog needs an active connection to the data warehouse
-// So they can't be applied in all contexts.
 pub struct CatalogRule {
     pub name: Option<String>,
     #[serde(default = "catalog_default_severity")]
     pub severity: Severity,
-    pub description: Option<String>, // Human-readable description of the rule, not used in logic
+    pub description: Option<String>,
     pub includes: Option<Vec<String>>,
     pub excludes: Option<Vec<String>>,
     pub applies_to: Option<AppliesTo>,
+    pub model_materializations: Option<Vec<Materialization>>,
     #[serde(flatten)]
     pub rule: CatalogSpecificRuleConfig,
 }

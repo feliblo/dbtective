@@ -130,6 +130,7 @@ mod tests {
             name: Some("columns_have_description".to_string()),
             severity: crate::core::config::severity::Severity::Warning,
             applies_to: None,
+            model_materializations: None,
             description: None,
             includes: None,
             excludes: None,

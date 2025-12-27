@@ -57,6 +57,15 @@ pub fn apply_catalog_node_rules<'a>(
                 }
             }
 
+            // `model_materializations` filtering
+            if let Some(allowed_materializations) = &rule.model_materializations {
+                if let Some(node_materialization) = manifest_node.get_materialization() {
+                    if !allowed_materializations.contains(node_materialization) {
+                        return Ok(acc);
+                    }
+                }
+            }
+
             // APPLY THE RULE HERE
             let rule_row_result = match &rule.rule {
                 CatalogSpecificRuleConfig::ColumnsAllDocumented {} => {
