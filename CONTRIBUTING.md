@@ -42,7 +42,7 @@ Use the commands shown in the `justfile` or install [just](https://github.com/ca
 
    ```bash
    just run
-   just run-verbose
+   just run-release
    ```
 
 ## Development Workflow
