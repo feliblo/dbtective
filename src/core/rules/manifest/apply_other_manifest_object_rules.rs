@@ -65,8 +65,8 @@ fn apply_source_rules<'a>(
 
                 let rule_row_result = match &rule.rule {
                     ManifestSpecificRuleConfig::HasDescription {} => has_description(source, rule),
-                    ManifestSpecificRuleConfig::NameConvention { pattern } => {
-                        check_name_convention(source, rule, pattern)?
+                    ManifestSpecificRuleConfig::NameConvention { convention } => {
+                        check_name_convention(source, rule, convention)
                     }
                     ManifestSpecificRuleConfig::HasTags {
                         required_tags,
@@ -132,8 +132,8 @@ fn apply_macro_rules<'a>(
                         ManifestSpecificRuleConfig::HasDescription {} => {
                             has_description(macro_obj, rule)
                         }
-                        ManifestSpecificRuleConfig::NameConvention { pattern } => {
-                            check_name_convention(macro_obj, rule, pattern)?
+                        ManifestSpecificRuleConfig::NameConvention { convention } => {
+                            check_name_convention(macro_obj, rule, convention)
                         }
                         ManifestSpecificRuleConfig::HasMetadataKeys {
                             required_keys,
@@ -199,8 +199,8 @@ fn apply_exposure_rules<'a>(
                         ManifestSpecificRuleConfig::HasDescription {} => {
                             has_description(exposure, rule)
                         }
-                        ManifestSpecificRuleConfig::NameConvention { pattern } => {
-                            check_name_convention(exposure, rule, pattern)?
+                        ManifestSpecificRuleConfig::NameConvention { convention } => {
+                            check_name_convention(exposure, rule, convention)
                         }
                         ManifestSpecificRuleConfig::HasTags {
                             required_tags,
@@ -264,8 +264,8 @@ fn apply_semantic_model_rules<'a>(
 
                 let rule_row_result = match &rule.rule {
                     ManifestSpecificRuleConfig::HasDescription {} => has_description(sm, rule),
-                    ManifestSpecificRuleConfig::NameConvention { pattern } => {
-                        check_name_convention(sm, rule, pattern)?
+                    ManifestSpecificRuleConfig::NameConvention { convention } => {
+                        check_name_convention(sm, rule, convention)
                     }
                     ManifestSpecificRuleConfig::HasMetadataKeys {
                         required_keys,
@@ -319,8 +319,8 @@ fn apply_unit_test_rules<'a>(
 
                 let rule_row_result = match &rule.rule {
                     ManifestSpecificRuleConfig::HasDescription {} => has_description(ut, rule),
-                    ManifestSpecificRuleConfig::NameConvention { pattern } => {
-                        check_name_convention(ut, rule, pattern)?
+                    ManifestSpecificRuleConfig::NameConvention { convention } => {
+                        check_name_convention(ut, rule, convention)
                     }
 
                     // Unit Tests do not implement the following rules

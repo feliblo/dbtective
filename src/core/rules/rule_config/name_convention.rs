@@ -7,45 +7,31 @@ pub trait NameAble {
     }
 }
 
-use crate::{cli::table::RuleResult, core::config::manifest_rule::ManifestRule};
-use regex::Regex;
+use crate::{
+    cli::table::RuleResult,
+    core::config::{manifest_rule::ManifestRule, naming_convention::NamingConvention},
+};
 
 /// Check if the item's name follows the specified naming convention pattern
-/// # Errors
-/// Returns an `anyhow::Error` if the provided pattern is an invalid regex
 pub fn check_name_convention<T: NameAble>(
     item: &T,
     rule: &ManifestRule,
-    pattern: &str,
-) -> anyhow::Result<Option<RuleResult>> {
-    // Map common naming conventions to regex patterns or use the provided pattern directly
-    let (regex, convention) = match pattern {
-        "snake_case" | "snakecase" => (r"^[a-z][a-z0-9_]*$", "snake_case"),
-        "kebab_case" | "kebabcase" | "kebab-case" => (r"^[a-z][a-z0-9-]*$", "kebab-case"),
-        "camelCase" | "camel_case" | "camelcase" => (r"^[a-z][a-zA-Z0-9]*$", "camelCase"),
-        "pascal_case" | "pascalcase" | "pascal-case" | "PascalCase" => {
-            (r"^[A-Z][a-zA-Z0-9]*$", "PascalCase")
-        }
-        _ => (pattern, pattern),
-    };
-
-    let re = Regex::new(regex)
-        .map_err(|e| anyhow::anyhow!("Invalid regex for '{}'. {}", rule.get_name(), e))?;
-
-    if re.is_match(item.name()) {
-        Ok(None)
+    convention: &NamingConvention,
+) -> Option<RuleResult> {
+    if convention.is_match(item.name()) {
+        None
     } else {
-        Ok(Some(RuleResult::new(
+        Some(RuleResult::new(
             &rule.severity,
             NameAble::get_object_type(item),
             rule.get_name(),
             format!(
                 "{} does not follow the {} naming convention.",
                 NameAble::get_object_string(item),
-                convention
+                convention.name()
             ),
             item.get_relative_path().cloned(),
-        )))
+        ))
     }
 }
 
@@ -75,6 +61,7 @@ mod tests {
 
     #[test]
     fn test_name_convention_snake_case() {
+        let convention = NamingConvention::from_pattern("snake_case").unwrap();
         let rule = ManifestRule {
             name: Some("name_convention".to_string()),
             severity: Severity::Warning,
@@ -83,21 +70,18 @@ mod tests {
             includes: None,
             excludes: None,
             rule: ManifestSpecificRuleConfig::NameConvention {
-                pattern: "snake_case".to_string(),
+                convention: NamingConvention::from_pattern("snake_case").unwrap(),
             },
         };
         let item = TestItem {
             name: "test_item".to_string(),
         };
-        assert_eq!(
-            check_name_convention(&item, &rule, "snake_case").unwrap(),
-            None
-        );
+        assert_eq!(check_name_convention(&item, &rule, &convention), None);
         let item_invalid = TestItem {
             name: "TestItem".to_string(),
         };
         assert_eq!(
-            check_name_convention(&item_invalid, &rule, "snake_case").unwrap(),
+            check_name_convention(&item_invalid, &rule, &convention),
             Some(RuleResult::new(
                 &rule.severity,
                 NameAble::get_object_type(&item_invalid),
@@ -110,6 +94,7 @@ mod tests {
 
     #[test]
     fn test_name_convention_pascal_case() {
+        let convention = NamingConvention::from_pattern("PascalCase").unwrap();
         let rule = ManifestRule {
             name: Some("name_convention".to_string()),
             severity: Severity::Error,
@@ -118,21 +103,18 @@ mod tests {
             includes: None,
             excludes: None,
             rule: ManifestSpecificRuleConfig::NameConvention {
-                pattern: "PascalCase".to_string(),
+                convention: NamingConvention::from_pattern("PascalCase").unwrap(),
             },
         };
         let item = TestItem {
             name: "TestItem".to_string(),
         };
-        assert_eq!(
-            check_name_convention(&item, &rule, "PascalCase").unwrap(),
-            None
-        );
+        assert_eq!(check_name_convention(&item, &rule, &convention), None);
         let item_invalid = TestItem {
             name: "test_item".to_string(),
         };
         assert_eq!(
-            check_name_convention(&item_invalid, &rule, "PascalCase").unwrap(),
+            check_name_convention(&item_invalid, &rule, &convention),
             Some(RuleResult::new(
                 &rule.severity,
                 NameAble::get_object_type(&item_invalid),
@@ -145,6 +127,7 @@ mod tests {
 
     #[test]
     fn test_name_convention_kebab_case() {
+        let convention = NamingConvention::from_pattern("kebab-case").unwrap();
         let rule = ManifestRule {
             name: Some("name_convention".to_string()),
             severity: Severity::Warning,
@@ -153,21 +136,18 @@ mod tests {
             includes: None,
             excludes: None,
             rule: ManifestSpecificRuleConfig::NameConvention {
-                pattern: "kebab-case".to_string(),
+                convention: NamingConvention::from_pattern("kebab-case").unwrap(),
             },
         };
         let item = TestItem {
             name: "test-item".to_string(),
         };
-        assert_eq!(
-            check_name_convention(&item, &rule, "kebab-case").unwrap(),
-            None
-        );
+        assert_eq!(check_name_convention(&item, &rule, &convention), None);
         let item_invalid = TestItem {
             name: "TestItem".to_string(),
         };
         assert_eq!(
-            check_name_convention(&item_invalid, &rule, "kebab-case").unwrap(),
+            check_name_convention(&item_invalid, &rule, &convention),
             Some(RuleResult::new(
                 &rule.severity,
                 NameAble::get_object_type(&item_invalid),
@@ -180,6 +160,7 @@ mod tests {
 
     #[test]
     fn test_name_convention_camel_case() {
+        let convention = NamingConvention::from_pattern("camelCase").unwrap();
         let rule = ManifestRule {
             name: Some("name_convention".to_string()),
             severity: Severity::Error,
@@ -188,21 +169,18 @@ mod tests {
             includes: None,
             excludes: None,
             rule: ManifestSpecificRuleConfig::NameConvention {
-                pattern: "camelCase".to_string(),
+                convention: NamingConvention::from_pattern("camelCase").unwrap(),
             },
         };
         let item = TestItem {
             name: "testItem".to_string(),
         };
-        assert_eq!(
-            check_name_convention(&item, &rule, "camelCase").unwrap(),
-            None
-        );
+        assert_eq!(check_name_convention(&item, &rule, &convention), None);
         let item_invalid = TestItem {
             name: "Test_Item".to_string(),
         };
         assert_eq!(
-            check_name_convention(&item_invalid, &rule, "camelCase").unwrap(),
+            check_name_convention(&item_invalid, &rule, &convention),
             Some(RuleResult::new(
                 &rule.severity,
                 NameAble::get_object_type(&item_invalid),
@@ -215,6 +193,7 @@ mod tests {
 
     #[test]
     fn test_name_convention_custom_regex() {
+        let convention = NamingConvention::from_pattern(r"^[A-Z]{3}-[0-9]{4}$").unwrap();
         let rule = ManifestRule {
             name: Some("name_convention".to_string()),
             severity: Severity::Warning,
@@ -223,21 +202,18 @@ mod tests {
             includes: None,
             excludes: None,
             rule: ManifestSpecificRuleConfig::NameConvention {
-                pattern: r"^[A-Z]{3}-[0-9]{4}$".to_string(),
+                convention: NamingConvention::from_pattern(r"^[A-Z]{3}-[0-9]{4}$").unwrap(),
             },
         };
         let item = TestItem {
             name: "ABC-1234".to_string(),
         };
-        assert_eq!(
-            check_name_convention(&item, &rule, r"^[A-Z]{3}-[0-9]{4}$").unwrap(),
-            None,
-        );
+        assert_eq!(check_name_convention(&item, &rule, &convention), None);
         let item_invalid = TestItem {
             name: "AB-123".to_string(),
         };
         assert_eq!(
-            check_name_convention(&item_invalid, &rule, r"^[A-Z]{3}-[0-9]{4}$").unwrap(),
+            check_name_convention(&item_invalid, &rule, &convention),
             Some(RuleResult::new(
                 &rule.severity,
                 NameAble::get_object_type(&item_invalid),
@@ -249,22 +225,9 @@ mod tests {
     }
 
     #[test]
-    fn bad_regex_causes_anyhow_error() {
-        let rule = ManifestRule {
-            name: Some("name_convention".to_string()),
-            severity: Severity::Error,
-            description: None,
-            applies_to: Some(AppliesTo::empty()),
-            includes: None,
-            excludes: None,
-            rule: ManifestSpecificRuleConfig::NameConvention {
-                pattern: "(*invalid_regex".to_string(),
-            },
-        };
-        let item = TestItem {
-            name: "SomeName".to_string(),
-        };
-        let result = check_name_convention(&item, &rule, "(*invalid_regex");
+    fn bad_regex_caught_at_parse() {
+        // Invalid regex patterns are now caught during NamingConvention::from_pattern
+        let result = NamingConvention::from_pattern("(*invalid_regex");
         assert!(result.is_err());
     }
 }

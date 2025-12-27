@@ -1,5 +1,6 @@
 pub mod applies_to;
 pub mod includes_excludes;
+pub mod naming_convention;
 pub mod parse_config;
 pub mod severity;
 pub use parse_config::Config;

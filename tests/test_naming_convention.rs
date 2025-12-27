@@ -1,11 +1,11 @@
 mod common;
 
 use common::TestEnvironment;
-use dbtective::core::{
-    config::Config, manifest::Manifest,
-    rules::manifest::apply_manifest_node_rules::apply_manifest_node_rules,
-};
+use dbtective::core::config::Config;
 
+/// Test that invalid regex patterns are caught during config parsing.
+/// This validates that regex validation happens early (at config load time)
+/// rather than at rule execution time, providing faster feedback to users.
 #[test]
 fn test_invalid_regex_pattern_fails() {
     let manifest = r#"{
@@ -24,50 +24,7 @@ fn test_invalid_regex_pattern_fails() {
       "column": null
     }
   },
-  "nodes": {
-    "model.test_project.orders": {
-      "database": "analytics",
-      "schema": "public",
-      "name": "orders",
-      "resource_type": "model",
-      "package_name": "test_project",
-      "path": "orders.sql",
-      "original_file_path": "models/orders.sql",
-      "unique_id": "model.test_project.orders",
-      "fqn": ["test_project", "orders"],
-      "alias": "orders",
-      "checksum": {"name": "sha256", "checksum": "abc123"},
-      "config": {
-        "enabled": true,
-        "materialized": "view",
-        "tags": []
-      },
-      "tags": [],
-      "description": "Order fact table",
-      "columns": {},
-      "meta": {},
-      "group": null,
-      "docs": {"show": true},
-      "patch_path": null,
-      "compiled_path": null,
-      "build_path": null,
-      "deferred": false,
-      "unrendered_config": {},
-      "created_at": 1704067200.0,
-      "config_call_dict": {},
-      "relation_name": "analytics.public.orders",
-      "raw_code": "select * from raw_orders",
-      "language": "sql",
-      "refs": [],
-      "sources": [],
-      "metrics": [],
-      "depends_on": {"macros": [], "nodes": []},
-      "compiled_code": null,
-      "extra_ctes_injected": false,
-      "extra_ctes": [],
-      "contract": {"enforced": false, "checksum": null}
-    }
-  },
+  "nodes": {},
   "sources": {},
   "macros": {},
   "exposures": {},
@@ -96,14 +53,12 @@ manifest_tests:
 
     let env = TestEnvironment::new(manifest, config);
 
-    // The check should fail with an error about invalid regex
-    let manifest = Manifest::from_file(&env.manifest_path).expect("Failed to load manifest");
-    let config = Config::from_file(&env.config_path).expect("Failed to load config");
-
-    let result = apply_manifest_node_rules(&manifest, &config, false);
+    // The config loading should fail with an error about invalid regex
+    // (regex patterns are now validated at config parse time)
+    let result = Config::from_file(&env.config_path);
     assert!(
         result.is_err(),
-        "Expected error for invalid regex pattern, but got success"
+        "Expected error for invalid regex pattern during config loading, but got success"
     );
 
     let error_message = result.unwrap_err().to_string();
