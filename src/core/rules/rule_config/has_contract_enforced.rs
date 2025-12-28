@@ -25,10 +25,8 @@ pub fn has_contract_enforced<T: ContractAble>(
 
 #[cfg(test)]
 mod tests {
-    use crate::core::{
-        config::{manifest_rule::ManifestSpecificRuleConfig, severity::Severity},
-        manifest::dbt_objects::nodes::node::Contract,
-    };
+    use crate::core::config::{manifest_rule::ManifestSpecificRuleConfig, severity::Severity};
+    use dbt_artifact_parser::manifest::nodes::Contract;
 
     use super::*;
     struct TestModel {

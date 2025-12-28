@@ -1,10 +1,6 @@
-use super::super::column::Column;
-use super::super::{Meta, Tags};
-use super::{Analysis, HookNode, Model, Seed, Snapshot, SqlOperation, Test};
-use crate::core::config::applies_to::RuleTarget;
+// Trait implementations for Node that stay in dbtective
+use crate::core::config::applies_to::{RuleTarget, RuleTargetable};
 use crate::core::config::includes_excludes::IncludeExcludable;
-use crate::core::config::materialization::Materialization;
-use crate::core::manifest::Manifest;
 use crate::core::rules::common_traits::Columnable;
 use crate::core::rules::rule_config::child_map::ChildMappable;
 use crate::core::rules::rule_config::has_contract_enforced::ContractAble;
@@ -15,46 +11,12 @@ use crate::core::rules::rule_config::has_tags::Tagable;
 use crate::core::rules::rule_config::has_unique_test::TestAble;
 use crate::core::rules::rule_config::max_code_lines::HasCode;
 use crate::core::rules::rule_config::name_convention::NameAble;
-use serde::Deserialize;
-use std::collections::HashMap;
+use dbt_artifact_parser::manifest::dbt_objects::{Meta, Tags};
+use dbt_artifact_parser::manifest::{Manifest, Node};
 
-#[derive(Debug, Deserialize)]
-#[serde(tag = "resource_type")]
-#[allow(dead_code)]
-pub enum Node {
-    #[serde(rename = "analysis")]
-    Analysis(Analysis),
-    #[serde(rename = "seed")]
-    Seed(Seed),
-    #[serde(rename = "model")]
-    Model(Model),
-    #[serde(rename = "test")]
-    Test(Test),
-    #[serde(rename = "snapshot")]
-    Snapshot(Snapshot),
-    #[serde(rename = "operation")]
-    HookNode(HookNode),
-    #[serde(rename = "sql_operation")]
-    SqlOperation(SqlOperation),
-}
-impl Node {
-    pub const fn as_str(&self) -> &str {
-        match self {
-            Self::Analysis(_) => "Analysis",
-            Self::Seed(_) => "Seed",
-            Self::Model(_) => "Model",
-            Self::Test(_) => "Test",
-            Self::Snapshot(_) => "Snapshot",
-            Self::HookNode(_) => "Operation",
-            Self::SqlOperation(_) => "SqlOperation",
-        }
-    }
-    pub const fn get_name(&self) -> &String {
-        &self.get_base().name
-    }
-
+impl RuleTargetable for Node {
     // Match config rule target names to node types
-    pub const fn ruletarget(&self) -> RuleTarget {
+    fn ruletarget(&self) -> RuleTarget {
         match self {
             Self::Model(_) => RuleTarget::Models,
             Self::Seed(_) => RuleTarget::Seeds,
@@ -63,51 +25,6 @@ impl Node {
             Self::Snapshot(_) => RuleTarget::Snapshots,
             Self::HookNode(_) => RuleTarget::HookNodes,
             Self::SqlOperation(_) => RuleTarget::SqlOperations,
-        }
-    }
-}
-
-impl Node {
-    pub const fn get_base(&self) -> &NodeBase {
-        match self {
-            Self::Analysis(a) => &a.base,
-            Self::Seed(s) => &s.base,
-            Self::Model(m) => &m.base,
-            Self::Test(t) => &t.base,
-            Self::Snapshot(s) => &s.base,
-            Self::HookNode(h) => &h.base,
-            Self::SqlOperation(s) => &s.base,
-        }
-    }
-
-    pub const fn get_unique_id(&self) -> &String {
-        &self.get_base().unique_id
-    }
-
-    pub const fn get_package_name(&self) -> &String {
-        &self.get_base().package_name
-    }
-
-    pub fn get_object_string(&self) -> &str {
-        self.get_name()
-    }
-
-    pub const fn get_object_type(&self) -> &str {
-        self.as_str()
-    }
-
-    pub const fn get_relative_path(&self) -> &String {
-        &self.get_base().original_file_path
-    }
-
-    pub fn get_materialization(&self) -> Option<&Materialization> {
-        match self {
-            Self::Model(_) => self
-                .get_base()
-                .config
-                .as_ref()
-                .and_then(|c| c.materialized.as_ref()),
-            _ => None,
         }
     }
 }
@@ -257,89 +174,6 @@ impl HasCode for Node {
     fn get_object_type(&self) -> &str {
         self.get_object_type()
     }
-}
-
-#[derive(Debug, Deserialize)]
-#[allow(dead_code)]
-pub struct FileHash {
-    pub name: String,
-    pub checksum: String,
-}
-
-#[derive(Debug, Deserialize)]
-#[allow(dead_code)]
-pub struct DependsOn {
-    pub nodes: Option<Vec<String>>,
-    pub macros: Option<Vec<String>>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct NodeConfig {
-    pub contract: Option<Contract>,
-    pub materialized: Option<Materialization>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct Contract {
-    pub enforced: bool,
-    #[allow(dead_code)]
-    pub alias_types: bool,
-}
-
-// Base Layer: Core fields ALL nodes have
-#[derive(Debug, Deserialize)]
-#[allow(dead_code)]
-pub struct NodeBase {
-    pub database: Option<String>,
-    pub schema: String,
-    pub name: String,
-    pub package_name: String,
-    pub path: String,
-    pub original_file_path: String,
-    pub unique_id: String,
-    pub fqn: Vec<String>,
-    pub alias: String,
-    pub checksum: FileHash,
-
-    // Common optional fields
-    pub tags: Option<Tags>,
-    pub description: Option<String>,
-    pub meta: Option<Meta>,
-    pub columns: Option<HashMap<String, Column>>,
-    pub config: Option<NodeConfig>,
-    pub depends_on: DependsOn,
-    pub raw_code: Option<String>,
-    // Currently unused fields that do exist in the data
-    // pub group: Option<String>,
-    // pub docs: Option<NodeDocs>,
-    // pub patch_path: Option<String>,
-    // pub build_path: Option<String>,
-    // pub unrendered_config: Option<serde_json::Value>,
-    // pub created_at: Option<f64>,
-    // pub config_call_dict: Option<serde_json::Value>,
-    // pub unrendered_config_call_dict: Option<serde_json::Value>,
-    // pub relation_name: Option<String>,
-    // pub doc_blocks: Option<Vec<String>>,
-    // pub root_path: Option<String>,
-}
-
-// Layer 2: Compiled node specific fields
-#[derive(Debug, Deserialize)]
-#[allow(dead_code)]
-pub struct CompiledNodeFields {
-    pub language: Option<String>,
-    // Currently unused fields that do exist in the data
-    // pub refs: Option<Vec<serde_json::Value>>,
-    // pub sources: Option<Vec<serde_json::Value>>,
-    // pub metrics: Option<Vec<serde_json::Value>>,
-    // pub compiled_path: Option<String>,
-    // pub compiled: Option<bool>,
-    // pub compiled_code: Option<String>,
-    // pub extra_ctes_injected: Option<bool>,
-    // pub extra_ctes: Option<Vec<serde_json::Value>>,
-    // #[serde(rename = "_pre_injected_sql")]
-    // pub pre_injected_sql: Option<String>,
-    // pub contract: Option<serde_json::Value>,
 }
 
 impl ChildMappable for Node {

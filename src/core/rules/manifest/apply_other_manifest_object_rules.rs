@@ -1,3 +1,4 @@
+use crate::core::config::applies_to::RuleTargetable;
 use crate::core::rules::rule_config::{
     check_name_convention, has_description, has_metadata_keys, has_refs, has_tags, has_unique_test,
     is_not_orphaned, max_code_lines,

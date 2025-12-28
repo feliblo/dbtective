@@ -1,8 +1,6 @@
-use crate::core::catalog::{
-    columns::CatalogColumn, resource_metadata::CatalogResourceMetadata, stats::CatalogStat,
-};
-
-use crate::core::rules::common_traits::Columnable;
+use super::columns::CatalogColumn;
+use super::resource_metadata::CatalogResourceMetadata;
+use super::stats::CatalogStat;
 use serde::{Deserialize, Deserializer};
 use std::collections::HashMap;
 
@@ -56,19 +54,7 @@ impl CatalogNode {
     pub fn get_unique_id(&self) -> &str {
         &self.get_base().unique_id
     }
-}
 
-impl<'de> Deserialize<'de> for CatalogNode {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let base = CatalogNodeBase::deserialize(deserializer)?;
-        Self::from_base(base).map_err(serde::de::Error::custom)
-    }
-}
-
-impl CatalogNode {
     #[allow(dead_code)]
     pub const fn as_str(&self) -> &str {
         match self {
@@ -82,11 +68,11 @@ impl CatalogNode {
         }
     }
 
-    const fn get_object_type(&self) -> &str {
+    pub const fn get_object_type(&self) -> &str {
         self.as_str()
     }
 
-    fn get_object_string(&self) -> &str {
+    pub fn get_object_string(&self) -> &str {
         self.get_name()
     }
 
@@ -104,69 +90,16 @@ impl CatalogNode {
     }
 }
 
-impl Columnable for CatalogNode {
-    fn get_column_names(&self) -> Option<Vec<&String>> {
-        self.get_base()
-            .columns
-            .keys()
-            .collect::<Vec<&String>>()
-            .into()
-    }
-
-    // Column descriptions are not available in the catalog.
-    // Find them by corresponding with the unique_id to the manifest.
-    fn get_columns_with_descriptions(&self) -> Option<Vec<(&String, &String)>> {
-        None
-    }
-
-    fn get_columns_with_types(&self) -> Option<Vec<(&String, &String)>> {
-        self.get_base()
-            .columns
-            .iter()
-            .map(|(name, col)| (name, &col.type_))
-            .collect::<Vec<(&String, &String)>>()
-            .into()
-    }
-
-    fn get_object_type(&self) -> &str {
-        self.get_object_type()
-    }
-
-    fn get_object_string(&self) -> &str {
-        self.get_object_string()
-    }
-
-    // Paths are only available in manifest objects
-    fn get_relative_path(&self) -> Option<&String> {
-        None
+impl<'de> Deserialize<'de> for CatalogNode {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let base = CatalogNodeBase::deserialize(deserializer)?;
+        Self::from_base(base).map_err(serde::de::Error::custom)
     }
 }
 
-impl Columnable for &CatalogNode {
-    fn get_column_names(&self) -> Option<Vec<&String>> {
-        (*self).get_column_names()
-    }
-
-    fn get_columns_with_descriptions(&self) -> Option<Vec<(&String, &String)>> {
-        (*self).get_columns_with_descriptions()
-    }
-
-    fn get_columns_with_types(&self) -> Option<Vec<(&String, &String)>> {
-        (*self).get_columns_with_types()
-    }
-
-    fn get_object_type(&self) -> &str {
-        (*self).get_object_type()
-    }
-
-    fn get_object_string(&self) -> &str {
-        (*self).get_object_string()
-    }
-    // Paths are only available in manifest objects
-    fn get_relative_path(&self) -> Option<&String> {
-        None
-    }
-}
 // Specific node types
 #[derive(Debug, Deserialize)]
 #[allow(dead_code)]

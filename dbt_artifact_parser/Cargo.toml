@@ -1,0 +1,34 @@
+[package]
+name = "dbt_artifact_parser"
+version = "0.1.0"
+edition = "2021"
+description = "Parser for dbt manifest and catalog JSON artifacts"
+license = "MIT"
+repository = "https://github.com/feliblo/dbtective"
+readme = "../README.md"
+keywords = ["dbt", "manifest", "catalog", "parser", "json"]
+categories = ["parsing", "data-structures"]
+
+[features]
+default = []
+test-helpers = []
+
+[lints.clippy]
+all = { level = "deny", priority = -1 }
+pedantic = { level = "deny", priority = -1 }
+nursery = { level = "deny", priority = -1 }
+cargo = { level = "deny", priority = -1 }
+multiple_crate_versions = "allow"
+struct_field_names = "allow"
+module_name_repetitions = "allow"
+must_use_candidate = "allow"
+
+[lints.rust]
+unused_imports = "deny"
+warnings = "deny"
+
+[dependencies]
+anyhow = "1.0.100"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.145"
+serde_path_to_error = "0.1.20"

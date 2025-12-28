@@ -9,8 +9,8 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
 
-use crate::core::catalog::nodes::CatalogNode;
-use crate::core::catalog::source::CatalogSource;
+use super::nodes::CatalogNode;
+use super::source::CatalogSource;
 
 enum AllowedCatalogVersions {
     V1,
@@ -65,7 +65,7 @@ impl Catalog {
         let mut de = serde_json::Deserializer::from_reader(reader);
         let catalog: Self = serde_path_to_error::deserialize(&mut de)
             .inspect_err(|e| {
-                dbg!(e.path().to_string(), e.inner());
+                println!("{}", e.path());
             })
             .context(format!(
                 "Unable to parse catalog JSON, delete it from {} and regenerate using 'dbt docs generate'\nSee: \x1b]8;;https://docs.getdbt.com/reference/artifacts/catalog-json\x1b\\dbt catalog documentation\x1b]8;;\x1b\\",

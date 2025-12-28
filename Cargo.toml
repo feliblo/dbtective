@@ -1,5 +1,5 @@
 [workspace]
-members = ["."]
+members = [".", "dbt_artifact_parser"]
 
 [package]
 name = "dbtective"
@@ -32,6 +32,7 @@ unused_imports = "deny"
 warnings = "deny"
 
 [dependencies]
+dbt_artifact_parser = { path = "dbt_artifact_parser" }
 anyhow = "1.0.100"
 clap = { version = "4.5.48", features = ["derive"] }
 env_logger = "0.11.8"
@@ -46,10 +47,10 @@ strum = "0.27.2"
 strum_macros = "0.27.2"
 tabled = { version = "0.20.0", features = ["ansi"] }
 terminal_size = "0.4.3"
-serde_path_to_error = "0.1.20"
 
 [dev-dependencies]
 tempfile = "3.23.0"
+dbt_artifact_parser = { path = "dbt_artifact_parser", features = ["test-helpers"] }
 
 # The profile that 'dist' will build with
 [profile.dist]

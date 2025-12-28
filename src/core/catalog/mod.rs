@@ -1,6 +1,7 @@
-pub mod columns;
-pub mod nodes;
-pub mod parse_catalog;
-pub mod resource_metadata;
-pub mod source;
-pub mod stats;
+// Re-export types from dbt_artifact_parser
+#[allow(unused_imports)]
+pub use dbt_artifact_parser::catalog::{Catalog, CatalogNode, CatalogSource};
+
+// Trait implementations for catalog types
+mod node_impls;
+mod source_impls;

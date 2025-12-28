@@ -1,7 +1,13 @@
-use crate::core::manifest::dbt_objects::nodes::test::Test;
-
-use super::dbt_objects::{Node, Source};
-use super::{Exposure, Group, Macro, Metric, SavedQuery, SemanticModel, UnitTest};
+use super::exposure::Exposure;
+use super::group::Group;
+use super::macro_obj::Macro;
+use super::metric::Metric;
+use super::nodes::node::Node;
+use super::nodes::test::Test;
+use super::saved_query::SavedQuery;
+use super::semantic_model::SemanticModel;
+use super::source::Source;
+use super::unit_test::UnitTest;
 use anyhow::{Context, Result};
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -12,6 +18,7 @@ use std::path::Path;
 enum AllowedManifestVersions {
     V12, // v12 and v20 are identical
 }
+
 // https://docs.getdbt.com/reference/artifacts/manifest-json
 impl AllowedManifestVersions {
     fn from_str(version: &str) -> Option<Self> {
@@ -36,25 +43,35 @@ pub fn check_manifest_version(dbt_schema_version: &str) -> Result<bool> {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Default)]
 #[allow(dead_code)]
 // Valid manifest according to manifest version v12
 pub struct Manifest {
+    #[serde(default)]
     pub metadata: ManifestMetadata,
+    #[serde(default)]
     pub nodes: HashMap<String, Node>,
+    #[serde(default)]
     pub sources: HashMap<String, Source>,
+    #[serde(default)]
     pub macros: HashMap<String, Macro>,
-    // pub docs: HashMap<String, Documentation>,
+    #[serde(default)]
     pub exposures: HashMap<String, Exposure>,
+    #[serde(default)]
     pub metrics: HashMap<String, Metric>,
+    #[serde(default)]
     pub groups: HashMap<String, Group>,
-    // pub selectors: HashMap<String, Selector>,
-    // pub disabled: HashMap<String, Vec<DisabledResource>>,
+    #[serde(default)]
     pub parent_map: HashMap<String, Vec<String>>,
+    #[serde(default)]
     pub child_map: HashMap<String, Vec<String>>,
+    #[serde(default)]
     pub group_map: HashMap<String, Vec<String>>,
+    #[serde(default)]
     pub saved_queries: HashMap<String, SavedQuery>,
+    #[serde(default)]
     pub semantic_models: HashMap<String, SemanticModel>,
+    #[serde(default)]
     pub unit_tests: HashMap<String, UnitTest>,
 }
 
@@ -109,7 +126,7 @@ impl Manifest {
 
         let mut manifest: Self = serde_path_to_error::deserialize(&mut de)
             .inspect_err(|e| {
-                dbg!(e.path().to_string(), e.inner());
+                println!("{}", e.path());
             })
             .context(format!(
                 "Unable to parse manifest JSON, delete it from {} and regenerate using eligible dbt commands.\n\
@@ -146,24 +163,29 @@ impl Manifest {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Default)]
 #[allow(dead_code)]
 pub struct ManifestMetadata {
+    #[serde(default)]
     pub dbt_schema_version: String,
+    #[serde(default)]
     pub dbt_version: String,
+    #[serde(default)]
     pub generated_at: String,
     pub invocation_id: Option<String>,
     pub invocation_started_at: Option<String>,
+    #[serde(default)]
     pub env: HashMap<String, String>,
     pub project_name: Option<String>,
     pub project_id: Option<String>,
     pub user_id: Option<String>,
     pub send_anonymous_usage_stats: Option<bool>,
     pub adapter_type: Option<String>,
+    #[serde(default)]
     pub quoting: Quoting,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Default)]
 #[allow(dead_code)]
 pub struct Quoting {
     pub database: Option<bool>,
@@ -176,70 +198,6 @@ pub struct Quoting {
 mod tests {
     use super::*;
     use std::path::PathBuf;
-
-    // Provide default implementations for testing other modules
-    impl Default for Manifest {
-        fn default() -> Self {
-            Self {
-                metadata: ManifestMetadata {
-                    dbt_schema_version: String::new(),
-                    dbt_version: String::new(),
-                    generated_at: String::new(),
-                    invocation_id: None,
-                    invocation_started_at: None,
-                    env: HashMap::new(),
-                    project_name: None,
-                    project_id: None,
-                    user_id: None,
-                    send_anonymous_usage_stats: None,
-                    adapter_type: None,
-                    quoting: Quoting {
-                        database: None,
-                        schema: None,
-                        identifier: None,
-                        column: None,
-                    },
-                },
-                nodes: HashMap::new(),
-                sources: HashMap::new(),
-                macros: HashMap::new(),
-                exposures: HashMap::new(),
-                metrics: HashMap::new(),
-                groups: HashMap::new(),
-                parent_map: HashMap::new(),
-                child_map: HashMap::new(),
-                group_map: HashMap::new(),
-                saved_queries: HashMap::new(),
-                semantic_models: HashMap::new(),
-                unit_tests: HashMap::new(),
-            }
-        }
-    }
-
-    // Provide default implementations for testing other modules
-    impl Default for ManifestMetadata {
-        fn default() -> Self {
-            Self {
-                dbt_schema_version: String::new(),
-                dbt_version: String::new(),
-                generated_at: String::new(),
-                invocation_id: None,
-                invocation_started_at: None,
-                env: HashMap::new(),
-                project_name: None,
-                project_id: None,
-                user_id: None,
-                send_anonymous_usage_stats: None,
-                adapter_type: None,
-                quoting: Quoting {
-                    database: None,
-                    schema: None,
-                    identifier: None,
-                    column: None,
-                },
-            }
-        }
-    }
 
     #[test]
     fn test_load_manifest_invalid_path() {

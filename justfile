@@ -22,10 +22,9 @@ lint:
     cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
 
 # Needs Hugo and Go installed
+[working-directory: 'docs']
 setup-docs:
-    cd docs
     hugo mod tidy
-    cd ..
 
 docs:
     hugo server --logLevel debug --disableFastRender --baseURL http://localhost:1313/ -p 1313 -s docs
