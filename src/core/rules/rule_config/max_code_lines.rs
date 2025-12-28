@@ -68,16 +68,10 @@ mod tests {
 
     #[test]
     fn test_max_code_lines() {
-        let rule = ManifestRule {
-            name: Some("Max Code Lines".to_string()),
-            severity: Severity::Warning,
-            applies_to: None,
-            model_materializations: None,
-            includes: None,
-            excludes: None,
-            description: None,
-            rule: ManifestSpecificRuleConfig::MaxCodeLines { max_lines: 5 },
-        };
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::MaxCodeLines { max_lines: 5 },
+            Severity::Warning,
+        );
 
         let test_node = TestNode {
             name: "Test Model".to_string(),
@@ -96,16 +90,10 @@ mod tests {
 
     #[test]
     fn test_max_code_lines_no_code() {
-        let rule = ManifestRule {
-            name: Some("Max Code Lines".to_string()),
-            severity: Severity::Warning,
-            applies_to: None,
-            model_materializations: None,
-            includes: None,
-            excludes: None,
-            description: None,
-            rule: ManifestSpecificRuleConfig::MaxCodeLines { max_lines: 5 },
-        };
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::MaxCodeLines { max_lines: 5 },
+            Severity::Warning,
+        );
         let test_node = TestNode {
             name: "Test Model".to_string(),
             code: None,
@@ -118,16 +106,10 @@ mod tests {
 
     #[test]
     fn test_max_code_lines_empty_code() {
-        let rule = ManifestRule {
-            name: Some("Max Code Lines".to_string()),
-            severity: Severity::Warning,
-            applies_to: None,
-            model_materializations: None,
-            includes: None,
-            excludes: None,
-            description: None,
-            rule: ManifestSpecificRuleConfig::MaxCodeLines { max_lines: 5 },
-        };
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::MaxCodeLines { max_lines: 5 },
+            Severity::Warning,
+        );
         let test_node = TestNode {
             name: "Test Model".to_string(),
             code: Some(String::new()),
@@ -139,16 +121,10 @@ mod tests {
     }
     #[test]
     fn test_max_code_lines_below_limit() {
-        let rule = ManifestRule {
-            name: Some("Max Code Lines".to_string()),
-            severity: Severity::Warning,
-            applies_to: None,
-            model_materializations: None,
-            includes: None,
-            excludes: None,
-            description: None,
-            rule: ManifestSpecificRuleConfig::MaxCodeLines { max_lines: 5 },
-        };
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::MaxCodeLines { max_lines: 5 },
+            Severity::Warning,
+        );
         let test_node = TestNode {
             name: "Test Model".to_string(),
             code: Some("line1\nline2".to_string()),
@@ -160,16 +136,10 @@ mod tests {
 
     #[test]
     fn test_max_code_lines_exact_limit() {
-        let rule = ManifestRule {
-            name: Some("Max Code Lines".to_string()),
-            severity: Severity::Warning,
-            applies_to: None,
-            model_materializations: None,
-            includes: None,
-            excludes: None,
-            description: None,
-            rule: ManifestSpecificRuleConfig::MaxCodeLines { max_lines: 5 },
-        };
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::MaxCodeLines { max_lines: 5 },
+            Severity::Warning,
+        );
         let test_node = TestNode {
             name: "Test Model".to_string(),
             code: Some("line1\nline2\nline3\nline4\nline5   ".to_string()),
@@ -181,16 +151,10 @@ mod tests {
 
     #[test]
     fn test_max_code_lines_above_limit() {
-        let rule = ManifestRule {
-            name: Some("Max Code Lines".to_string()),
-            severity: Severity::Warning,
-            applies_to: None,
-            model_materializations: None,
-            includes: None,
-            excludes: None,
-            description: None,
-            rule: ManifestSpecificRuleConfig::MaxCodeLines { max_lines: 5 },
-        };
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::MaxCodeLines { max_lines: 5 },
+            Severity::Warning,
+        );
         let test_node = TestNode {
             name: "Test Model".to_string(),
             code: Some("line1\nline2\nline3\nline4\nline5\nline6".to_string()),

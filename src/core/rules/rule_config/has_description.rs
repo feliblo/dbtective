@@ -31,9 +31,7 @@ pub fn has_description<T: Descriptable>(
 
 #[cfg(test)]
 mod tests {
-    use crate::core::config::{
-        applies_to::AppliesTo, manifest_rule::ManifestSpecificRuleConfig, severity::Severity,
-    };
+    use crate::core::config::{manifest_rule::ManifestSpecificRuleConfig, severity::Severity};
 
     use super::*;
 
@@ -57,16 +55,10 @@ mod tests {
 
     #[test]
     fn test_check_warning() {
-        let rule = ManifestRule {
-            name: Some("has_description".to_string()),
-            severity: Severity::Warning,
-            description: None,
-            applies_to: Some(AppliesTo::empty()),
-            includes: None,
-            excludes: None,
-            model_materializations: None,
-            rule: ManifestSpecificRuleConfig::HasDescription {},
-        };
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::HasDescription {},
+            Severity::Warning,
+        );
         let node_with_desc = TestNode {
             name: "TestNode1".to_string(),
             description: Some("This is a test node.".to_string()),
@@ -87,18 +79,13 @@ mod tests {
             ))
         );
     }
+
     #[test]
     fn test_check_error() {
-        let rule = ManifestRule {
-            name: Some("has_description".to_string()),
-            severity: Severity::Error,
-            description: None,
-            applies_to: None,
-            includes: None,
-            excludes: None,
-            model_materializations: None,
-            rule: ManifestSpecificRuleConfig::HasDescription {},
-        };
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::HasDescription {},
+            Severity::Error,
+        );
         let node_with_desc = TestNode {
             name: "TestNode3".to_string(),
             description: Some("This is another test node.".to_string()),
@@ -122,16 +109,10 @@ mod tests {
 
     #[test]
     fn test_check_nonempty_description() {
-        let rule = ManifestRule {
-            name: Some("has_description".to_string()),
-            severity: Severity::Warning,
-            description: None,
-            includes: None,
-            excludes: None,
-            applies_to: None,
-            model_materializations: None,
-            rule: ManifestSpecificRuleConfig::HasDescription {},
-        };
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::HasDescription {},
+            Severity::Warning,
+        );
         let node_with_empty_desc = TestNode {
             name: "TestNode5".to_string(),
             description: Some("This is a valid description".to_string()),

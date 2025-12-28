@@ -152,17 +152,10 @@ mod tests {
     }
 
     fn create_test_catalog_rule() -> CatalogRule {
-        CatalogRule {
-            name: Some("columns_are_documented".to_string()),
-            severity: crate::core::config::severity::Severity::Warning,
-            applies_to: None,
-            model_materializations: None,
-            description: None,
-            includes: None,
-            excludes: None,
-            rule:
-                crate::core::config::catalog_rule::CatalogSpecificRuleConfig::ColumnsAllDocumented {},
-        }
+        CatalogRule::from_specific_rule(
+            crate::core::config::catalog_rule::CatalogSpecificRuleConfig::ColumnsAllDocumented {},
+            crate::core::config::severity::Severity::Warning,
+        )
     }
 
     fn create_test_manifest() -> Manifest {

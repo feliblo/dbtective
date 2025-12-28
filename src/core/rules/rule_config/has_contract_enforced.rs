@@ -50,16 +50,10 @@ mod tests {
     }
     #[test]
     fn test_has_contract_enforced() {
-        let rule = ManifestRule {
-            name: Some("Has Contract Enforced".to_string()),
-            severity: Severity::Warning,
-            applies_to: None,
-            includes: None,
-            excludes: None,
-            description: None,
-            model_materializations: None,
-            rule: ManifestSpecificRuleConfig::HasContractEnforced {},
-        };
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::HasContractEnforced {},
+            Severity::Warning,
+        );
         let model_with_enforced_contract = TestModel {
             name: "model_with_contract".to_string(),
             contract: Some(Contract {

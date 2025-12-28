@@ -91,6 +91,7 @@ pub fn has_tags<T: Tagable>(
 mod tests {
     use super::*;
     use crate::core::config::{manifest_rule::ManifestSpecificRuleConfig, severity::Severity};
+
     struct TestTagable {
         tags: Option<Tags>,
         object_type: String,
@@ -120,19 +121,13 @@ mod tests {
             relative_path: Some("models/my_model.sql".to_string()),
         };
         let required_tags = vec!["tag1".to_string(), "tag3".to_string()];
-        let rule = ManifestRule {
-            name: Some("has_tags".to_string()),
-            severity: Severity::Warning,
-            description: None,
-            applies_to: None,
-            model_materializations: None,
-            includes: None,
-            excludes: None,
-            rule: ManifestSpecificRuleConfig::HasTags {
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::HasTags {
                 criteria: HasTagsCriteria::All,
                 required_tags: required_tags.clone(),
             },
-        };
+            Severity::Warning,
+        );
         let criteria = HasTagsCriteria::Any;
         let result = has_tags(&tagable, &rule, &required_tags, &criteria);
         assert!(result.is_none());
@@ -150,19 +145,13 @@ mod tests {
             relative_path: Some("models/my_model.sql".to_string()),
         };
         let required_tags = vec!["tag1".to_string()];
-        let rule = ManifestRule {
-            name: Some("has_tags".to_string()),
-            severity: Severity::Error,
-            description: None,
-            applies_to: None,
-            model_materializations: None,
-            includes: None,
-            excludes: None,
-            rule: ManifestSpecificRuleConfig::HasTags {
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::HasTags {
                 criteria: HasTagsCriteria::All,
                 required_tags: required_tags.clone(),
             },
-        };
+            Severity::Warning,
+        );
         let criteria = HasTagsCriteria::All;
         let result = has_tags(&tagable, &rule, &required_tags, &criteria);
         assert!(result.is_some());
@@ -177,19 +166,13 @@ mod tests {
             relative_path: Some("models/my_model.sql".to_string()),
         };
         let required_tags = vec!["tag2".to_string(), "tag3".to_string()];
-        let rule = ManifestRule {
-            name: Some("has_tags".to_string()),
-            severity: Severity::Warning,
-            description: None,
-            applies_to: None,
-            model_materializations: None,
-            includes: None,
-            excludes: None,
-            rule: ManifestSpecificRuleConfig::HasTags {
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::HasTags {
                 criteria: HasTagsCriteria::OneOf,
                 required_tags: required_tags.clone(),
             },
-        };
+            Severity::Warning,
+        );
         let criteria = HasTagsCriteria::OneOf;
         let result = has_tags(&tagable, &rule, &required_tags, &criteria);
         assert!(result.is_none());

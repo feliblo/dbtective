@@ -153,19 +153,13 @@ mod tests {
     #[test]
     fn test_column_name_convention_passes_snake_case() {
         let convention = NamingConvention::from_pattern("snake_case").unwrap();
-        let rule = CatalogRule {
-            name: Some("columns_name_convention".to_string()),
-            severity: Severity::Warning,
-            applies_to: None,
-            model_materializations: None,
-            description: None,
-            includes: None,
-            excludes: None,
-            rule: CatalogSpecificRuleConfig::ColumnsNameConvention {
+        let rule = CatalogRule::from_specific_rule(
+            CatalogSpecificRuleConfig::ColumnsNameConvention {
                 convention: NamingConvention::from_pattern("snake_case").unwrap(),
                 data_types: None,
             },
-        };
+            Severity::Warning,
+        );
         let item = TestItem {
             name: "test_item".to_string(),
             columns: vec!["first_column".to_string(), "second_column".to_string()],
@@ -179,19 +173,13 @@ mod tests {
     #[test]
     fn test_column_name_convention_fails_snake_case() {
         let convention = NamingConvention::from_pattern("snake_case").unwrap();
-        let rule = CatalogRule {
-            name: Some("columns_name_convention".to_string()),
-            severity: Severity::Warning,
-            applies_to: None,
-            model_materializations: None,
-            description: None,
-            includes: None,
-            excludes: None,
-            rule: CatalogSpecificRuleConfig::ColumnsNameConvention {
+        let rule = CatalogRule::from_specific_rule(
+            CatalogSpecificRuleConfig::ColumnsNameConvention {
                 convention: NamingConvention::from_pattern("snake_case").unwrap(),
                 data_types: None,
             },
-        };
+            Severity::Warning,
+        );
         let item = TestItem {
             name: "test_item".to_string(),
             columns: vec!["FirstColumn".to_string(), "second_column".to_string()],
@@ -220,19 +208,13 @@ mod tests {
 
         for (i, pattern) in patterns.iter().enumerate() {
             let convention = NamingConvention::from_pattern(pattern).unwrap();
-            let rule = CatalogRule {
-                name: Some("columns_name_convention".to_string()),
-                severity: Severity::Warning,
-                applies_to: None,
-                model_materializations: None,
-                description: None,
-                includes: None,
-                excludes: None,
-                rule: CatalogSpecificRuleConfig::ColumnsNameConvention {
+            let rule = CatalogRule::from_specific_rule(
+                CatalogSpecificRuleConfig::ColumnsNameConvention {
                     convention: NamingConvention::from_pattern(pattern).unwrap(),
                     data_types: None,
                 },
-            };
+                Severity::Warning,
+            );
             let item = TestItem {
                 name: "test_item".to_string(),
                 columns: test_columns[i].iter().map(|s| (*s).to_string()).collect(),
@@ -257,19 +239,13 @@ mod tests {
 
         for (i, pattern) in patterns.iter().enumerate() {
             let convention = NamingConvention::from_pattern(pattern).unwrap();
-            let rule = CatalogRule {
-                name: Some("columns_name_convention".to_string()),
-                severity: Severity::Warning,
-                applies_to: None,
-                model_materializations: None,
-                description: None,
-                includes: None,
-                excludes: None,
-                rule: CatalogSpecificRuleConfig::ColumnsNameConvention {
+            let rule = CatalogRule::from_specific_rule(
+                CatalogSpecificRuleConfig::ColumnsNameConvention {
                     convention: NamingConvention::from_pattern(pattern).unwrap(),
                     data_types: None,
                 },
-            };
+                Severity::Warning,
+            );
             let item = TestItem {
                 name: "test_item".to_string(),
                 columns: test_columns[i].iter().map(|s| (*s).to_string()).collect(),
@@ -284,19 +260,13 @@ mod tests {
     #[test]
     fn test_column_name_convention_passes_custom_regex() {
         let convention = NamingConvention::from_pattern(r"^[a-z]{3}[0-9]{2}$").unwrap();
-        let rule = CatalogRule {
-            name: Some("columns_name_convention".to_string()),
-            severity: Severity::Warning,
-            applies_to: None,
-            model_materializations: None,
-            description: None,
-            includes: None,
-            excludes: None,
-            rule: CatalogSpecificRuleConfig::ColumnsNameConvention {
+        let rule = CatalogRule::from_specific_rule(
+            CatalogSpecificRuleConfig::ColumnsNameConvention {
                 convention: NamingConvention::from_pattern(r"^[a-z]{3}[0-9]{2}$").unwrap(),
                 data_types: None,
             },
-        };
+            Severity::Warning,
+        );
         let item = TestItem {
             name: "test_item".to_string(),
             columns: vec!["abc12".to_string(), "def34".to_string()],
@@ -310,19 +280,13 @@ mod tests {
     #[test]
     fn test_column_name_convention_fails_custom_regex() {
         let convention = NamingConvention::from_pattern(r"^[a-z]{3}[0-9]{2}$").unwrap();
-        let rule = CatalogRule {
-            name: Some("columns_name_convention".to_string()),
-            severity: Severity::Warning,
-            applies_to: None,
-            model_materializations: None,
-            description: None,
-            includes: None,
-            excludes: None,
-            rule: CatalogSpecificRuleConfig::ColumnsNameConvention {
+        let rule = CatalogRule::from_specific_rule(
+            CatalogSpecificRuleConfig::ColumnsNameConvention {
                 convention: NamingConvention::from_pattern(r"^[a-z]{3}[0-9]{2}$").unwrap(),
                 data_types: None,
             },
-        };
+            Severity::Warning,
+        );
         let item = TestItem {
             name: "test_item".to_string(),
             columns: vec!["ab12".to_string(), "defg34".to_string()],
