@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use dbtective::cli::table::{show_results_and_exit, RuleResult};
-use dbtective::core::catalog::parse_catalog::Catalog;
+use dbtective::core::catalog::Catalog;
 use dbtective::core::config::severity::Severity;
 use dbtective::core::config::Config;
 use dbtective::core::manifest::Manifest;

@@ -157,18 +157,28 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b05b61dc5112cbb17e4b6cd61790d9845d13888356391624cbe7e41efeac1e75"
 
 [[package]]
+name = "dbt_artifact_parser"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "serde_json",
+ "serde_path_to_error",
+]
+
+[[package]]
 name = "dbtective"
 version = "0.1.29"
 dependencies = [
  "anyhow",
  "clap",
+ "dbt_artifact_parser",
  "env_logger",
  "log",
  "owo-colors",
  "regex",
  "serde",
  "serde_json",
- "serde_path_to_error",
  "serde_yaml",
  "strum",
  "strum_macros",

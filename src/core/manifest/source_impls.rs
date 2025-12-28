@@ -1,89 +1,19 @@
-use std::collections::HashMap;
+// Trait implementations for Source that stay in dbtective
+use crate::core::config::applies_to::{RuleTarget, RuleTargetable};
+use crate::core::config::includes_excludes::IncludeExcludable;
+use crate::core::rules::common_traits::Columnable;
+use crate::core::rules::rule_config::child_map::ChildMappable;
+use crate::core::rules::rule_config::has_description::Descriptable;
+use crate::core::rules::rule_config::has_metadata_keys::HasMetadata;
+use crate::core::rules::rule_config::has_tags::Tagable;
+use crate::core::rules::rule_config::has_unique_test::TestAble;
+use crate::core::rules::rule_config::name_convention::NameAble;
+use dbt_artifact_parser::manifest::dbt_objects::{Meta, Tags};
+use dbt_artifact_parser::manifest::{Manifest, Source};
 
-// Sources aren't being treated as nodes in dbt. They have their own structure.
-// use super::column::Column;
-// use super::{Meta, Tags};
-use super::tags::Tags;
-use crate::core::{
-    config::{applies_to::RuleTarget, includes_excludes::IncludeExcludable},
-    manifest::{
-        dbt_objects::{column::Column, Meta},
-        Manifest,
-    },
-    rules::{
-        common_traits::Columnable,
-        rule_config::{
-            child_map::ChildMappable, has_description::Descriptable,
-            has_metadata_keys::HasMetadata, has_tags::Tagable, has_unique_test::TestAble,
-            name_convention::NameAble,
-        },
-    },
-};
-use serde::Deserialize;
-// use std::collections::HashMap;
-
-#[derive(Debug, Deserialize)]
-#[allow(dead_code)]
-pub struct Source {
-    // Required fields
-    pub database: Option<String>,
-    // pub schema: String,
-    pub name: String,
-    pub description: Option<String>,
-    // pub resource_type: String,
-    pub package_name: String,
-    // pub path: String,
-    pub original_file_path: String,
-    pub unique_id: String,
-    // pub fqn: Vec<String>,
-    // pub source_name: String,
-    // pub loader: String,
-    // pub identifier: String,
-
-    // // Optional fields
-    // pub quoting: Option<serde_json::Value>,
-    // pub loaded_at_field: Option<String>,
-    // pub loaded_at_query: Option<String>,
-    // pub freshness: Option<serde_json::Value>,
-    // pub external: Option<serde_json::Value>,
-    pub columns: Option<HashMap<String, Column>>,
-    pub meta: Option<Meta>,
-    // pub source_meta: Option<Meta>,
-    pub tags: Option<Tags>,
-    // pub config: Option<serde_json::Value>,
-    // pub patch_path: Option<String>,
-    // pub unrendered_config: Option<serde_json::Value>,
-    // pub relation_name: Option<String>,
-    // pub created_at: Option<f64>,
-    // pub unrendered_database: Option<String>,
-    // pub unrendered_schema: Option<String>,
-    // pub doc_blocks: Option<Vec<String>>,
-}
-
-impl Source {
-    pub const fn get_name(&self) -> &String {
-        &self.name
-    }
-
-    #[allow(clippy::unused_self)]
-    pub const fn ruletarget(&self) -> RuleTarget {
+impl RuleTargetable for Source {
+    fn ruletarget(&self) -> RuleTarget {
         RuleTarget::Sources
-    }
-
-    pub const fn get_package_name(&self) -> &String {
-        &self.package_name
-    }
-
-    pub const fn get_object_type() -> &'static str {
-        "Source"
-    }
-
-    pub const fn get_relative_path(&self) -> &String {
-        &self.original_file_path
-    }
-
-    pub const fn get_unique_id(&self) -> &String {
-        &self.unique_id
     }
 }
 

@@ -3,8 +3,8 @@ use anyhow::Result;
 use serde::Deserialize;
 
 use crate::core::config::applies_to::RuleTarget;
-use crate::core::config::materialization::Materialization;
 use crate::core::config::naming_convention::NamingConvention;
+use crate::core::config::Materialization;
 use crate::core::config::{applies_to::AppliesTo, severity::Severity};
 use strum_macros::{AsRefStr, EnumIter, EnumString};
 

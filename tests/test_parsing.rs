@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use dbtective::core::{
-    catalog::{nodes::CatalogNode, parse_catalog::Catalog},
+    catalog::{Catalog, CatalogNode},
     manifest::Manifest,
 };
 

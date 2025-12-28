@@ -1,6 +1,6 @@
 use crate::cli::commands::RunOptions;
 use crate::cli::table::{show_results_and_exit, RuleResult};
-use crate::core::catalog::parse_catalog::Catalog;
+use crate::core::catalog::Catalog;
 use crate::core::config::parse_config::resolve_config_path;
 use crate::core::config::severity::Severity;
 use crate::core::config::Config;

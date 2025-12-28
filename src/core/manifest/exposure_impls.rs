@@ -1,76 +1,17 @@
-use serde::Deserialize;
+// Trait implementations for Exposure that stay in dbtective
+use crate::core::config::applies_to::{RuleTarget, RuleTargetable};
+use crate::core::config::includes_excludes::IncludeExcludable;
+use crate::core::rules::rule_config::has_description::Descriptable;
+use crate::core::rules::rule_config::has_metadata_keys::HasMetadata;
+use crate::core::rules::rule_config::has_refs::CanReference;
+use crate::core::rules::rule_config::has_tags::Tagable;
+use crate::core::rules::rule_config::name_convention::NameAble;
+use dbt_artifact_parser::manifest::dbt_objects::{Meta, Tags};
+use dbt_artifact_parser::manifest::Exposure;
 
-use crate::core::{
-    config::{applies_to::RuleTarget, includes_excludes::IncludeExcludable},
-    manifest::dbt_objects::{Meta, Tags},
-    rules::rule_config::{
-        has_description::Descriptable, has_metadata_keys::HasMetadata, has_refs::CanReference,
-        has_tags::Tagable, name_convention::NameAble,
-    },
-};
-
-// #[derive(Debug, Deserialize)]
-// #[allow(dead_code)]
-// pub struct ExposureOwner {
-//     pub email: Option<String>,
-//     pub name: Option<String>,
-// }
-
-#[derive(Debug, Deserialize)]
-pub struct ExposureDependsOn {
-    #[allow(dead_code)]
-    pub macros: Option<Vec<String>>,
-    pub nodes: Option<Vec<String>>,
-}
-
-#[derive(Debug, Deserialize)]
-#[allow(dead_code)]
-pub struct Exposure {
-    pub name: String,
-    // pub reExposure_type: String,
-    pub package_name: String,
-    // pub path: String,
-    pub original_file_path: String,
-    // pub unique_id: String,
-    // pub fqn: Vec<String>,
-    // #[serde(rename = "type")]
-    // pub exposure_type: String,
-    // pub owner: ExposureOwner,
-    pub description: Option<String>,
-    // pub label: Option<String>,
-    // pub maturity: Option<String>,
-    pub meta: Option<Meta>,
-    pub tags: Option<Tags>,
-    // pub config: Option<serde_json::Value>,
-    // pub unrendered_config: Option<serde_json::Value>,
-    // pub url: Option<String>,
-    pub depends_on: ExposureDependsOn,
-    // pub refs: Option<Vec<serde_json::Value>>,
-    // pub Exposures: Option<Vec<serde_json::Value>>,
-    // pub metrics: Option<Vec<serde_json::Value>>,
-    // pub created_at: Option<f64>,
-}
-
-impl Exposure {
-    pub const fn get_name(&self) -> &String {
-        &self.name
-    }
-
-    #[allow(clippy::unused_self)]
-    pub const fn ruletarget(&self) -> RuleTarget {
+impl RuleTargetable for Exposure {
+    fn ruletarget(&self) -> RuleTarget {
         RuleTarget::Exposures
-    }
-
-    pub const fn get_package_name(&self) -> &String {
-        &self.package_name
-    }
-
-    pub const fn get_object_type() -> &'static str {
-        "Exposure"
-    }
-
-    pub const fn get_relative_path(&self) -> &String {
-        &self.original_file_path
     }
 }
 

@@ -1,35 +1,6 @@
-use serde::Deserialize;
-use std::collections::HashMap;
-
-use crate::core::{
-    catalog::{
-        columns::CatalogColumn, resource_metadata::CatalogResourceMetadata, stats::CatalogStat,
-    },
-    rules::common_traits::Columnable,
-};
-
-#[derive(Debug, Deserialize)]
-#[allow(dead_code)]
-pub struct CatalogSource {
-    pub unique_id: String,
-    pub metadata: CatalogResourceMetadata,
-    pub columns: HashMap<String, CatalogColumn>,
-    pub stats: HashMap<String, CatalogStat>,
-}
-
-impl CatalogSource {
-    pub fn get_name(&self) -> &str {
-        &self.metadata.name
-    }
-
-    pub fn get_unique_id(&self) -> &str {
-        &self.unique_id
-    }
-
-    pub const fn get_object_type() -> &'static str {
-        "Source"
-    }
-}
+// Trait implementations for CatalogSource that stay in dbtective
+use crate::core::rules::common_traits::Columnable;
+use dbt_artifact_parser::catalog::CatalogSource;
 
 impl Columnable for CatalogSource {
     fn get_column_names(&self) -> Option<Vec<&String>> {
@@ -84,6 +55,7 @@ impl Columnable for &CatalogSource {
     fn get_object_string(&self) -> &str {
         (*self).get_object_string()
     }
+
     // Paths are only available in manifest objects
     fn get_relative_path(&self) -> Option<&String> {
         None

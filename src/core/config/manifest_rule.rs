@@ -10,9 +10,9 @@ use crate::core::config::check_config_options::{
     default_allowed_references, default_allowed_test_names, default_max_code_lines,
     HasTagsCriteria, OrphanedReferenceType,
 };
-use crate::core::config::materialization::Materialization;
 use crate::core::config::naming_convention::NamingConvention;
 use crate::core::config::severity::Severity;
+use crate::core::config::Materialization;
 use strum_macros::{AsRefStr, EnumIter, EnumString};
 
 #[derive(Debug, Deserialize, EnumIter, AsRefStr, EnumString)]

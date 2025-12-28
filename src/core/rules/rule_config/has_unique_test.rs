@@ -1,13 +1,11 @@
 use crate::{
     cli::table::RuleResult,
-    core::{
-        config::manifest_rule::ManifestRule,
-        manifest::{dbt_objects::nodes, Manifest},
-    },
+    core::{config::manifest_rule::ManifestRule, manifest::Manifest},
 };
+use dbt_artifact_parser::manifest::nodes::Test;
 
 pub trait TestAble {
-    fn get_tests<'a>(&'a self, manifest: &'a Manifest) -> Vec<&'a nodes::test::Test> {
+    fn get_tests<'a>(&'a self, manifest: &'a Manifest) -> Vec<&'a Test> {
         let unique_id = self.get_unique_id();
         manifest.get_tests_by_parent(unique_id)
     }
@@ -58,14 +56,9 @@ mod tests {
             check_config_options::default_allowed_test_names,
             manifest_rule::ManifestSpecificRuleConfig, severity::Severity,
         },
-        manifest::{
-            dbt_objects::{
-                nodes::test::{Test, TestMetadata},
-                Node,
-            },
-            Manifest,
-        },
+        manifest::{Manifest, Node},
     };
+    use dbt_artifact_parser::manifest::nodes::TestMetadata;
 
     struct MockTestable {
         unique_id: String,

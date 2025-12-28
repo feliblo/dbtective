@@ -1,4 +1,5 @@
 use crate::cli::table::RuleResult;
+use crate::core::config::applies_to::RuleTargetable;
 use crate::core::config::manifest_rule::ManifestSpecificRuleConfig;
 use crate::core::rules::rule_config::{
     check_name_convention, child_map::is_not_orphaned, has_contract_enforced, has_description,

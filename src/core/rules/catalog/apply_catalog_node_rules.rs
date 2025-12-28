@@ -1,8 +1,11 @@
 use crate::{
     cli::table::RuleResult,
     core::{
-        catalog::parse_catalog::Catalog,
-        config::{catalog_rule::CatalogSpecificRuleConfig, severity::Severity, Config},
+        catalog::Catalog,
+        config::{
+            applies_to::RuleTargetable, catalog_rule::CatalogSpecificRuleConfig,
+            severity::Severity, Config,
+        },
         manifest::Manifest,
         rules::catalog::{
             column_name_convention, columns_are_documented, columns_have_description,

@@ -188,6 +188,11 @@ impl<'de> Deserialize<'de> for AppliesTo {
     }
 }
 
+/// Trait for types that can provide their `RuleTarget`
+pub trait RuleTargetable {
+    fn ruletarget(&self) -> RuleTarget;
+}
+
 #[cfg(test)]
 impl AppliesTo {
     pub fn empty() -> Self {
