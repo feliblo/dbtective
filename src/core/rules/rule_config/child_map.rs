@@ -70,8 +70,7 @@ mod tests {
     use crate::core::config::check_config_options::{
         default_allowed_references, OrphanedReferenceType,
     };
-    use crate::core::config::manifest_rule::ManifestRule;
-    use crate::core::config::manifest_rule::ManifestSpecificRuleConfig::IsNotOrphaned;
+    use crate::core::config::manifest_rule::{ManifestRule, ManifestSpecificRuleConfig};
     use crate::core::config::severity::Severity;
     use crate::core::manifest::Manifest;
     use crate::core::rules::rule_config::child_map::{is_not_orphaned, ChildMappable};
@@ -103,18 +102,12 @@ mod tests {
             childs: vec![],
         };
 
-        let rule = ManifestRule {
-            name: Some("is_not_orphaned".to_string()),
-            severity: Severity::Error,
-            description: None,
-            applies_to: None,
-            includes: None,
-            excludes: None,
-            model_materializations: None,
-            rule: IsNotOrphaned {
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::IsNotOrphaned {
                 allowed_references: default_allowed_references(),
             },
-        };
+            Severity::Error,
+        );
 
         let manifest = Manifest::default();
         let allowed_references = vec![OrphanedReferenceType::Models];
@@ -132,18 +125,12 @@ mod tests {
             childs: vec!["model.child_model"],
         };
 
-        let rule = ManifestRule {
-            name: Some("is_not_orphaned".to_string()),
-            severity: Severity::Error,
-            description: None,
-            applies_to: None,
-            includes: None,
-            excludes: None,
-            model_materializations: None,
-            rule: IsNotOrphaned {
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::IsNotOrphaned {
                 allowed_references: default_allowed_references(),
             },
-        };
+            Severity::Error,
+        );
 
         let manifest = Manifest::default();
         let allowed_references = vec![OrphanedReferenceType::Models];
@@ -160,18 +147,12 @@ mod tests {
             childs: vec!["seed.child_model"],
         };
 
-        let rule = ManifestRule {
-            name: Some("is_not_orphaned".to_string()),
-            severity: Severity::Error,
-            description: None,
-            applies_to: None,
-            includes: None,
-            excludes: None,
-            model_materializations: None,
-            rule: IsNotOrphaned {
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::IsNotOrphaned {
                 allowed_references: default_allowed_references(),
             },
-        };
+            Severity::Error,
+        );
 
         let manifest = Manifest::default();
         let allowed_references = vec![OrphanedReferenceType::Exposures];

@@ -215,3 +215,21 @@ fn applies_to_options_for_catalog_rule(rule_type: &CatalogSpecificRuleConfig) ->
         },
     }
 }
+
+#[cfg(test)]
+impl CatalogRule {
+    /// Create a `CatalogRule` with sensible defaults for testing.
+    /// Name defaults to the rule type name.
+    pub fn from_specific_rule(rule: CatalogSpecificRuleConfig, severity: Severity) -> Self {
+        Self {
+            name: Some(rule.as_str().to_string()),
+            severity,
+            applies_to: None,
+            includes: None,
+            excludes: None,
+            description: None,
+            model_materializations: None,
+            rule,
+        }
+    }
+}

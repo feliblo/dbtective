@@ -110,18 +110,12 @@ mod tests {
     #[test]
     fn test_has_unique_test_found() {
         let manifest = create_test_manifest(vec![create_mock_test("unique", "model.my_model")]);
-        let rule = ManifestRule {
-            name: Some(String::new()),
-            severity: Severity::Error,
-            description: None,
-            applies_to: None,
-            model_materializations: None,
-            includes: None,
-            excludes: None,
-            rule: ManifestSpecificRuleConfig::HasUniqueTest {
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::HasUniqueTest {
                 allowed_test_names: default_allowed_test_names(),
             },
-        };
+            Severity::Error,
+        );
         let allowed = vec!["unique".to_string()];
         let testable = MockTestable {
             unique_id: "model.my_model".to_string(),
@@ -136,22 +130,15 @@ mod tests {
     #[test]
     fn test_has_unique_test_not_found() {
         let manifest = create_test_manifest(vec![]);
-        let rule = ManifestRule {
-            name: Some(String::new()),
-            severity: Severity::Error,
-            description: None,
-            applies_to: None,
-            model_materializations: None,
-            includes: None,
-            excludes: None,
-            rule: ManifestSpecificRuleConfig::HasUniqueTest {
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::HasUniqueTest {
                 allowed_test_names: default_allowed_test_names(),
             },
-        };
+            Severity::Error,
+        );
         let allowed = vec!["unique".to_string()];
         let testable = MockTestable {
             unique_id: "model.my_model".to_string(),
-
             object_type: "model".to_string(),
             object_string: "my_model".to_string(),
             relative_path: Some("models/my_model.sql".to_string()),
@@ -161,7 +148,7 @@ mod tests {
         assert!(result.is_some());
         let rule_result = result.unwrap();
         assert_eq!(rule_result.object_type, "model");
-        assert_eq!(rule_result.rule_name, "");
+        assert_eq!(rule_result.rule_name, "has_unique_test");
         assert_eq!(
             rule_result.message,
             "my_model does should have a unique test"
@@ -175,18 +162,12 @@ mod tests {
     #[test]
     fn test_has_unique_test_with_not_allowed_name() {
         let manifest = create_test_manifest(vec![create_mock_test("not_unique", "model.my_model")]);
-        let rule = ManifestRule {
-            name: Some(String::new()),
-            severity: Severity::Error,
-            description: None,
-            applies_to: None,
-            model_materializations: None,
-            includes: None,
-            excludes: None,
-            rule: ManifestSpecificRuleConfig::HasUniqueTest {
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::HasUniqueTest {
                 allowed_test_names: default_allowed_test_names(),
             },
-        };
+            Severity::Error,
+        );
         let allowed = vec!["unique".to_string()];
         let testable = MockTestable {
             unique_id: "model.my_model".to_string(),
@@ -208,18 +189,12 @@ mod tests {
             "custom_unique_test",
             "model.my_model",
         )]);
-        let rule = ManifestRule {
-            name: Some(String::new()),
-            severity: Severity::Error,
-            description: None,
-            applies_to: None,
-            model_materializations: None,
-            includes: None,
-            excludes: None,
-            rule: ManifestSpecificRuleConfig::HasUniqueTest {
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::HasUniqueTest {
                 allowed_test_names: vec!["custom_unique_test".to_string()],
             },
-        };
+            Severity::Error,
+        );
         let allowed = vec!["custom_unique_test".to_string()];
         let testable = MockTestable {
             unique_id: "model.my_model".to_string(),

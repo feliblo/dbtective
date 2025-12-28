@@ -126,17 +126,10 @@ mod tests {
     }
 
     fn create_test_catalog_rule() -> CatalogRule {
-        CatalogRule {
-            name: Some("columns_have_description".to_string()),
-            severity: crate::core::config::severity::Severity::Warning,
-            applies_to: None,
-            model_materializations: None,
-            description: None,
-            includes: None,
-            excludes: None,
-            rule:
-                crate::core::config::catalog_rule::CatalogSpecificRuleConfig::ColumnsHaveDescription {  },
-        }
+        CatalogRule::from_specific_rule(
+            crate::core::config::catalog_rule::CatalogSpecificRuleConfig::ColumnsHaveDescription {},
+            crate::core::config::severity::Severity::Warning,
+        )
     }
 
     #[test]

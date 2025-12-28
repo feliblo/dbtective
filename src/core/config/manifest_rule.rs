@@ -373,3 +373,21 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
         },
     }
 }
+
+#[cfg(test)]
+impl ManifestRule {
+    /// Create a `ManifestRule` with sensible defaults for testing.
+    /// Name defaults to the rule type name.
+    pub fn from_specific_rule(rule: ManifestSpecificRuleConfig, severity: Severity) -> Self {
+        Self {
+            name: Some(rule.as_str().to_string()),
+            severity,
+            applies_to: None,
+            includes: None,
+            excludes: None,
+            description: None,
+            model_materializations: None,
+            rule,
+        }
+    }
+}

@@ -192,18 +192,3 @@ impl<'de> Deserialize<'de> for AppliesTo {
 pub trait RuleTargetable {
     fn ruletarget(&self) -> RuleTarget;
 }
-
-#[cfg(test)]
-impl AppliesTo {
-    pub fn empty() -> Self {
-        Self {
-            node_objects: vec![],
-            source_objects: vec![],
-            unit_test_objects: vec![],
-            macro_objects: vec![],
-            exposure_objects: vec![],
-            semantic_model_objects: vec![],
-            custom_objects: vec![],
-        }
-    }
-}

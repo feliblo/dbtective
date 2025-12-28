@@ -37,9 +37,7 @@ pub fn check_name_convention<T: NameAble>(
 
 #[cfg(test)]
 mod tests {
-    use crate::core::config::{
-        applies_to::AppliesTo, manifest_rule::ManifestSpecificRuleConfig, severity::Severity,
-    };
+    use crate::core::config::{manifest_rule::ManifestSpecificRuleConfig, severity::Severity};
 
     use super::*;
     struct TestItem {
@@ -62,18 +60,12 @@ mod tests {
     #[test]
     fn test_name_convention_snake_case() {
         let convention = NamingConvention::from_pattern("snake_case").unwrap();
-        let rule = ManifestRule {
-            name: Some("name_convention".to_string()),
-            severity: Severity::Warning,
-            description: None,
-            applies_to: Some(AppliesTo::empty()),
-            model_materializations: None,
-            includes: None,
-            excludes: None,
-            rule: ManifestSpecificRuleConfig::NameConvention {
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::NameConvention {
                 convention: NamingConvention::from_pattern("snake_case").unwrap(),
             },
-        };
+            Severity::Warning,
+        );
         let item = TestItem {
             name: "test_item".to_string(),
         };
@@ -96,18 +88,12 @@ mod tests {
     #[test]
     fn test_name_convention_pascal_case() {
         let convention = NamingConvention::from_pattern("PascalCase").unwrap();
-        let rule = ManifestRule {
-            name: Some("name_convention".to_string()),
-            severity: Severity::Error,
-            description: None,
-            applies_to: Some(AppliesTo::empty()),
-            model_materializations: None,
-            includes: None,
-            excludes: None,
-            rule: ManifestSpecificRuleConfig::NameConvention {
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::NameConvention {
                 convention: NamingConvention::from_pattern("PascalCase").unwrap(),
             },
-        };
+            Severity::Error,
+        );
         let item = TestItem {
             name: "TestItem".to_string(),
         };
@@ -130,18 +116,12 @@ mod tests {
     #[test]
     fn test_name_convention_kebab_case() {
         let convention = NamingConvention::from_pattern("kebab-case").unwrap();
-        let rule = ManifestRule {
-            name: Some("name_convention".to_string()),
-            severity: Severity::Warning,
-            description: None,
-            applies_to: Some(AppliesTo::empty()),
-            model_materializations: None,
-            includes: None,
-            excludes: None,
-            rule: ManifestSpecificRuleConfig::NameConvention {
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::NameConvention {
                 convention: NamingConvention::from_pattern("kebab-case").unwrap(),
             },
-        };
+            Severity::Warning,
+        );
         let item = TestItem {
             name: "test-item".to_string(),
         };
@@ -164,18 +144,12 @@ mod tests {
     #[test]
     fn test_name_convention_camel_case() {
         let convention = NamingConvention::from_pattern("camelCase").unwrap();
-        let rule = ManifestRule {
-            name: Some("name_convention".to_string()),
-            severity: Severity::Error,
-            description: None,
-            applies_to: Some(AppliesTo::empty()),
-            model_materializations: None,
-            includes: None,
-            excludes: None,
-            rule: ManifestSpecificRuleConfig::NameConvention {
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::NameConvention {
                 convention: NamingConvention::from_pattern("camelCase").unwrap(),
             },
-        };
+            Severity::Error,
+        );
         let item = TestItem {
             name: "testItem".to_string(),
         };
@@ -198,18 +172,12 @@ mod tests {
     #[test]
     fn test_name_convention_custom_regex() {
         let convention = NamingConvention::from_pattern(r"^[A-Z]{3}-[0-9]{4}$").unwrap();
-        let rule = ManifestRule {
-            name: Some("name_convention".to_string()),
-            severity: Severity::Warning,
-            description: None,
-            applies_to: Some(AppliesTo::empty()),
-            includes: None,
-            model_materializations: None,
-            excludes: None,
-            rule: ManifestSpecificRuleConfig::NameConvention {
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::NameConvention {
                 convention: NamingConvention::from_pattern(r"^[A-Z]{3}-[0-9]{4}$").unwrap(),
             },
-        };
+            Severity::Warning,
+        );
         let item = TestItem {
             name: "ABC-1234".to_string(),
         };

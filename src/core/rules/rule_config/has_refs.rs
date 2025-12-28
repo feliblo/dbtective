@@ -34,8 +34,7 @@ pub fn has_refs<T: CanReference>(item: &T, rule: &ManifestRule) -> Option<RuleRe
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::core::config::manifest_rule::ManifestSpecificRuleConfig;
-    use crate::core::config::severity::Severity;
+    use crate::core::config::{manifest_rule::ManifestSpecificRuleConfig, severity::Severity};
 
     struct TestCanReference {
         name: String,
@@ -67,20 +66,14 @@ mod tests {
             depends_on: vec![],
             relative_path: "models/test_model.sql".to_string(),
         };
-        let rule = ManifestRule {
-            description: Some("Test rule for has_refs".to_string()),
-            applies_to: None,
-            includes: None,
-            excludes: None,
-            model_materializations: None,
-            rule: ManifestSpecificRuleConfig::HasRefs {},
-            name: Some("has_refs".to_string()),
-            severity: Severity::Error,
-        };
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::HasRefs {},
+            Severity::Warning,
+        );
         let result = has_refs(&test_item, &rule);
         assert!(result.is_some());
         let rule_result = result.unwrap();
-        assert_eq!(rule_result.severity, "FAIL");
+        assert_eq!(rule_result.severity, "WARN");
         assert_eq!(rule_result.object_type, "TestObject");
         assert_eq!(
             rule_result.message,
@@ -99,16 +92,10 @@ mod tests {
             depends_on: vec!["ref_model".to_string()],
             relative_path: "models/test_model.sql".to_string(),
         };
-        let rule = ManifestRule {
-            description: Some("Test rule for has_refs".to_string()),
-            applies_to: None,
-            model_materializations: None,
-            includes: None,
-            excludes: None,
-            rule: ManifestSpecificRuleConfig::HasRefs {},
-            name: Some("has_refs".to_string()),
-            severity: Severity::Error,
-        };
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::HasRefs {},
+            Severity::Warning,
+        );
         let result = has_refs(&test_item, &rule);
         assert!(result.is_none());
     }

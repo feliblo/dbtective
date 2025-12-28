@@ -109,19 +109,13 @@ mod tests {
             object_string: "Test Object".to_string(),
             relative_path: Some("path/to/object".to_string()),
         };
-        let rule = ManifestRule {
-            name: Some(String::from("has_metadata_keys")),
-            description: None,
-            severity: Severity::Warning,
-            applies_to: None,
-            model_materializations: None,
-            includes: None,
-            excludes: None,
-            rule: ManifestSpecificRuleConfig::HasMetadataKeys {
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::HasMetadataKeys {
                 required_keys: vec!["key1".to_string(), "key2".to_string()],
                 custom_message: None,
             },
-        };
+            Severity::Warning,
+        );
         let result = has_metadata_keys(
             &test_object,
             &rule,
@@ -151,19 +145,13 @@ mod tests {
             relative_path: Some("path/to/object".to_string()),
         };
         test_object.add_test_keys(vec![("key1", "value1")]);
-        let rule = ManifestRule {
-            name: Some(String::from("has_metadata_keys")),
-            description: None,
-            severity: Severity::Warning,
-            applies_to: None,
-            model_materializations: None,
-            includes: None,
-            excludes: None,
-            rule: ManifestSpecificRuleConfig::HasMetadataKeys {
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::HasMetadataKeys {
                 required_keys: vec!["key1".to_string(), "key2".to_string()],
                 custom_message: None,
             },
-        };
+            Severity::Warning,
+        );
         let result = has_metadata_keys(
             &test_object,
             &rule,
@@ -187,19 +175,13 @@ mod tests {
             relative_path: Some("path/to/object".to_string()),
         };
         test_object.add_test_keys(vec![("key1", "value1"), ("key2", "value2")]);
-        let rule = ManifestRule {
-            name: Some(String::from("has_metadata_keys")),
-            description: None,
-            severity: Severity::Warning,
-            applies_to: None,
-            model_materializations: None,
-            includes: None,
-            excludes: None,
-            rule: ManifestSpecificRuleConfig::HasMetadataKeys {
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::HasMetadataKeys {
                 required_keys: vec!["key1".to_string(), "key2".to_string()],
                 custom_message: None,
             },
-        };
+            Severity::Warning,
+        );
         let result = has_metadata_keys(
             &test_object,
             &rule,
@@ -218,19 +200,13 @@ mod tests {
             relative_path: Some("path/to/object".to_string()),
         };
         test_object.add_test_keys(vec![("key1", "value1")]);
-        let rule = ManifestRule {
-            name: Some(String::from("has_metadata_keys")),
-            description: None,
-            severity: Severity::Warning,
-            applies_to: None,
-            model_materializations: None,
-            includes: None,
-            excludes: None,
-            rule: ManifestSpecificRuleConfig::HasMetadataKeys {
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::HasMetadataKeys {
                 required_keys: vec!["key1".to_string(), "key2".to_string()],
                 custom_message: Some("Custom missing keys message.".to_string()),
             },
-        };
+            Severity::Warning,
+        );
         let result = has_metadata_keys(
             &test_object,
             &rule,
