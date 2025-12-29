@@ -1,0 +1,9 @@
+mod test_has_contract_enforced;
+mod test_has_description;
+mod test_has_metadata_keys;
+mod test_has_refs;
+mod test_has_tags;
+mod test_has_unique_tests;
+mod test_is_not_orphaned;
+mod test_max_code_lines;
+mod test_naming_convention;

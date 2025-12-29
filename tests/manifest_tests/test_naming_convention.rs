@@ -1,6 +1,4 @@
-mod common;
-
-use common::TestEnvironment;
+use crate::common::TestEnvironment;
 use dbtective::core::config::Config;
 
 /// Test that invalid regex patterns are caught during config parsing.

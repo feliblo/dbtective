@@ -1,6 +1,5 @@
-mod common;
+use crate::common::TestEnvironment;
 
-use common::TestEnvironment;
 #[test]
 #[allow(clippy::too_many_lines)]
 fn test_has_tags() {
