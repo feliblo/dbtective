@@ -1,6 +1,4 @@
-mod common;
-
-use common::TestEnvironment;
+use crate::common::TestEnvironment;
 
 #[test]
 #[allow(clippy::too_many_lines)]
