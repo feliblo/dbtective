@@ -3,6 +3,7 @@ use anyhow::Result;
 use serde::Deserialize;
 
 use crate::core::config::applies_to::RuleTarget;
+use crate::core::config::check_config_options::InvalidColumnName;
 use crate::core::config::naming_convention::NamingConvention;
 use crate::core::config::Materialization;
 use crate::core::config::{applies_to::AppliesTo, severity::Severity};
@@ -19,6 +20,10 @@ pub enum CatalogSpecificRuleConfig {
         #[serde(rename = "pattern")]
         convention: NamingConvention,
         data_types: Option<Vec<DataTypes>>,
+    },
+    ColumnsCanonicalName {
+        canonical: String,
+        invalid_names: Vec<InvalidColumnName>,
     },
 }
 
@@ -188,7 +193,8 @@ pub fn default_applies_to_for_catalog_rule(rule_type: &CatalogSpecificRuleConfig
             semantic_model_objects: vec![],
             custom_objects: vec![],
         },
-        CatalogSpecificRuleConfig::ColumnsNameConvention { .. } => AppliesTo {
+        CatalogSpecificRuleConfig::ColumnsNameConvention { .. }
+        | CatalogSpecificRuleConfig::ColumnsCanonicalName { .. } => AppliesTo {
             node_objects: vec![RuleTarget::Models, RuleTarget::Seeds, RuleTarget::Snapshots],
             source_objects: vec![],
             unit_test_objects: vec![],
@@ -204,7 +210,8 @@ fn applies_to_options_for_catalog_rule(rule_type: &CatalogSpecificRuleConfig) ->
     match rule_type {
         CatalogSpecificRuleConfig::ColumnsAllDocumented { .. }
         | CatalogSpecificRuleConfig::ColumnsNameConvention { .. }
-        | CatalogSpecificRuleConfig::ColumnsHaveDescription { .. } => AppliesTo {
+        | CatalogSpecificRuleConfig::ColumnsHaveDescription { .. }
+        | CatalogSpecificRuleConfig::ColumnsCanonicalName { .. } => AppliesTo {
             node_objects: vec![RuleTarget::Models, RuleTarget::Seeds, RuleTarget::Snapshots],
             source_objects: vec![RuleTarget::Sources],
             unit_test_objects: vec![],

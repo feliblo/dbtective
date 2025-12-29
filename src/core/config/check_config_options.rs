@@ -1,3 +1,6 @@
+use regex::Regex;
+use serde::de::{self, Deserializer};
+use serde::Deserialize;
 use strum_macros::{AsRefStr, EnumString};
 
 // HasTags
@@ -51,4 +54,37 @@ pub fn default_allowed_test_names() -> Vec<String> {
 
 pub const fn default_max_code_lines() -> usize {
     150
+}
+
+/// `InvalidColumnName` for `columns_canonical_name` rule
+/// Parse regex if the string looks like a regex pattern
+/// Otherwise, treat it as a literal string
+#[derive(Debug, Clone)]
+pub enum InvalidColumnName {
+    Literal(String),
+    Regex(Regex),
+}
+
+impl InvalidColumnName {
+    pub fn matches(&self, column_name: &str) -> bool {
+        match self {
+            Self::Literal(s) => s.eq_ignore_ascii_case(column_name),
+            Self::Regex(r) => r.is_match(column_name),
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for InvalidColumnName {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        if s.starts_with('^') || s.ends_with('$') || s.contains(".*") || s.contains(".+") {
+            let regex = Regex::new(&s).map_err(de::Error::custom)?;
+            Ok(Self::Regex(regex))
+        } else {
+            Ok(Self::Literal(s))
+        }
+    }
 }
