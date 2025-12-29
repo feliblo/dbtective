@@ -1,5 +1,5 @@
 ---
-title: columns (3)
+title: columns (4)
 type: docs
 prev: docs/rules
 sidebar:
@@ -330,6 +330,116 @@ models:
         description: ""  # FAIL: empty description
       - name: email
         # FAIL: no description field
+```
+
+</details>
+
+</details>
+
+<hr style="border: 2px solid #444; margin: 2em 0;">
+
+### Rule: `columns_canonical_name`
+
+<span class="rule-category-badge badge-catalog">Catalog Rule</span> {{< include-markdown "content/snippets/catalog_info.md" >}}
+
+<details closed>
+<summary>columns_canonical_name details</summary>
+<br>
+
+Identifies columns that match specified "invalid" patterns and flags them as violations, suggesting they should be renamed to the canonical name. You can also define exceptions for columns that should be allowed even when matched.
+Can be both regex or strings.
+
+---
+
+**Configuration**
+
+- **type**: Must be `columns_canonical_name`.
+- **canonical**: The preferred/canonical column name (e.g., `zip_code`).
+- **invalid_names**: List of patterns that should be flagged as violations. Each pattern can be:
+  - *Strings*: An exact string match (e.g., `postal_code`)
+  - *Regex*: A pattern starting with `^`, ending with `$`, or containing `.*` or `.+` (e.g., `^zip.*`)
+- **exceptions**: *(optional)* List of patterns to exclude from violations. Columns matching these patterns will not be flagged even if they match `invalid_names`. Uses the same literal/regex format as `invalid_names`.
+- **applies_to**: *(optional)* List of dbt object types to include.
+  - Default: `["models", "seeds", "snapshots"]`
+  - Options: `models`, `seeds`, `snapshots`, `sources`
+
+{{< include-markdown "content/snippets/common_rule_config.md" >}}
+
+**Example Config**
+
+{{< tabs items="dbtective.yml,dbtective.toml,pyproject.toml" >}}
+
+{{< tab >}}
+
+```yaml
+catalog_tests:
+  - name: "canonical_zip_code"
+    type: "columns_canonical_name"
+    description: "All zip-related columns should be named 'zip_code'."
+    canonical: "zip_code"
+    invalid_names:
+      - "postal_code"     # literal match
+      - "^zip"            # regex: matches zipcode, zip_cd, etc.
+    # exceptions:
+    #   - "zip_code_legacy"  # allow this specific column
+    # severity: "warning"  (optional)
+    # applies_to: ['models', 'sources']  (optional)
+    # includes: ["path/to/include/*"]  (optional)
+    # excludes: ["path/to/exclude/*"]  (optional)
+```
+
+{{< /tab >}}
+
+{{< tab >}}
+
+```toml
+[[catalog_tests]]
+name = "canonical_zip_code"
+type = "columns_canonical_name"
+description = "All zip-related columns should be named 'zip_code'."
+canonical = "zip_code"
+invalid_names = ["postal_code", "^zip"]
+# exceptions = ["zip_code_legacy"]  # (optional)
+# severity = "warning"  # (optional)
+# applies_to = ["models", "sources"]  # (optional)
+# includes = ["path/to/include/*"]  # (optional)
+# excludes = ["path/to/exclude/*"]  # (optional)
+```
+
+{{< /tab >}}
+
+{{< tab >}}
+
+```toml
+[[tool.dbtective.catalog_tests]]
+name = "canonical_zip_code"
+type = "columns_canonical_name"
+description = "All zip-related columns should be named 'zip_code'."
+canonical = "zip_code"
+invalid_names = ["postal_code", "^zip"]
+# exceptions = ["zip_code_legacy"]  # (optional)
+# severity = "warning"  # (optional)
+# applies_to = ["models", "sources"]  # (optional)
+# includes = ["path/to/include/*"]  # (optional)
+# excludes = ["path/to/exclude/*"]  # (optional)
+```
+
+{{< /tab >}}
+
+{{< /tabs >}}
+
+
+<details closed>
+<summary>Relevant dbt code</summary>
+
+```sql
+SELECT
+    zip_code,            -- PASS: canonical name
+    postal_code,         -- FAIL: matches invalid_names literal
+    zipcode,             -- FAIL: matches invalid_names regex ^zip
+    zip_code_legacy,     -- PASS: matches exception
+    other_column         -- PASS: not in invalid_names
+FROM source_table
 ```
 
 </details>

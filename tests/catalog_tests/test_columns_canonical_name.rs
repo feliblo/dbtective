@@ -253,7 +253,7 @@ catalog_tests:
     let findings = env.run_catalog_rules(false).expect("should not error");
 
     // Should fail: zipcode and postal_code should be zip_code
-    assert_eq!(findings.len(), 1, "findings: {:?}", findings);
+    assert_eq!(findings.len(), 1, "findings: {findings:?}");
     assert_eq!(findings[0].0.severity, "FAIL");
     assert_eq!(findings[0].0.object_type, "Model");
     assert!(
@@ -911,4 +911,434 @@ catalog_tests:
     // Should only fail for models, not sources (due to applies_to filter)
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].0.object_type, "Model");
+}
+
+#[test]
+#[allow(clippy::too_many_lines)]
+fn test_columns_canonical_name_with_literal_exception() {
+    let manifest = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "invocation_id": "test-invocation",
+    "env": {},
+    "project_name": "test_project",
+    "adapter_type": "postgres",
+    "quoting": {
+      "database": true,
+      "schema": true,
+      "identifier": true,
+      "column": null
+    }
+  },
+  "nodes": {
+    "model.test_project.orders": {
+      "database": "analytics",
+      "schema": "public",
+      "name": "orders",
+      "resource_type": "model",
+      "package_name": "test_project",
+      "path": "orders.sql",
+      "original_file_path": "models/orders.sql",
+      "unique_id": "model.test_project.orders",
+      "fqn": ["test_project", "orders"],
+      "alias": "orders",
+      "checksum": {"name": "sha256", "checksum": "abc123"},
+      "tags": [],
+      "config": {
+        "enabled": true,
+        "materialized": "view",
+        "tags": []
+      },
+      "description": "Orders table",
+      "columns": {},
+      "meta": {},
+      "depends_on": {"macros": [], "nodes": []}
+    }
+  },
+  "sources": {},
+  "macros": {},
+  "exposures": {},
+  "metrics": {},
+  "groups": {},
+  "selectors": {},
+  "disabled": {},
+  "parent_map": {},
+  "child_map": {},
+  "group_map": {},
+  "saved_queries": {},
+  "semantic_models": {},
+  "unit_tests": {}
+}"#;
+
+    let catalog = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/catalog/v1.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "env": {}
+  },
+  "nodes": {
+    "model.test_project.orders": {
+      "unique_id": "model.test_project.orders",
+      "metadata": {"type": "BASE TABLE", "schema": "public", "name": "orders", "database": "analytics"},
+      "columns": {
+        "customer_id": {"type": "INTEGER", "name": "customer_id", "index": 1},
+        "cust_id": {"type": "INTEGER", "name": "cust_id", "index": 2},
+        "legacy_cust_id": {"type": "INTEGER", "name": "legacy_cust_id", "index": 3}
+      },
+      "stats": {}
+    }
+  },
+  "sources": {}
+}"#;
+
+    let config = r#"
+catalog_tests:
+  - name: "customer_id_canonical"
+    type: "columns_canonical_name"
+    severity: "error"
+    canonical: "customer_id"
+    invalid_names:
+      - "cust_id"
+      - "legacy_cust_id"
+    exceptions:
+      - "legacy_cust_id"
+    applies_to:
+      - "models"
+"#;
+
+    let env = TestEnvironment::new_with_catalog(manifest, catalog, config);
+    let findings = env.run_catalog_rules(false).expect("should not error");
+
+    // Should fail for cust_id but NOT legacy_cust_id (excepted)
+    assert_eq!(findings.len(), 1);
+    assert!(findings[0].0.message.contains("cust_id"));
+    assert!(!findings[0].0.message.contains("legacy_cust_id"));
+}
+
+#[test]
+#[allow(clippy::too_many_lines)]
+fn test_columns_canonical_name_with_regex_exception() {
+    let manifest = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "invocation_id": "test-invocation",
+    "env": {},
+    "project_name": "test_project",
+    "adapter_type": "postgres",
+    "quoting": {
+      "database": true,
+      "schema": true,
+      "identifier": true,
+      "column": null
+    }
+  },
+  "nodes": {
+    "model.test_project.addresses": {
+      "database": "analytics",
+      "schema": "public",
+      "name": "addresses",
+      "resource_type": "model",
+      "package_name": "test_project",
+      "path": "addresses.sql",
+      "original_file_path": "models/addresses.sql",
+      "unique_id": "model.test_project.addresses",
+      "fqn": ["test_project", "addresses"],
+      "alias": "addresses",
+      "checksum": {"name": "sha256", "checksum": "abc123"},
+      "tags": [],
+      "config": {
+        "enabled": true,
+        "materialized": "view",
+        "tags": []
+      },
+      "description": "Addresses table",
+      "columns": {},
+      "meta": {},
+      "depends_on": {"macros": [], "nodes": []}
+    }
+  },
+  "sources": {},
+  "macros": {},
+  "exposures": {},
+  "metrics": {},
+  "groups": {},
+  "selectors": {},
+  "disabled": {},
+  "parent_map": {},
+  "child_map": {},
+  "group_map": {},
+  "saved_queries": {},
+  "semantic_models": {},
+  "unit_tests": {}
+}"#;
+
+    let catalog = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/catalog/v1.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "env": {}
+  },
+  "nodes": {
+    "model.test_project.addresses": {
+      "unique_id": "model.test_project.addresses",
+      "metadata": {"type": "BASE TABLE", "schema": "public", "name": "addresses", "database": "analytics"},
+      "columns": {
+        "zip_code": {"type": "VARCHAR", "name": "zip_code", "index": 1},
+        "zipcode": {"type": "VARCHAR", "name": "zipcode", "index": 2},
+        "billing_zipcode": {"type": "VARCHAR", "name": "billing_zipcode", "index": 3},
+        "shipping_zipcode": {"type": "VARCHAR", "name": "shipping_zipcode", "index": 4}
+      },
+      "stats": {}
+    }
+  },
+  "sources": {}
+}"#;
+
+    let config = r#"
+catalog_tests:
+  - name: "zip_code_canonical"
+    type: "columns_canonical_name"
+    severity: "error"
+    canonical: "zip_code"
+    invalid_names:
+      - "zipcode"
+      - ".*zipcode$"
+    exceptions:
+      - "^billing_"
+    applies_to:
+      - "models"
+"#;
+
+    let env = TestEnvironment::new_with_catalog(manifest, catalog, config);
+    let findings = env.run_catalog_rules(false).expect("should not error");
+
+    // Should fail for zipcode and shipping_zipcode, but NOT billing_zipcode (excepted by regex)
+    assert_eq!(findings.len(), 1);
+    assert!(findings[0].0.message.contains("zipcode"));
+    assert!(findings[0].0.message.contains("shipping_zipcode"));
+    assert!(!findings[0].0.message.contains("billing_zipcode"));
+}
+
+#[test]
+#[allow(clippy::too_many_lines)]
+fn test_columns_canonical_name_exception_excludes_all() {
+    let manifest = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "invocation_id": "test-invocation",
+    "env": {},
+    "project_name": "test_project",
+    "adapter_type": "postgres",
+    "quoting": {
+      "database": true,
+      "schema": true,
+      "identifier": true,
+      "column": null
+    }
+  },
+  "nodes": {
+    "model.test_project.users": {
+      "database": "analytics",
+      "schema": "public",
+      "name": "users",
+      "resource_type": "model",
+      "package_name": "test_project",
+      "path": "users.sql",
+      "original_file_path": "models/users.sql",
+      "unique_id": "model.test_project.users",
+      "fqn": ["test_project", "users"],
+      "alias": "users",
+      "checksum": {"name": "sha256", "checksum": "abc123"},
+      "tags": [],
+      "config": {
+        "enabled": true,
+        "materialized": "view",
+        "tags": []
+      },
+      "description": "Users table",
+      "columns": {},
+      "meta": {},
+      "depends_on": {"macros": [], "nodes": []}
+    }
+  },
+  "sources": {},
+  "macros": {},
+  "exposures": {},
+  "metrics": {},
+  "groups": {},
+  "selectors": {},
+  "disabled": {},
+  "parent_map": {},
+  "child_map": {},
+  "group_map": {},
+  "saved_queries": {},
+  "semantic_models": {},
+  "unit_tests": {}
+}"#;
+
+    let catalog = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/catalog/v1.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "env": {}
+  },
+  "nodes": {
+    "model.test_project.users": {
+      "unique_id": "model.test_project.users",
+      "metadata": {"type": "BASE TABLE", "schema": "public", "name": "users", "database": "analytics"},
+      "columns": {
+        "user_id": {"type": "INTEGER", "name": "user_id", "index": 1},
+        "usr_id": {"type": "INTEGER", "name": "usr_id", "index": 2}
+      },
+      "stats": {}
+    }
+  },
+  "sources": {}
+}"#;
+
+    let config = r#"
+catalog_tests:
+  - name: "user_id_canonical"
+    type: "columns_canonical_name"
+    severity: "error"
+    canonical: "user_id"
+    invalid_names:
+      - "usr_id"
+    exceptions:
+      - "usr_id"
+    applies_to:
+      - "models"
+"#;
+
+    let env = TestEnvironment::new_with_catalog(manifest, catalog, config);
+    let findings = env.run_catalog_rules(false).expect("should not error");
+
+    // Should pass: usr_id is invalid but also excepted
+    assert_eq!(
+        findings.len(),
+        0,
+        "Expected no findings because usr_id is excepted, but got: {findings:?}"
+    );
+}
+
+#[test]
+#[allow(clippy::too_many_lines)]
+fn test_columns_canonical_name_multiple_exceptions() {
+    let manifest = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "invocation_id": "test-invocation",
+    "env": {},
+    "project_name": "test_project",
+    "adapter_type": "postgres",
+    "quoting": {
+      "database": true,
+      "schema": true,
+      "identifier": true,
+      "column": null
+    }
+  },
+  "nodes": {
+    "model.test_project.events": {
+      "database": "analytics",
+      "schema": "public",
+      "name": "events",
+      "resource_type": "model",
+      "package_name": "test_project",
+      "path": "events.sql",
+      "original_file_path": "models/events.sql",
+      "unique_id": "model.test_project.events",
+      "fqn": ["test_project", "events"],
+      "alias": "events",
+      "checksum": {"name": "sha256", "checksum": "abc123"},
+      "tags": [],
+      "config": {
+        "enabled": true,
+        "materialized": "view",
+        "tags": []
+      },
+      "description": "Events table",
+      "columns": {},
+      "meta": {},
+      "depends_on": {"macros": [], "nodes": []}
+    }
+  },
+  "sources": {},
+  "macros": {},
+  "exposures": {},
+  "metrics": {},
+  "groups": {},
+  "selectors": {},
+  "disabled": {},
+  "parent_map": {},
+  "child_map": {},
+  "group_map": {},
+  "saved_queries": {},
+  "semantic_models": {},
+  "unit_tests": {}
+}"#;
+
+    let catalog = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/catalog/v1.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "env": {}
+  },
+  "nodes": {
+    "model.test_project.events": {
+      "unique_id": "model.test_project.events",
+      "metadata": {"type": "BASE TABLE", "schema": "public", "name": "events", "database": "analytics"},
+      "columns": {
+        "created_at": {"type": "TIMESTAMP", "name": "created_at", "index": 1},
+        "createdat": {"type": "TIMESTAMP", "name": "createdat", "index": 2},
+        "created_date": {"type": "DATE", "name": "created_date", "index": 3},
+        "legacy_createdat": {"type": "TIMESTAMP", "name": "legacy_createdat", "index": 4},
+        "raw_created_date": {"type": "DATE", "name": "raw_created_date", "index": 5}
+      },
+      "stats": {}
+    }
+  },
+  "sources": {}
+}"#;
+
+    let config = r#"
+catalog_tests:
+  - name: "created_at_canonical"
+    type: "columns_canonical_name"
+    severity: "error"
+    canonical: "created_at"
+    invalid_names:
+      - "createdat"
+      - "created_date"
+      - "^legacy_"
+      - "^raw_"
+    exceptions:
+      - "legacy_createdat"
+      - "^raw_"
+    applies_to:
+      - "models"
+"#;
+
+    let env = TestEnvironment::new_with_catalog(manifest, catalog, config);
+    let findings = env.run_catalog_rules(false).expect("should not error");
+
+    // Should fail for createdat and created_date
+    // Should NOT fail for legacy_createdat (literal exception) and raw_created_date (regex exception)
+    assert_eq!(findings.len(), 1);
+    assert!(findings[0].0.message.contains("createdat"));
+    assert!(findings[0].0.message.contains("created_date"));
+    assert!(!findings[0].0.message.contains("legacy_createdat"));
+    assert!(!findings[0].0.message.contains("raw_created_date"));
 }

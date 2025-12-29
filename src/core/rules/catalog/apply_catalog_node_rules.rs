@@ -98,11 +98,12 @@ pub fn apply_catalog_node_rules<'a>(
                         verbose,
                     )
                 }
-                CatalogSpecificRuleConfig::ColumnsCanonicalName { canonical, invalid_names } => {
+                CatalogSpecificRuleConfig::ColumnsCanonicalName { canonical, invalid_names, exceptions } => {
                     columns_canonical_name(
                         catalog_node,
                         canonical,
                         invalid_names,
+                        exceptions.as_ref(),
                         rule,
                         verbose,
                     )

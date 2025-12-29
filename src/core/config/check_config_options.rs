@@ -56,16 +56,16 @@ pub const fn default_max_code_lines() -> usize {
     150
 }
 
-/// `InvalidColumnName` for `columns_canonical_name` rule
+/// `ColumnNamePattern` for `columns_canonical_name` rule
 /// Parse regex if the string looks like a regex pattern
 /// Otherwise, treat it as a literal string
 #[derive(Debug, Clone)]
-pub enum InvalidColumnName {
+pub enum ColumnNamePattern {
     Literal(String),
     Regex(Regex),
 }
 
-impl InvalidColumnName {
+impl ColumnNamePattern {
     pub fn matches(&self, column_name: &str) -> bool {
         match self {
             Self::Literal(s) => s.eq_ignore_ascii_case(column_name),
@@ -74,7 +74,7 @@ impl InvalidColumnName {
     }
 }
 
-impl<'de> Deserialize<'de> for InvalidColumnName {
+impl<'de> Deserialize<'de> for ColumnNamePattern {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
