@@ -3,7 +3,7 @@ use anyhow::Result;
 use serde::Deserialize;
 
 use crate::core::config::applies_to::RuleTarget;
-use crate::core::config::check_config_options::InvalidColumnName;
+use crate::core::config::check_config_options::ColumnNamePattern;
 use crate::core::config::naming_convention::NamingConvention;
 use crate::core::config::Materialization;
 use crate::core::config::{applies_to::AppliesTo, severity::Severity};
@@ -23,7 +23,8 @@ pub enum CatalogSpecificRuleConfig {
     },
     ColumnsCanonicalName {
         canonical: String,
-        invalid_names: Vec<InvalidColumnName>,
+        invalid_names: Vec<ColumnNamePattern>,
+        exceptions: Option<Vec<ColumnNamePattern>>,
     },
 }
 

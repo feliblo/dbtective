@@ -118,6 +118,12 @@ Here you can find an overview of all possible rules. Use the filter below to fin
       <td>Check if column names follow casing (e.g.<code>snake_case</code>) or custom regex patterns. Enforces naming standards using configurable patterns.</td>
       <td style="font-size: 12px; color: #666;">columns, naming, pattern, regex, conventions</td>
     </tr>
+    <tr class="rule-item" data-keywords="columns canonical naming standards conventions consistency aliases synonyms" data-category="catalog">
+      <td><a href="columns" class="rule-name">columns_canonical_name</a></td>
+      <td><span class="rule-category-badge badge-catalog">Catalog</span> </td>
+      <td>Enforce canonical column naming by flagging invalid name patterns. Supports exceptions for allowed variations.</td>
+      <td style="font-size: 12px; color: #666;">columns, canonical, naming, standards, consistency</td>
+    </tr>
   </tbody>
 </table>
 

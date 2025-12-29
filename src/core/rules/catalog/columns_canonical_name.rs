@@ -1,7 +1,7 @@
 use crate::{
     cli::table::RuleResult,
     core::{
-        config::{catalog_rule::CatalogRule, check_config_options::InvalidColumnName},
+        config::{catalog_rule::CatalogRule, check_config_options::ColumnNamePattern},
         rules::common_traits::Columnable,
     },
 };
@@ -9,7 +9,8 @@ use crate::{
 pub fn columns_canonical_name<C: Columnable>(
     catalog_object: &C,
     canonical: &str,
-    invalid_names: &[InvalidColumnName],
+    invalid_names: &[ColumnNamePattern],
+    exceptions: Option<&Vec<ColumnNamePattern>>,
     rule: &CatalogRule,
     _verbose: bool,
 ) -> Option<RuleResult> {
@@ -27,14 +28,25 @@ pub fn columns_canonical_name<C: Columnable>(
             catalog_object.get_relative_path().cloned(),
         ));
     };
+
     let invalid_columns: Vec<&str> = catalog_columns
         .iter()
         .map(|s| s.as_str())
         .filter(|column_name| {
-            column_name != &canonical
-                && invalid_names
-                    .iter()
-                    .any(|invalid_name| invalid_name.matches(column_name))
+            // Skip if column matches canonical name
+            if column_name == &canonical {
+                return false;
+            }
+            // Skip if column matches any exception
+            if let Some(exceptions) = exceptions {
+                if exceptions.iter().any(|exc| exc.matches(column_name)) {
+                    return false;
+                }
+            }
+            // Otherwise, check if column matches any invalid name
+            invalid_names
+                .iter()
+                .any(|invalid_name| invalid_name.matches(column_name))
         })
         .collect();
 
@@ -103,17 +115,19 @@ mod tests {
             ]),
         };
         let invalid_names = vec![
-            InvalidColumnName::Regex(regex::Regex::new("^zip").unwrap()),
-            InvalidColumnName::Literal("postal_code".to_string()),
+            ColumnNamePattern::Regex(regex::Regex::new("^zip").unwrap()),
+            ColumnNamePattern::Literal("postal_code".to_string()),
         ];
         let rule = CatalogRule::from_specific_rule(
             ColumnsCanonicalName {
                 canonical: "zip_code".to_string(),
                 invalid_names: invalid_names.clone(),
+                exceptions: None,
             },
             Severity::Error,
         );
-        let result = columns_canonical_name(&test_object, "zip_code", &invalid_names, &rule, false);
+        let result =
+            columns_canonical_name(&test_object, "zip_code", &invalid_names, None, &rule, false);
 
         assert!(result.is_some());
         let rule_result = result.unwrap();
@@ -140,16 +154,23 @@ mod tests {
                 "cust_id".to_string(),     // invalid
             ]),
         };
-        let invalid_names = vec![InvalidColumnName::Literal("cust_id".to_string())];
+        let invalid_names = vec![ColumnNamePattern::Literal("cust_id".to_string())];
         let rule = CatalogRule::from_specific_rule(
             ColumnsCanonicalName {
                 canonical: "customer_id".to_string(),
                 invalid_names: invalid_names.clone(),
+                exceptions: None,
             },
             Severity::Warning,
         );
-        let result =
-            columns_canonical_name(&test_object, "customer_id", &invalid_names, &rule, false);
+        let result = columns_canonical_name(
+            &test_object,
+            "customer_id",
+            &invalid_names,
+            None,
+            &rule,
+            false,
+        );
 
         assert!(result.is_some());
         let rule_result = result.unwrap();
@@ -177,15 +198,17 @@ mod tests {
                 "user_identifier".to_string(), // invalid
             ]),
         };
-        let invalid_names = vec![InvalidColumnName::Regex(regex::Regex::new("^usr").unwrap())];
+        let invalid_names = vec![ColumnNamePattern::Regex(regex::Regex::new("^usr").unwrap())];
         let rule = CatalogRule::from_specific_rule(
             ColumnsCanonicalName {
                 canonical: "user_id".to_string(),
                 invalid_names: invalid_names.clone(),
+                exceptions: None,
             },
             Severity::Error,
         );
-        let result = columns_canonical_name(&test_object, "user_id", &invalid_names, &rule, false);
+        let result =
+            columns_canonical_name(&test_object, "user_id", &invalid_names, None, &rule, false);
 
         assert!(result.is_some());
         let rule_result = result.unwrap();
@@ -213,17 +236,19 @@ mod tests {
             ]),
         };
         let invalid_names = vec![
-            InvalidColumnName::Regex(regex::Regex::new("^zip").unwrap()),
-            InvalidColumnName::Literal("postal_code".to_string()),
+            ColumnNamePattern::Regex(regex::Regex::new("^zip").unwrap()),
+            ColumnNamePattern::Literal("postal_code".to_string()),
         ];
         let rule = CatalogRule::from_specific_rule(
             ColumnsCanonicalName {
                 canonical: "zip_code".to_string(),
                 invalid_names: invalid_names.clone(),
+                exceptions: None,
             },
             Severity::Error,
         );
-        let result = columns_canonical_name(&test_object, "zip_code", &invalid_names, &rule, false);
+        let result =
+            columns_canonical_name(&test_object, "zip_code", &invalid_names, None, &rule, false);
         assert!(result.is_none());
     }
 
@@ -236,22 +261,121 @@ mod tests {
             column_names: None,
         };
         let invalid_names = vec![
-            InvalidColumnName::Regex(regex::Regex::new("^zip").unwrap()),
-            InvalidColumnName::Literal("postal_code".to_string()),
+            ColumnNamePattern::Regex(regex::Regex::new("^zip").unwrap()),
+            ColumnNamePattern::Literal("postal_code".to_string()),
         ];
         let rule = CatalogRule::from_specific_rule(
             ColumnsCanonicalName {
                 canonical: "zip_code".to_string(),
                 invalid_names: invalid_names.clone(),
+                exceptions: None,
             },
             Severity::Error,
         );
-        let result = columns_canonical_name(&test_object, "zip_code", &invalid_names, &rule, false);
+        let result =
+            columns_canonical_name(&test_object, "zip_code", &invalid_names, None, &rule, false);
         assert!(result.is_some());
         let rule_result = result.unwrap();
         assert_eq!(rule_result.object_type, "model");
         assert_eq!(rule_result.rule_name, rule.get_name());
         assert_eq!(rule_result.message, "No columns available for 'test_model'");
+        assert_eq!(
+            rule_result.relative_path,
+            Some("models/test_model.sql".to_string())
+        );
+    }
+
+    #[test]
+    fn test_columns_canonical_name_with_exceptions_literal() {
+        let test_object = TestColumnable {
+            object_type: "model".to_string(),
+            object_string: "test_model".to_string(),
+            relative_path: Some("models/test_model.sql".to_string()),
+            column_names: Some(vec![
+                "customer_id".to_string(), // valid
+                "cust_id".to_string(),     // exception
+                "client_id".to_string(),   // invalid
+            ]),
+        };
+        let invalid_names = vec![
+            ColumnNamePattern::Literal("cust_id".to_string()),
+            ColumnNamePattern::Literal("client_id".to_string()),
+        ];
+        let exceptions = Some(vec![ColumnNamePattern::Literal("cust_id".to_string())]);
+        let rule = CatalogRule::from_specific_rule(
+            ColumnsCanonicalName {
+                canonical: "customer_id".to_string(),
+                invalid_names: invalid_names.clone(),
+                exceptions: exceptions.clone(),
+            },
+            Severity::Warning,
+        );
+        let result = columns_canonical_name(
+            &test_object,
+            "customer_id",
+            &invalid_names,
+            exceptions.as_ref(),
+            &rule,
+            false,
+        );
+
+        assert!(result.is_some());
+        let rule_result = result.unwrap();
+        assert_eq!(rule_result.object_type, "model");
+        assert_eq!(rule_result.rule_name, rule.get_name());
+        assert_eq!(
+            rule_result.message,
+            "The following columns should be named 'customer_id': [\"client_id\"]"
+        );
+        assert_eq!(
+            rule_result.relative_path,
+            Some("models/test_model.sql".to_string())
+        );
+    }
+
+    #[test]
+    fn test_columns_canonical_name_with_exceptions_regex() {
+        let test_object = TestColumnable {
+            object_type: "model".to_string(),
+            object_string: "test_model".to_string(),
+            relative_path: Some("models/test_model.sql".to_string()),
+            column_names: Some(vec![
+                "user_id".to_string(),         // valid
+                "usr_id".to_string(),          // exception
+                "user_identifier".to_string(), // invalid
+            ]),
+        };
+        let invalid_names = vec![
+            ColumnNamePattern::Regex(regex::Regex::new("^usr").unwrap()),
+            ColumnNamePattern::Regex(regex::Regex::new("^user_identifier$").unwrap()),
+        ];
+        let exceptions = Some(vec![ColumnNamePattern::Regex(
+            regex::Regex::new("^usr").unwrap(),
+        )]);
+        let rule = CatalogRule::from_specific_rule(
+            ColumnsCanonicalName {
+                canonical: "user_id".to_string(),
+                invalid_names: invalid_names.clone(),
+                exceptions: exceptions.clone(),
+            },
+            Severity::Error,
+        );
+        let result = columns_canonical_name(
+            &test_object,
+            "user_id",
+            &invalid_names,
+            exceptions.as_ref(),
+            &rule,
+            false,
+        );
+        assert!(result.is_some());
+        let rule_result = result.unwrap();
+        assert_eq!(rule_result.object_type, "model");
+        assert_eq!(rule_result.rule_name, rule.get_name());
+        assert_eq!(
+            rule_result.message,
+            "The following columns should be named 'user_id': [\"user_identifier\"]"
+        );
         assert_eq!(
             rule_result.relative_path,
             Some("models/test_model.sql".to_string())
