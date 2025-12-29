@@ -8,7 +8,8 @@ use crate::{
         },
         manifest::Manifest,
         rules::catalog::{
-            column_name_convention, columns_are_documented, columns_have_description,
+            column_name_convention, columns_are_documented, columns_canonical_name,
+            columns_have_description,
         },
     },
 };
@@ -85,6 +86,15 @@ pub fn apply_catalog_source_rules<'a>(
                         catalog_source,
                         convention,
                         data_types.as_ref(),
+                        rule,
+                        verbose,
+                    )
+                }
+                CatalogSpecificRuleConfig::ColumnsCanonicalName { canonical, invalid_names } => {
+                    columns_canonical_name(
+                        catalog_source,
+                        canonical,
+                        invalid_names,
                         rule,
                         verbose,
                     )
