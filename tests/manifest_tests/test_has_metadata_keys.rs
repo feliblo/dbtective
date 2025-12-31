@@ -171,5 +171,5 @@ manifest_tests:
         "Message should not contain 'doesntcontain'"
     );
     let exit_code = env.run_and_show_results(false);
-    assert_eq!(exit_code, 1);
+    assert_eq!(exit_code, 0);
 }

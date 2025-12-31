@@ -57,6 +57,10 @@ pub struct RunOptions {
 
     #[arg(long, default_value_t = false)]
     pub disable_hyperlinks: bool,
+
+    /// Hide warnings from the output (only show errors)
+    #[arg(long, default_value_t = false)]
+    pub hide_warnings: bool,
 }
 
 #[cfg(test)]
@@ -107,6 +111,7 @@ mod tests {
             catalog_file: "target/catalog.json".to_string(),
             only_manifest: false,
             disable_hyperlinks: false,
+            hide_warnings: false,
         };
         let debug_str = format!("{options:?}");
         assert!(debug_str.contains("RunOptions"));
@@ -123,6 +128,7 @@ mod tests {
             catalog_file: "target/catalog.json".to_string(),
             only_manifest: false,
             disable_hyperlinks: false,
+            hide_warnings: false,
         };
 
         assert_eq!(options.entry_point, "./");
@@ -139,6 +145,7 @@ mod tests {
             catalog_file: "custom_catalog.json".to_string(),
             only_manifest: true,
             disable_hyperlinks: false,
+            hide_warnings: false,
         };
 
         assert_eq!(options.entry_point, "/path/to/project");
@@ -165,6 +172,7 @@ mod tests {
                 catalog_file: "target/catalog.json".to_string(),
                 only_manifest: false,
                 disable_hyperlinks: false,
+                hide_warnings: false,
             },
         };
 
@@ -207,6 +215,7 @@ mod tests {
                     config_file: Some("config.toml".to_string()),
                     only_manifest: false,
                     disable_hyperlinks: false,
+                    hide_warnings: false,
                 },
             }),
         };
@@ -238,6 +247,7 @@ mod tests {
                 catalog_file: "target/catalog.json".to_string(),
                 only_manifest: false,
                 disable_hyperlinks: false,
+                hide_warnings: false,
             },
         };
         let debug_str = format!("{run_cmd:?}");

@@ -69,6 +69,7 @@ pub fn run(options: &RunOptions, verbose: bool) -> i32 {
         verbose,
         options.entry_point.as_ref(),
         options.disable_hyperlinks,
+        options.hide_warnings,
         Some(start.elapsed()),
     )
 }
