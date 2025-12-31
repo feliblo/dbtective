@@ -39,6 +39,7 @@ Run dbtective analysis on your dbt project.
 | `--catalog-file <PATH>` | `-g` | `target/catalog.json` | Path to dbt catalog.json |
 | `--only-manifest` | | `true` | Run only manifest rules |
 | `--disable-hyperlinks` | | `false` | Disable file hyperlinks in the output |
+| `--hide-warnings` | | `false` | Hide warnings from output (only show errors) |
 
 #### Config File Auto-Detection
 
@@ -70,6 +71,9 @@ dbtective run --only-manifest
 
 # Disable hyperlinks in output table
 dbtective run --disable-hyperlinks
+
+# Hide warnings, only show errors (useful for CI)
+dbtective run --hide-warnings
 ```
 
 ### `init`

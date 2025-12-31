@@ -56,7 +56,7 @@ impl Catalog {
         let catalog_path = catalog_path.as_ref();
 
         let file = File::open(catalog_path).context(format!(
-            "Unable to open catalog file at {}",
+            "Unable to find catalog file at {}. Generate it using 'dbt docs generate'\nSee: \x1b]8;;https://docs.getdbt.com/reference/artifacts/catalog-json\x1b\\dbt catalog documentation\x1b]8;;\x1b\\.",
             catalog_path.display()
         ))?;
 
