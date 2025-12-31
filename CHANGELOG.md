@@ -1,3 +1,26 @@
+## v0.1.30 (2025-12-31)
+
+### Feat
+
+- **cli**: add --hide-warnings flag & fix exit codes - ([8753bc9](https://github.com/feliblo/dbtective/commit/8753bc9a2f22dc66a33b5d3460bbe2a3515706b0)) - feliblo
+- **rules**: add columns_canonical_name rule - ([5edf237](https://github.com/feliblo/dbtective/commit/5edf23758f413d277253675d4e1781da5efcff9d)) - feliblo
+- **dbt**: refactor to dbt_artifact_parser crate - ([c494c5b](https://github.com/feliblo/dbtective/commit/c494c5b4f7bfc95ba2dafe7b89869a7baabda0b7)) - feliblo
+- **filters**: add model materialization filter - ([e7ef995](https://github.com/feliblo/dbtective/commit/e7ef9959f09ab8b5666b0248d3f197c4062a90a0)) - feliblo
+
+### Fix
+
+- **rules**: add exceptions to columns_canonical_name - ([ec6bee4](https://github.com/feliblo/dbtective/commit/ec6bee41991a126d4d8956e3b6ade5be8ca17296)) - feliblo
+
+### Refactor
+
+- **tests**: refactor test folders - ([73bd775](https://github.com/feliblo/dbtective/commit/73bd77533274b217142095ce367657ed2e451c03)) - feliblo
+- **test**: add rule::from_specific_rule test setup - ([c0dbad6](https://github.com/feliblo/dbtective/commit/c0dbad6f0c2eeacb7864970684548ccba1e6166a)) - feliblo
+- **regex**: refactor regex to parse within config - ([8c3dcad](https://github.com/feliblo/dbtective/commit/8c3dcadb98921d69abfca0216d90b895d28dd746)) - feliblo
+
+### Contributors
+
+[@feliblo](https://github.com/feliblo)
+
 ## v0.1.29 (2025-12-24)
 
 ### Feat

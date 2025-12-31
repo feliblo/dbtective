@@ -1,6 +1,6 @@
 [project]
 name = "dbtective"
-version = "0.1.29"
+version = "0.1.30"
 description = "dbtective is a Rust-powered 'detective' for `dbt metadata` best practices."
 authors = [{ name = "feliblo", email = "hi@feliblo.dev" }]
 requires-python = ">=3.8"
