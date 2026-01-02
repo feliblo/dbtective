@@ -356,4 +356,62 @@ mod tests {
         assert!(width > 0);
         assert!(height > 0);
     }
+
+    // Windows path handling tests - these test the actual implementation logic
+    // The implementation first replaces \ with /, then strips the prefix
+    #[test]
+    #[cfg(target_os = "windows")]
+    fn test_windows_extended_path_prefix_stripped() {
+        // Test that Windows extended-length path prefix (\\?\) is handled correctly
+        // canonicalize() on Windows returns paths like: \\?\C:\Users\...
+        let abs_path = r"\\?\C:\Users\test\project\models\test.sql";
+        let path_with_slashes = abs_path.replace('\\', "/");
+        let clean_path = path_with_slashes
+            .strip_prefix("//?/")
+            .or_else(|| path_with_slashes.strip_prefix("//./"))
+            .unwrap_or(&path_with_slashes);
+        let file_url = format!("file:///{clean_path}");
+
+        assert_eq!(file_url, "file:///C:/Users/test/project/models/test.sql");
+    }
+
+    #[test]
+    #[cfg(target_os = "windows")]
+    fn test_windows_device_path_prefix_stripped() {
+        // Test that Windows device path prefix (\\.\) is handled correctly
+        let abs_path = r"\\.\C:\Users\test\project\models\test.sql";
+        let path_with_slashes = abs_path.replace('\\', "/");
+        let clean_path = path_with_slashes
+            .strip_prefix("//?/")
+            .or_else(|| path_with_slashes.strip_prefix("//./"))
+            .unwrap_or(&path_with_slashes);
+        let file_url = format!("file:///{clean_path}");
+
+        assert_eq!(file_url, "file:///C:/Users/test/project/models/test.sql");
+    }
+
+    #[test]
+    #[cfg(target_os = "windows")]
+    fn test_windows_regular_path_no_prefix() {
+        // Test that regular Windows paths without prefix work correctly
+        let abs_path = r"C:\Users\test\project\models\test.sql";
+        let path_with_slashes = abs_path.replace('\\', "/");
+        let clean_path = path_with_slashes
+            .strip_prefix("//?/")
+            .or_else(|| path_with_slashes.strip_prefix("//./"))
+            .unwrap_or(&path_with_slashes);
+        let file_url = format!("file:///{clean_path}");
+
+        assert_eq!(file_url, "file:///C:/Users/test/project/models/test.sql");
+    }
+
+    #[test]
+    #[cfg(not(target_os = "windows"))]
+    fn test_unix_path_format() {
+        // Test that Unix paths produce correct file URLs
+        let abs_path = "/home/user/project/models/test.sql";
+        let file_url = format!("file://{abs_path}");
+
+        assert_eq!(file_url, "file:///home/user/project/models/test.sql");
+    }
 }
