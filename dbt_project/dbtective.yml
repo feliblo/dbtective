@@ -3,8 +3,8 @@
 # Rules: https://feliblo.github.io/dbtective/docs/rules/
 
 manifest_tests:
-  - name: "has_description"
-    type: "has_description"
+  # - name: "has_description"
+  #   type: "has_description"
     # severity: "warning"
     # applies_to: ["models", "sources"]
     # includes: ["models/staging/**"]
@@ -12,32 +12,34 @@ manifest_tests:
 
   - name: "naming_convention"
     type: "name_convention"
-    pattern: "snake_case"
+    pattern: "pascal_case"
+    applies_to: ["models"]
+    excludes: ["models/intermediate/finance/int_disabled_model.sql"]
 
-  - name: "require_execution_tags"
-    type: "has_tags"
-    required_tags: ["daily", "monthly", "yearly", "inactive"]
-    criteria: "one_of"
-    description: "Resources need to have at least one of the required tags. To decide when a resource should be run."
+#   - name: "require_execution_tags"
+#     type: "has_tags"
+#     required_tags: ["daily", "monthly", "yearly", "inactive"]
+#     criteria: "one_of"
+#     description: "Resources need to have at least one of the required tags. To decide when a resource should be run."
 
-  - name: "has_owner"
-    type: "has_metadata_keys"
-    required_keys: ["owner"]
+#   - name: "has_owner"
+#     type: "has_metadata_keys"
+#     required_keys: ["owner"]
 
-  - name: "refs_must_be_used"
-    type: "has_refs"
+#   - name: "refs_must_be_used"
+#     type: "has_refs"
 
-catalog_tests:
-  - name: "all_columns_documented"
-    type: "columns_all_documented"
-    description: "All columns must exist in the documentation."
-    severity: "warning"
+# catalog_tests:
+#   - name: "all_columns_documented"
+#     type: "columns_all_documented"
+#     description: "All columns must exist in the documentation."
+#     severity: "warning"
 
-  - name: "all_columns_described"
-    type: "columns_have_description"
-    description: "All columns must have a description."
+#   - name: "all_columns_described"
+#     type: "columns_have_description"
+#     description: "All columns must have a description."
 
-  - name: "column_names_snake_case"
-    type: "columns_name_convention"
-    description: "All column names must be snake_case."
-    pattern: "snake_case"
+#   - name: "column_names_snake_case"
+#     type: "columns_name_convention"
+#     description: "All column names must be snake_case."
+#     pattern: "snake_case"

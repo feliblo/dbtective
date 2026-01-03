@@ -1,3 +1,13 @@
+## v0.1.31 (2026-01-03)
+
+### Feat
+
+- **windows**: add windows test and improve includes_excludes behaviour - ([6cc36e8](https://github.com/feliblo/dbtective/commit/6cc36e83eda3d15ff528c6e12ee4a4dfdcb7faa5)) - feliblo
+
+### Contributors
+
+[@feliblo](https://github.com/feliblo)
+
 ## v0.1.30 (2025-12-31)
 
 ### Feat
