@@ -44,20 +44,6 @@ impl Identifiable for Node {
     }
 }
 
-impl Identifiable for &Node {
-    fn get_object_type(&self) -> &str {
-        (*self).get_object_type()
-    }
-
-    fn get_object_string(&self) -> &str {
-        (*self).get_name()
-    }
-
-    fn get_relative_path(&self) -> Option<&String> {
-        Some((*self).get_relative_path())
-    }
-}
-
 impl NameAble for Node {
     fn name(&self) -> &str {
         self.get_name()
@@ -100,21 +86,9 @@ impl IncludeExcludable for Node {
     }
 }
 
-impl IncludeExcludable for &Node {
-    fn get_relative_path(&self) -> &String {
-        (*self).get_relative_path()
-    }
-}
-
 impl Descriptable for Node {
     fn description(&self) -> Option<&String> {
         self.get_base().description.as_ref()
-    }
-}
-
-impl Descriptable for &Node {
-    fn description(&self) -> Option<&String> {
-        (*self).description()
     }
 }
 
@@ -164,12 +138,6 @@ impl ContractAble for Node {
             | Self::HookNode(_)
             | Self::SqlOperation(_) => None,
         }
-    }
-}
-
-impl ContractAble for &Node {
-    fn get_contract_enforced(&self) -> Option<bool> {
-        (*self).get_contract_enforced()
     }
 }
 

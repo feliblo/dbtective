@@ -21,12 +21,6 @@ impl IncludeExcludable for SemanticModel {
     }
 }
 
-impl IncludeExcludable for &SemanticModel {
-    fn get_relative_path(&self) -> &String {
-        (*self).get_relative_path()
-    }
-}
-
 impl Identifiable for SemanticModel {
     fn get_object_type(&self) -> &str {
         Self::get_object_type()
