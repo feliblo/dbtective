@@ -3,15 +3,12 @@ use crate::{
     core::{
         config::{check_config_options::HasTagsCriteria, manifest_rule::ManifestRule},
         manifest::dbt_objects::Tags,
+        rules::common_traits::Identifiable,
     },
 };
-pub trait Tagable {
+
+pub trait Tagable: Identifiable {
     fn get_tags(&self) -> Option<&Tags>;
-    fn get_object_type(&self) -> &str;
-    fn get_object_string(&self) -> &str;
-    fn get_relative_path(&self) -> Option<&String> {
-        None
-    }
 }
 
 pub fn check_tags<T: Tagable>(
@@ -98,10 +95,7 @@ mod tests {
         object_string: String,
         relative_path: Option<String>,
     }
-    impl Tagable for TestTagable {
-        fn get_tags(&self) -> Option<&Tags> {
-            self.tags.as_ref()
-        }
+    impl Identifiable for TestTagable {
         fn get_object_type(&self) -> &str {
             &self.object_type
         }
@@ -110,6 +104,11 @@ mod tests {
         }
         fn get_relative_path(&self) -> Option<&String> {
             self.relative_path.as_ref()
+        }
+    }
+    impl Tagable for TestTagable {
+        fn get_tags(&self) -> Option<&Tags> {
+            self.tags.as_ref()
         }
     }
     #[test]

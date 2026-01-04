@@ -1,10 +1,10 @@
-use crate::{cli::table::RuleResult, core::config::manifest_rule::ManifestRule};
+use crate::{
+    cli::table::RuleResult,
+    core::{config::manifest_rule::ManifestRule, rules::common_traits::Identifiable},
+};
 
-pub trait ContractAble {
+pub trait ContractAble: Identifiable {
     fn get_contract_enforced(&self) -> Option<bool>;
-    fn get_name(&self) -> &str;
-    fn get_relative_path(&self) -> Option<&String>;
-    fn get_object_type(&self) -> &str;
 }
 
 pub fn has_contract_enforced<T: ContractAble>(
@@ -18,7 +18,10 @@ pub fn has_contract_enforced<T: ContractAble>(
         &rule.severity,
         model.get_object_type(),
         rule.get_name(),
-        format!("{} does not have a contract enforced.", model.get_name()),
+        format!(
+            "{} does not have a contract enforced.",
+            model.get_object_string()
+        ),
         model.get_relative_path().cloned(),
     ))
 }
@@ -34,18 +37,20 @@ mod tests {
         contract: Option<Contract>,
         relative_path: Option<String>,
     }
-    impl ContractAble for TestModel {
-        fn get_contract_enforced(&self) -> Option<bool> {
-            self.contract.as_ref().map(|contract| contract.enforced)
+    impl Identifiable for TestModel {
+        fn get_object_type(&self) -> &'static str {
+            "Model"
         }
-        fn get_name(&self) -> &str {
+        fn get_object_string(&self) -> &str {
             &self.name
         }
         fn get_relative_path(&self) -> Option<&String> {
             self.relative_path.as_ref()
         }
-        fn get_object_type(&self) -> &'static str {
-            "Model"
+    }
+    impl ContractAble for TestModel {
+        fn get_contract_enforced(&self) -> Option<bool> {
+            self.contract.as_ref().map(|contract| contract.enforced)
         }
     }
     #[test]

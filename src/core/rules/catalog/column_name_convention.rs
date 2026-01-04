@@ -124,9 +124,20 @@ mod tests {
     use super::*;
     use crate::core::config::{catalog_rule::CatalogSpecificRuleConfig, severity::Severity};
 
+    use crate::core::rules::common_traits::Identifiable;
+
     struct TestItem {
         name: String,
         columns: Vec<String>,
+    }
+    impl Identifiable for TestItem {
+        fn get_object_type(&self) -> &'static str {
+            "TestItem"
+        }
+
+        fn get_object_string(&self) -> &str {
+            &self.name
+        }
     }
     impl Columnable for TestItem {
         fn get_column_names(&self) -> Option<Vec<&String>> {
@@ -139,14 +150,6 @@ mod tests {
 
         fn get_columns_with_types(&self) -> Option<Vec<(&String, &String)>> {
             None
-        }
-
-        fn get_object_type(&self) -> &'static str {
-            "TestItem"
-        }
-
-        fn get_object_string(&self) -> &str {
-            &self.name
         }
     }
 

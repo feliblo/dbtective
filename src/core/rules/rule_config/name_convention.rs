@@ -1,16 +1,14 @@
-pub trait NameAble {
-    fn name(&self) -> &str;
-    fn get_object_type(&self) -> &str;
-    fn get_object_string(&self) -> &str;
-    fn get_relative_path(&self) -> Option<&String> {
-        None
-    }
-}
-
 use crate::{
     cli::table::RuleResult,
-    core::config::{manifest_rule::ManifestRule, naming_convention::NamingConvention},
+    core::{
+        config::{manifest_rule::ManifestRule, naming_convention::NamingConvention},
+        rules::common_traits::Identifiable,
+    },
 };
+
+pub trait NameAble: Identifiable {
+    fn name(&self) -> &str;
+}
 
 /// Check if the item's name follows the specified naming convention pattern
 pub fn check_name_convention<T: NameAble>(
@@ -23,11 +21,11 @@ pub fn check_name_convention<T: NameAble>(
     } else {
         Some(RuleResult::new(
             &rule.severity,
-            NameAble::get_object_type(item),
+            item.get_object_type(),
             rule.get_name(),
             format!(
                 "{} does not follow the {} naming convention.",
-                NameAble::get_object_string(item),
+                item.get_object_string(),
                 convention.name()
             ),
             item.get_relative_path().cloned(),
@@ -43,16 +41,17 @@ mod tests {
     struct TestItem {
         name: String,
     }
-    impl NameAble for TestItem {
-        fn name(&self) -> &str {
-            &self.name
-        }
-
+    impl Identifiable for TestItem {
         fn get_object_type(&self) -> &'static str {
             "TestItem"
         }
 
         fn get_object_string(&self) -> &str {
+            &self.name
+        }
+    }
+    impl NameAble for TestItem {
+        fn name(&self) -> &str {
             &self.name
         }
     }
@@ -77,7 +76,7 @@ mod tests {
             check_name_convention(&item_invalid, &rule, &convention),
             Some(RuleResult::new(
                 &rule.severity,
-                NameAble::get_object_type(&item_invalid),
+                item_invalid.get_object_type(),
                 rule.rule.as_str(),
                 "TestItem does not follow the snake_case naming convention.".to_string(),
                 item_invalid.get_relative_path().cloned(),
@@ -105,7 +104,7 @@ mod tests {
             check_name_convention(&item_invalid, &rule, &convention),
             Some(RuleResult::new(
                 &rule.severity,
-                NameAble::get_object_type(&item_invalid),
+                item_invalid.get_object_type(),
                 rule.rule.as_str(),
                 "test_item does not follow the PascalCase naming convention.".to_string(),
                 item_invalid.get_relative_path().cloned(),
@@ -133,7 +132,7 @@ mod tests {
             check_name_convention(&item_invalid, &rule, &convention),
             Some(RuleResult::new(
                 &rule.severity,
-                NameAble::get_object_type(&item_invalid),
+                item_invalid.get_object_type(),
                 rule.rule.as_str(),
                 "TestItem does not follow the kebab-case naming convention.".to_string(),
                 item_invalid.get_relative_path().cloned(),
@@ -161,7 +160,7 @@ mod tests {
             check_name_convention(&item_invalid, &rule, &convention),
             Some(RuleResult::new(
                 &rule.severity,
-                NameAble::get_object_type(&item_invalid),
+                item_invalid.get_object_type(),
                 rule.rule.as_str(),
                 "Test_Item does not follow the camelCase naming convention.".to_string(),
                 item_invalid.get_relative_path().cloned(),
@@ -189,7 +188,7 @@ mod tests {
             check_name_convention(&item_invalid, &rule, &convention),
             Some(RuleResult::new(
                 &rule.severity,
-                NameAble::get_object_type(&item_invalid),
+                item_invalid.get_object_type(),
                 rule.rule.as_str(),
                 "AB-123 does not follow the ^[A-Z]{3}-[0-9]{4}$ naming convention.".to_string(),
                 item_invalid.get_relative_path().cloned(),

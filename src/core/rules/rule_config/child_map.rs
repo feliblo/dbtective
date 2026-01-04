@@ -3,16 +3,12 @@ use crate::{
     core::{
         config::{check_config_options::OrphanedReferenceType, manifest_rule::ManifestRule},
         manifest::Manifest,
+        rules::common_traits::Identifiable,
     },
 };
 
 // Models, seeds and sources could/should have child object that consume them.
-pub trait ChildMappable {
-    fn get_object_type(&self) -> &str;
-    fn get_object_string(&self) -> &str;
-    fn get_relative_path(&self) -> Option<&String> {
-        None
-    }
+pub trait ChildMappable: Identifiable {
     fn get_childs<'a>(&self, manifest: &'a Manifest) -> Vec<&'a str>;
 }
 
@@ -73,6 +69,7 @@ mod tests {
     use crate::core::config::manifest_rule::{ManifestRule, ManifestSpecificRuleConfig};
     use crate::core::config::severity::Severity;
     use crate::core::manifest::Manifest;
+    use crate::core::rules::common_traits::Identifiable;
     use crate::core::rules::rule_config::child_map::{is_not_orphaned, ChildMappable};
 
     struct MockTaggable {
@@ -81,14 +78,15 @@ mod tests {
         childs: Vec<&'static str>,
     }
 
-    impl ChildMappable for MockTaggable {
+    impl Identifiable for MockTaggable {
         fn get_object_type(&self) -> &str {
             &self.object_type
         }
         fn get_object_string(&self) -> &str {
             &self.object_string
         }
-
+    }
+    impl ChildMappable for MockTaggable {
         fn get_childs<'a>(&self, _manifest: &'a Manifest) -> Vec<&'a str> {
             self.childs.clone()
         }

@@ -1,7 +1,7 @@
 // Trait implementations for Source that stay in dbtective
 use crate::core::config::applies_to::{RuleTarget, RuleTargetable};
 use crate::core::config::includes_excludes::IncludeExcludable;
-use crate::core::rules::common_traits::Columnable;
+use crate::core::rules::common_traits::{Columnable, Identifiable};
 use crate::core::rules::rule_config::child_map::ChildMappable;
 use crate::core::rules::rule_config::has_description::Descriptable;
 use crate::core::rules::rule_config::has_metadata_keys::HasMetadata;
@@ -29,25 +29,7 @@ impl IncludeExcludable for &Source {
     }
 }
 
-impl Descriptable for Source {
-    fn description(&self) -> Option<&String> {
-        self.description.as_ref()
-    }
-
-    fn get_object_type(&self) -> &'static str {
-        Self::get_object_type()
-    }
-
-    fn get_object_string(&self) -> &str {
-        self.get_name()
-    }
-}
-
-impl NameAble for Source {
-    fn name(&self) -> &str {
-        self.get_name()
-    }
-
+impl Identifiable for Source {
     fn get_object_type(&self) -> &str {
         Self::get_object_type()
     }
@@ -61,21 +43,21 @@ impl NameAble for Source {
     }
 }
 
+impl Descriptable for Source {
+    fn description(&self) -> Option<&String> {
+        self.description.as_ref()
+    }
+}
+
+impl NameAble for Source {
+    fn name(&self) -> &str {
+        self.get_name()
+    }
+}
+
 impl Tagable for Source {
     fn get_tags(&self) -> Option<&Tags> {
         self.tags.as_ref()
-    }
-
-    fn get_object_type(&self) -> &'static str {
-        Self::get_object_type()
-    }
-
-    fn get_object_string(&self) -> &str {
-        self.get_name()
-    }
-
-    fn get_relative_path(&self) -> Option<&String> {
-        Some(self.get_relative_path())
     }
 }
 
@@ -106,34 +88,9 @@ impl Columnable for Source {
                 .collect::<Vec<(&String, &String)>>()
         })
     }
-
-    fn get_object_type(&self) -> &str {
-        Self::get_object_type()
-    }
-
-    fn get_object_string(&self) -> &str {
-        self.get_name()
-    }
-
-    // Paths are only available in manifest objects
-    fn get_relative_path(&self) -> Option<&String> {
-        Some(self.get_relative_path())
-    }
 }
 
 impl ChildMappable for Source {
-    fn get_object_type(&self) -> &str {
-        Self::get_object_type()
-    }
-
-    fn get_object_string(&self) -> &str {
-        self.get_name()
-    }
-
-    fn get_relative_path(&self) -> Option<&String> {
-        Some(self.get_relative_path())
-    }
-
     fn get_childs<'a>(&self, manifest: &'a Manifest) -> Vec<&'a str> {
         let unique_id = self.get_unique_id();
         manifest
@@ -148,34 +105,10 @@ impl TestAble for Source {
     fn get_unique_id(&self) -> &String {
         self.get_unique_id()
     }
-
-    fn get_object_string(&self) -> &String {
-        self.get_name()
-    }
-
-    fn get_object_type(&self) -> String {
-        Self::get_object_type().to_string()
-    }
-
-    fn get_relative_path(&self) -> Option<&String> {
-        Some(self.get_relative_path())
-    }
 }
 
 impl HasMetadata for Source {
     fn get_metadata(&self) -> Option<&Meta> {
         self.meta.as_ref()
-    }
-
-    fn get_object_type(&self) -> &str {
-        Self::get_object_type()
-    }
-
-    fn get_object_string(&self) -> &str {
-        self.get_name()
-    }
-
-    fn get_relative_path(&self) -> Option<&String> {
-        Some(self.get_relative_path())
     }
 }
