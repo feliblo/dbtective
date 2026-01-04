@@ -1,4 +1,5 @@
 // Trait implementations for Node that stay in dbtective
+use super::node_objects_impls::{AnalysisExt, ModelExt, SnapshotExt};
 use crate::core::config::applies_to::{RuleTarget, RuleTargetable};
 use crate::core::config::includes_excludes::IncludeExcludable;
 use crate::core::rules::common_traits::{Columnable, Identifiable};
@@ -126,7 +127,8 @@ impl Tagable for Node {
 impl HasCode for Node {
     fn get_code(&self) -> Option<&str> {
         match self {
-            Self::Model(_) | Self::Snapshot(_) => self.get_base().raw_code.as_deref(),
+            Self::Model(m) => m.get_raw_code(),
+            Self::Snapshot(s) => s.get_raw_code(),
             _ => unreachable!("MaxCodeLines can only be called on models and snapshots nodes"),
         }
     }
@@ -153,11 +155,7 @@ impl TestAble for Node {
 impl ContractAble for Node {
     fn get_contract_enforced(&self) -> Option<bool> {
         match self {
-            Self::Model(_) => self
-                .get_base()
-                .config
-                .as_ref()
-                .and_then(|cfg| cfg.contract.as_ref().map(|contract| contract.enforced)),
+            Self::Model(m) => m.get_contract_enforced(),
             // Nothing for other node types
             Self::Seed(_)
             | Self::Analysis(_)
@@ -184,12 +182,9 @@ impl HasMetadata for Node {
 impl CanReference for Node {
     fn get_depends_on_nodes(&self) -> &[String] {
         match self {
-            Self::Model(_) | Self::Analysis(_) | Self::Snapshot(_) => {
-                match &self.get_base().depends_on.nodes {
-                    Some(nodes) => nodes,
-                    None => &[],
-                }
-            }
+            Self::Model(m) => m.get_depends_on_nodes(),
+            Self::Analysis(a) => a.get_depends_on_nodes(),
+            Self::Snapshot(s) => s.get_depends_on_nodes(),
             _ => unreachable!(
                 "CanReference should only be called on models, analyses, and snapshots"
             ),
