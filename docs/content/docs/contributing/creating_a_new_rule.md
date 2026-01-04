@@ -96,11 +96,9 @@ Check `src/core/rules/rule_config/` for an existing trait that matches your rule
 | `HasMetadata` | Objects with metadata | `has_metadata_keys.rs` |
 | `Nameable` | Objects with names | `name_convention.rs` |
 
-**If a suitable trait exists**, add your function to it. **If not**, create a new file in `src/core/rules/rule_config/`.
+**If a trait exists**, add your function to it. **If not**, create a new file in `src/core/rules/rule_config/`.
 
-If re-using a trait, we might need to rename some files. This is okay since the trait represents a broader concept.
-
-All traits extend the `Identifiable` supertrait (defined in `src/core/rules/common_traits.rs`), which provides the following methods needed for RuleResult (table reporting):
+All traits need to extend the `Identifiable` supertrait (defined in `src/core/rules/common_traits.rs`), which provides the following methods needed for RuleResult (table reporting):
 
 ```rust
 pub trait Identifiable {
@@ -110,7 +108,7 @@ pub trait Identifiable {
 }
 ```
 
-Your trait should extend `Identifiable`:
+Your trait needs to extend `Identifiable`:
 
 ```rust
 pub trait YourTrait: Identifiable {

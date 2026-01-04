@@ -21,6 +21,7 @@ pub mod parse_manifest {
 mod exposure_impls;
 mod macro_impls;
 mod node_impls;
+mod node_objects_impls;
 mod semantic_model_impls;
 mod source_impls;
 mod unit_test_impls;
