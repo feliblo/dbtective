@@ -74,6 +74,13 @@ Here you can find an overview of all possible rules. Use the filter below to fin
       <td><span class="rule-category-badge badge-manifest">Manifest</span></td>
       <td>Enforce a maximum line count for code. </td>
       <td style="font-size: 12px; color: #666;">code, lines, length, size, complexity</td>
+    </tr>
+    <tr class="rule-item" data-keywords="folder structure organization path subfolders hierarchy medallion bronze silver gold source" data-category="manifest">
+      <td><a href="allowed_subfolders" class="rule-name">allowed_subfolders</a></td>
+      <td><span class="rule-category-badge badge-manifest">Manifest</span></td>
+      <td>Enforce that objects are organized within specific allowed subfolders. Ensures consistent project structure and proper categorization by source or domain.</td>
+      <td style="font-size: 12px; color: #666;">folder, structure, organization, path, subfolders</td>
+    </tr>
   </tbody>
 </table>
 

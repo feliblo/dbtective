@@ -2,6 +2,7 @@
 use crate::core::config::applies_to::{RuleTarget, RuleTargetable};
 use crate::core::config::includes_excludes::IncludeExcludable;
 use crate::core::rules::common_traits::Identifiable;
+use crate::core::rules::rule_config::allowed_subfolders::PathCheckable;
 use crate::core::rules::rule_config::has_description::Descriptable;
 use crate::core::rules::rule_config::has_metadata_keys::HasMetadata;
 use crate::core::rules::rule_config::has_refs::CanReference;
@@ -66,5 +67,11 @@ impl CanReference for Exposure {
             Some(nodes) => nodes,
             None => &[],
         }
+    }
+}
+
+impl PathCheckable for Exposure {
+    fn get_rule_target(&self) -> RuleTarget {
+        self.ruletarget()
     }
 }
