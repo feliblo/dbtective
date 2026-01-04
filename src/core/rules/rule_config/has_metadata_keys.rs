@@ -1,13 +1,13 @@
 use crate::{
     cli::table::RuleResult,
-    core::{config::manifest_rule::ManifestRule, manifest::dbt_objects::Meta},
+    core::{
+        config::manifest_rule::ManifestRule, manifest::dbt_objects::Meta,
+        rules::common_traits::Identifiable,
+    },
 };
 
-pub trait HasMetadata {
+pub trait HasMetadata: Identifiable {
     fn get_metadata(&self) -> Option<&Meta>;
-    fn get_object_type(&self) -> &str;
-    fn get_object_string(&self) -> &str;
-    fn get_relative_path(&self) -> Option<&String>;
 }
 
 pub fn has_metadata_keys<T: HasMetadata>(
@@ -21,11 +21,11 @@ pub fn has_metadata_keys<T: HasMetadata>(
         || {
             Some(RuleResult::new(
                 &rule.severity,
-                HasMetadata::get_object_type(has_metadata),
+                has_metadata.get_object_type(),
                 rule.get_name(),
                 format!(
                     "{} is missing metadata entirely.",
-                    HasMetadata::get_object_string(has_metadata)
+                    has_metadata.get_object_string()
                 ),
                 has_metadata.get_relative_path().cloned(),
             ))
@@ -38,14 +38,14 @@ pub fn has_metadata_keys<T: HasMetadata>(
             } else {
                 Some(RuleResult::new(
                     &rule.severity,
-                    HasMetadata::get_object_type(has_metadata),
+                    has_metadata.get_object_type(),
                     rule.get_name(),
                     // Generate message based on whether a custom message is provided
                     custom_message.as_ref().map_or_else(
                         || {
                             format!(
                                 "{} is missing required metadata keys: {}.",
-                                HasMetadata::get_object_string(has_metadata),
+                                has_metadata.get_object_string(),
                                 missing_keys
                                     .iter()
                                     .map(|s| s.as_str())
@@ -53,7 +53,7 @@ pub fn has_metadata_keys<T: HasMetadata>(
                                     .join(", ")
                             )
                         },
-                        |msg| format!("{} {}", HasMetadata::get_object_string(has_metadata), msg),
+                        |msg| format!("{} {}", has_metadata.get_object_string(), msg),
                     ),
                     has_metadata.get_relative_path().cloned(),
                 ))
@@ -84,11 +84,7 @@ mod tests {
         }
     }
 
-    impl HasMetadata for TestObject {
-        fn get_metadata(&self) -> Option<&Meta> {
-            self.metadata.as_ref()
-        }
-
+    impl Identifiable for TestObject {
         fn get_object_type(&self) -> &str {
             &self.object_type
         }
@@ -99,6 +95,11 @@ mod tests {
 
         fn get_relative_path(&self) -> Option<&String> {
             self.relative_path.as_ref()
+        }
+    }
+    impl HasMetadata for TestObject {
+        fn get_metadata(&self) -> Option<&Meta> {
+            self.metadata.as_ref()
         }
     }
     #[test]

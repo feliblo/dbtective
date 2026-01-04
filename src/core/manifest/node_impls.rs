@@ -1,7 +1,7 @@
 // Trait implementations for Node that stay in dbtective
 use crate::core::config::applies_to::{RuleTarget, RuleTargetable};
 use crate::core::config::includes_excludes::IncludeExcludable;
-use crate::core::rules::common_traits::Columnable;
+use crate::core::rules::common_traits::{Columnable, Identifiable};
 use crate::core::rules::rule_config::child_map::ChildMappable;
 use crate::core::rules::rule_config::has_contract_enforced::ContractAble;
 use crate::core::rules::rule_config::has_description::Descriptable;
@@ -29,21 +29,37 @@ impl RuleTargetable for Node {
     }
 }
 
-impl NameAble for Node {
-    fn name(&self) -> &str {
-        self.get_name()
-    }
-
+impl Identifiable for Node {
     fn get_object_type(&self) -> &str {
         self.get_object_type()
     }
 
     fn get_object_string(&self) -> &str {
-        self.get_object_string()
+        self.get_name()
     }
 
     fn get_relative_path(&self) -> Option<&String> {
         Some(self.get_relative_path())
+    }
+}
+
+impl Identifiable for &Node {
+    fn get_object_type(&self) -> &str {
+        (*self).get_object_type()
+    }
+
+    fn get_object_string(&self) -> &str {
+        (*self).get_name()
+    }
+
+    fn get_relative_path(&self) -> Option<&String> {
+        Some((*self).get_relative_path())
+    }
+}
+
+impl NameAble for Node {
+    fn name(&self) -> &str {
+        self.get_name()
     }
 }
 
@@ -75,18 +91,6 @@ impl Columnable for Node {
                 .collect::<Vec<(&String, &String)>>()
         })
     }
-
-    fn get_object_type(&self) -> &str {
-        self.get_object_type()
-    }
-
-    fn get_object_string(&self) -> &str {
-        self.get_object_string()
-    }
-
-    fn get_relative_path(&self) -> Option<&String> {
-        Some(self.get_relative_path())
-    }
 }
 
 impl IncludeExcludable for Node {
@@ -105,53 +109,17 @@ impl Descriptable for Node {
     fn description(&self) -> Option<&String> {
         self.get_base().description.as_ref()
     }
-
-    fn get_object_type(&self) -> &str {
-        self.get_object_type()
-    }
-
-    fn get_object_string(&self) -> &str {
-        self.get_object_string()
-    }
-
-    fn get_relative_path(&self) -> Option<&String> {
-        Some(self.get_relative_path())
-    }
 }
 
 impl Descriptable for &Node {
     fn description(&self) -> Option<&String> {
         (*self).description()
     }
-
-    fn get_object_type(&self) -> &str {
-        (*self).get_object_type()
-    }
-
-    fn get_object_string(&self) -> &str {
-        (*self).get_object_string()
-    }
-
-    fn get_relative_path(&self) -> Option<&String> {
-        Some((*self).get_relative_path())
-    }
 }
 
 impl Tagable for Node {
     fn get_tags(&self) -> Option<&Tags> {
         self.get_base().tags.as_ref()
-    }
-
-    fn get_object_type(&self) -> &str {
-        (*self).get_object_type()
-    }
-
-    fn get_object_string(&self) -> &str {
-        (*self).get_object_string()
-    }
-
-    fn get_relative_path(&self) -> Option<&String> {
-        Some((*self).get_relative_path())
     }
 }
 
@@ -162,46 +130,9 @@ impl HasCode for Node {
             _ => unreachable!("MaxCodeLines can only be called on models and snapshots nodes"),
         }
     }
-
-    fn get_name(&self) -> &str {
-        self.get_name()
-    }
-
-    fn get_relative_path(&self) -> Option<&String> {
-        Some(&self.get_base().original_file_path)
-    }
-
-    fn get_object_type(&self) -> &str {
-        self.get_object_type()
-    }
 }
 
 impl ChildMappable for Node {
-    fn get_object_type(&self) -> &str {
-        match self {
-            Self::Model(_) | Self::Seed(_) => self.get_object_type(),
-            _ => {
-                unreachable!("IsNotOrphaned should only be called on models, seeds, and snapshots")
-            }
-        }
-    }
-
-    fn get_object_string(&self) -> &str {
-        match self {
-            Self::Model(_) | Self::Seed(_) => self.get_name(),
-            _ => {
-                unreachable!("IsNotOrphaned should only be called on models, seeds, and snapshots")
-            }
-        }
-    }
-
-    fn get_relative_path(&self) -> Option<&String> {
-        match &self {
-            Self::Model(_) | Self::Seed(_) => Some(&self.get_base().original_file_path),
-            _ => None,
-        }
-    }
-
     fn get_childs<'a>(&self, manifest: &'a Manifest) -> Vec<&'a str> {
         let unique_id = self.get_unique_id();
         manifest
@@ -215,18 +146,6 @@ impl ChildMappable for Node {
 impl TestAble for Node {
     fn get_unique_id(&self) -> &String {
         self.get_unique_id()
-    }
-
-    fn get_object_string(&self) -> &String {
-        self.get_name()
-    }
-
-    fn get_object_type(&self) -> String {
-        self.get_object_type().to_string()
-    }
-
-    fn get_relative_path(&self) -> Option<&String> {
-        Some(&self.get_base().original_file_path)
     }
 }
 
@@ -248,50 +167,17 @@ impl ContractAble for Node {
             | Self::SqlOperation(_) => None,
         }
     }
-    fn get_object_type(&self) -> &str {
-        self.get_object_type()
-    }
-
-    fn get_name(&self) -> &str {
-        self.get_name()
-    }
-    fn get_relative_path(&self) -> Option<&String> {
-        Some(&self.get_base().original_file_path)
-    }
 }
 
 impl ContractAble for &Node {
     fn get_contract_enforced(&self) -> Option<bool> {
         (*self).get_contract_enforced()
     }
-
-    fn get_object_type(&self) -> &str {
-        (*self).get_object_type()
-    }
-
-    fn get_name(&self) -> &str {
-        (*self).get_name()
-    }
-    fn get_relative_path(&self) -> Option<&String> {
-        Some(&(*self).get_base().original_file_path)
-    }
 }
 
 impl HasMetadata for Node {
     fn get_metadata(&self) -> Option<&Meta> {
         self.get_base().meta.as_ref()
-    }
-
-    fn get_object_type(&self) -> &str {
-        self.get_object_type()
-    }
-
-    fn get_object_string(&self) -> &str {
-        self.get_object_string()
-    }
-
-    fn get_relative_path(&self) -> Option<&String> {
-        Some(self.get_relative_path())
     }
 }
 
@@ -308,16 +194,5 @@ impl CanReference for Node {
                 "CanReference should only be called on models, analyses, and snapshots"
             ),
         }
-    }
-    fn get_object_type(&self) -> &str {
-        self.get_object_type()
-    }
-
-    fn get_object_string(&self) -> &str {
-        self.get_object_string()
-    }
-
-    fn get_relative_path(&self) -> Option<&String> {
-        Some(self.get_relative_path())
     }
 }

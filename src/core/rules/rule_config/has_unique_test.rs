@@ -1,18 +1,17 @@
 use crate::{
     cli::table::RuleResult,
-    core::{config::manifest_rule::ManifestRule, manifest::Manifest},
+    core::{
+        config::manifest_rule::ManifestRule, manifest::Manifest, rules::common_traits::Identifiable,
+    },
 };
 use dbt_artifact_parser::manifest::nodes::Test;
 
-pub trait TestAble {
+pub trait TestAble: Identifiable {
     fn get_tests<'a>(&'a self, manifest: &'a Manifest) -> Vec<&'a Test> {
         let unique_id = self.get_unique_id();
         manifest.get_tests_by_parent(unique_id)
     }
     fn get_unique_id(&self) -> &String;
-    fn get_object_string(&self) -> &String;
-    fn get_object_type(&self) -> String;
-    fn get_relative_path(&self) -> Option<&String>;
 }
 
 // Check if the testable has atleast one test that tests for uniqueness
@@ -66,21 +65,22 @@ mod tests {
         object_string: String,
         relative_path: Option<String>,
     }
-    impl TestAble for MockTestable {
-        fn get_unique_id(&self) -> &String {
-            &self.unique_id
+    impl Identifiable for MockTestable {
+        fn get_object_type(&self) -> &str {
+            &self.object_type
         }
 
-        fn get_object_string(&self) -> &String {
+        fn get_object_string(&self) -> &str {
             &self.object_string
-        }
-
-        fn get_object_type(&self) -> String {
-            self.object_type.clone()
         }
 
         fn get_relative_path(&self) -> Option<&String> {
             self.relative_path.as_ref()
+        }
+    }
+    impl TestAble for MockTestable {
+        fn get_unique_id(&self) -> &String {
+            &self.unique_id
         }
     }
 

@@ -1,14 +1,12 @@
-use crate::{cli::table::RuleResult, core::config::manifest_rule::ManifestRule};
+use crate::{
+    cli::table::RuleResult,
+    core::{config::manifest_rule::ManifestRule, rules::common_traits::Identifiable},
+};
 
 // Characterizes objects that can have upstream references.
 // Indicated by {{ ref(model_name) }} statements in dbt models or {{ source(...) }} statements.
-pub trait CanReference {
+pub trait CanReference: Identifiable {
     fn get_depends_on_nodes(&self) -> &[String];
-    fn get_object_type(&self) -> &str;
-    fn get_object_string(&self) -> &str;
-    fn get_relative_path(&self) -> Option<&String> {
-        None
-    }
 }
 
 pub fn has_refs<T: CanReference>(item: &T, rule: &ManifestRule) -> Option<RuleResult> {
@@ -41,11 +39,7 @@ mod tests {
         depends_on: Vec<String>,
         relative_path: String,
     }
-    impl CanReference for TestCanReference {
-        fn get_depends_on_nodes(&self) -> &[String] {
-            &self.depends_on
-        }
-
+    impl Identifiable for TestCanReference {
         fn get_object_type(&self) -> &'static str {
             "TestObject"
         }
@@ -56,6 +50,11 @@ mod tests {
 
         fn get_relative_path(&self) -> Option<&String> {
             Some(&self.relative_path)
+        }
+    }
+    impl CanReference for TestCanReference {
+        fn get_depends_on_nodes(&self) -> &[String] {
+            &self.depends_on
         }
     }
 

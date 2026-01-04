@@ -1,13 +1,9 @@
 use crate::cli::table::RuleResult;
 use crate::core::config::manifest_rule::ManifestRule;
+use crate::core::rules::common_traits::Identifiable;
 
-pub trait Descriptable {
+pub trait Descriptable: Identifiable {
     fn description(&self) -> Option<&String>;
-    fn get_object_type(&self) -> &str;
-    fn get_object_string(&self) -> &str;
-    fn get_relative_path(&self) -> Option<&String> {
-        None
-    }
 }
 
 pub fn has_description<T: Descriptable>(
@@ -18,11 +14,11 @@ pub fn has_description<T: Descriptable>(
         Some(desc) if !desc.trim().is_empty() => None,
         _ => Some(RuleResult::new(
             &rule.severity,
-            Descriptable::get_object_type(descriptable),
+            descriptable.get_object_type(),
             rule.get_name(),
             format!(
                 "{} is missing a description.",
-                Descriptable::get_object_string(descriptable)
+                descriptable.get_object_string()
             ),
             descriptable.get_relative_path().cloned(),
         )),
@@ -39,10 +35,7 @@ mod tests {
         name: String,
         description: Option<String>,
     }
-    impl Descriptable for TestNode {
-        fn description(&self) -> Option<&String> {
-            self.description.as_ref()
-        }
+    impl Identifiable for TestNode {
         #[allow(clippy::unnecessary_literal_bound)]
         fn get_object_type(&self) -> &str {
             "TestNode"
@@ -50,6 +43,11 @@ mod tests {
 
         fn get_object_string(&self) -> &str {
             &self.name
+        }
+    }
+    impl Descriptable for TestNode {
+        fn description(&self) -> Option<&String> {
+            self.description.as_ref()
         }
     }
 

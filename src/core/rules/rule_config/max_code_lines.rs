@@ -1,10 +1,10 @@
-use crate::{cli::table::RuleResult, core::config::manifest_rule::ManifestRule};
+use crate::{
+    cli::table::RuleResult,
+    core::{config::manifest_rule::ManifestRule, rules::common_traits::Identifiable},
+};
 
-pub trait HasCode {
+pub trait HasCode: Identifiable {
     fn get_code(&self) -> Option<&str>;
-    fn get_name(&self) -> &str;
-    fn get_relative_path(&self) -> Option<&String>;
-    fn get_object_type(&self) -> &str;
 }
 
 // Models, Macros, Snapshots can all contain code.
@@ -22,11 +22,14 @@ pub fn max_code_lines<T: HasCode>(
     }
 
     let message = if code_lines == 0 {
-        format!("Code for '{}' is empty. ", object_with_code.get_name())
+        format!(
+            "Code for '{}' is empty. ",
+            object_with_code.get_object_string()
+        )
     } else {
         format!(
             "{} has {} lines of code which exceeds the maximum allowed of {} lines.",
-            object_with_code.get_name(),
+            object_with_code.get_object_string(),
             code_lines,
             max_length
         )
@@ -51,18 +54,20 @@ mod tests {
         relative_path: Option<String>,
     }
 
-    impl HasCode for TestNode {
-        fn get_code(&self) -> Option<&str> {
-            self.code.as_deref()
+    impl Identifiable for TestNode {
+        fn get_object_type(&self) -> &'static str {
+            "Model"
         }
-        fn get_name(&self) -> &str {
+        fn get_object_string(&self) -> &str {
             &self.name
         }
         fn get_relative_path(&self) -> Option<&String> {
             self.relative_path.as_ref()
         }
-        fn get_object_type(&self) -> &'static str {
-            "Model"
+    }
+    impl HasCode for TestNode {
+        fn get_code(&self) -> Option<&str> {
+            self.code.as_deref()
         }
     }
 

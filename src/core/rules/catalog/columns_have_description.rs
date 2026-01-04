@@ -75,6 +75,7 @@ pub fn columns_have_description<C: Columnable, M: Columnable>(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::core::rules::common_traits::Identifiable;
 
     struct TestColumnable {
         object_type: String,
@@ -84,6 +85,17 @@ mod tests {
         column_descriptions: Option<Vec<String>>,
     }
 
+    impl Identifiable for TestColumnable {
+        fn get_object_type(&self) -> &str {
+            &self.object_type
+        }
+        fn get_object_string(&self) -> &str {
+            &self.object_string
+        }
+        fn get_relative_path(&self) -> Option<&String> {
+            self.relative_path.as_ref()
+        }
+    }
     impl Columnable for TestColumnable {
         fn get_column_names(&self) -> Option<Vec<&String>> {
             self.column_names.as_ref().map(|cols| cols.iter().collect())
@@ -112,16 +124,6 @@ mod tests {
 
         fn get_columns_with_types(&self) -> Option<Vec<(&String, &String)>> {
             None
-        }
-
-        fn get_object_type(&self) -> &str {
-            &self.object_type
-        }
-        fn get_object_string(&self) -> &str {
-            &self.object_string
-        }
-        fn get_relative_path(&self) -> Option<&String> {
-            self.relative_path.as_ref()
         }
     }
 

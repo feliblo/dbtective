@@ -100,11 +100,23 @@ Check `src/core/rules/rule_config/` for an existing trait that matches your rule
 
 If re-using a trait, we might need to rename some files. This is okay since the trait represents a broader concept.
 
-All traits contain at least the following methods (needed for RuleResult (table reporting)):
+All traits extend the `Identifiable` supertrait (defined in `src/core/rules/common_traits.rs`), which provides the following methods needed for RuleResult (table reporting):
 
-- `fn get_object_type(&self) -> &str;` - Returns the dbt object type (e.g., "model", "source")
-- `fn get_object_string(&self) -> &str;` - Returns a string representation
-- `fn get_relative_path(&self) -> Option<&String>;` - Returns the object's relative file path
+```rust
+pub trait Identifiable {
+    fn get_object_type(&self) -> &str;      // Returns the dbt object type (e.g., "model", "source")
+    fn get_object_string(&self) -> &str;    // Returns a string representation
+    fn get_relative_path(&self) -> Option<&String> { None }  // Returns the object's relative file path
+}
+```
+
+Your trait should extend `Identifiable`:
+
+```rust
+pub trait YourTrait: Identifiable {
+    // Your trait-specific methods here
+}
+```
 
 ### Implement the Rule Logic
 
@@ -114,15 +126,12 @@ Create your rule function. Here's an example pattern:
 // src/core/rules/rule_config/your_rule.rs
 use crate::{
     cli::table::RuleResult,
-    core::config::manifest_rule::ManifestRule,
+    core::{config::manifest_rule::ManifestRule, rules::common_traits::Identifiable},
 };
 
-/// Trait for objects that can have an owner
-pub trait YourRule {
+/// Trait for objects that can have an owner - extends Identifiable
+pub trait YourRule: Identifiable {
     fn get_owner(&self) -> Option<&str>;
-    fn get_object_type(&self) -> &str;
-    fn get_object_string(&self) -> &str;
-    fn get_relative_path(&self) -> Option<&String>;
 }
 
 /// Check if an object has a valid owner configured
@@ -132,32 +141,25 @@ pub fn has_your_rule<T: YourRule>(
     your_field_name_for_the_rule: &str,
 ) -> Option<RuleResult> {
     // Your rule logic here
+    // Use obj.get_object_type(), obj.get_object_string(), obj.get_relative_path()
+    // from the Identifiable supertrait
 }
 ```
 
 ### Implement the Trait for dbt Objects
 
-Implement your trait for the relevant structs in `src/core/manifest/dbt_objects/`.
+Implement your trait for the relevant structs in `src/core/manifest/`.
 Don't worry if you miss any, the Rust compiler will guide you, (so you can also skip this for now and move to step 6).
 
-```rust
-// In the appropriate dbt_objects file
+Note: The `Identifiable` trait is already implemented for all dbt objects (Node, Source, Exposure, etc.) in their respective `*_impls.rs` files. You only need to implement your trait-specific methods:
 
+```rust
+// In the appropriate *_impls.rs file (e.g., src/core/manifest/node_impls.rs)
+
+// Identifiable is already implemented for Node, so you only need:
 impl YourRule for Node {
     fn get_owner(&self) -> Option<&str> {
         self.config.as_ref()?.meta.as_ref()?.get("owner")?.as_str()
-    }
-
-    fn get_object_type(&self) -> &str {
-        &self.resource_type
-    }
-
-    fn get_object_string(&self) -> &str {
-        &self.name
-    }
-
-    fn get_relative_path(&self) -> Option<&String> {
-        self.original_file_path.as_ref()
     }
 }
 ```
@@ -202,18 +204,24 @@ Add tests in your rule file:
 mod tests {
     use super::*;
     use crate::core::config::{manifest_rule::ManifestSpecificRuleConfig, severity::Severity};
+    use crate::core::rules::common_traits::Identifiable;
 
     struct TestObject {
         your_field_name_for_the_rule: Option<String>,
     }
 
+    // First implement Identifiable for the test struct
+    impl Identifiable for TestObject {
+        fn get_object_type(&self) -> &str { "model" }
+        fn get_object_string(&self) -> &str { "test_model" }
+        fn get_relative_path(&self) -> Option<&String> { None }
+    }
+
+    // Then implement your trait (which extends Identifiable)
     impl YourRule for TestObject {
         fn get_owner(&self) -> Option<&str> {
             self.your_field_name_for_the_rule.as_deref()
         }
-        fn get_object_type(&self) -> &str { "model" }
-        fn get_object_string(&self) -> &str { "test_model" }
-        fn get_relative_path(&self) -> Option<&String> { None }
     }
 
     #[test]
