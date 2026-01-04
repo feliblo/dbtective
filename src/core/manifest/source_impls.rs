@@ -2,6 +2,7 @@
 use crate::core::config::applies_to::{RuleTarget, RuleTargetable};
 use crate::core::config::includes_excludes::IncludeExcludable;
 use crate::core::rules::common_traits::{Columnable, Identifiable};
+use crate::core::rules::rule_config::allowed_subfolders::PathCheckable;
 use crate::core::rules::rule_config::child_map::ChildMappable;
 use crate::core::rules::rule_config::has_description::Descriptable;
 use crate::core::rules::rule_config::has_metadata_keys::HasMetadata;
@@ -104,5 +105,11 @@ impl TestAble for Source {
 impl HasMetadata for Source {
     fn get_metadata(&self) -> Option<&Meta> {
         self.meta.as_ref()
+    }
+}
+
+impl PathCheckable for Source {
+    fn get_rule_target(&self) -> RuleTarget {
+        self.ruletarget()
     }
 }

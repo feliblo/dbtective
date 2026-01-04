@@ -1,7 +1,7 @@
 use crate::core::config::applies_to::RuleTargetable;
 use crate::core::rules::rule_config::{
-    check_name_convention, has_description, has_metadata_keys, has_refs, has_tags, has_unique_test,
-    is_not_orphaned, max_code_lines,
+    check_allowed_subfolders, check_name_convention, has_description, has_metadata_keys, has_refs,
+    has_tags, has_unique_test, is_not_orphaned, max_code_lines,
 };
 use crate::{
     cli::table::RuleResult,
@@ -83,11 +83,22 @@ fn apply_source_rules<'a>(
                         required_keys,
                         custom_message,
                     } => has_metadata_keys(source, rule, required_keys, custom_message.as_ref()),
+                    ManifestSpecificRuleConfig::AllowedSubfolders {
+                        allowed_subfolders,
+                        path_prefix,
+                        path_postfix,
+                    } => check_allowed_subfolders(
+                        source,
+                        rule,
+                        allowed_subfolders,
+                        path_prefix.as_ref(),
+                        path_postfix.as_ref(),
+                    ),
 
-                    // These can't be implemented for exposures
+                    // These can't be implemented for sources
                     ManifestSpecificRuleConfig::HasRefs {}
                     | ManifestSpecificRuleConfig::MaxCodeLines { .. }
-                    | ManifestSpecificRuleConfig::HasContractEnforced {} => return Ok(acc), // Models only
+                    | ManifestSpecificRuleConfig::HasContractEnforced {} => return Ok(acc),
                 };
 
                 if let Some(rule_row) = rule_row_result {
@@ -148,12 +159,23 @@ fn apply_macro_rules<'a>(
                         ManifestSpecificRuleConfig::MaxCodeLines { max_lines } => {
                             max_code_lines(macro_obj, rule, *max_lines)
                         }
+                        ManifestSpecificRuleConfig::AllowedSubfolders {
+                            allowed_subfolders,
+                            path_prefix,
+                            path_postfix,
+                        } => check_allowed_subfolders(
+                            macro_obj,
+                            rule,
+                            allowed_subfolders,
+                            path_prefix.as_ref(),
+                            path_postfix.as_ref(),
+                        ),
                         // These can't be implemented for macros
                         ManifestSpecificRuleConfig::HasTags { .. }
                         | ManifestSpecificRuleConfig::IsNotOrphaned { .. }
                         | ManifestSpecificRuleConfig::HasUniqueTest { .. }
                         | ManifestSpecificRuleConfig::HasRefs {}
-                        | ManifestSpecificRuleConfig::HasContractEnforced {} => return Ok(acc), //
+                        | ManifestSpecificRuleConfig::HasContractEnforced {} => return Ok(acc),
                     };
 
                     if let Some(rule_row) = rule_row_result {
@@ -217,6 +239,17 @@ fn apply_exposure_rules<'a>(
                             custom_message.as_ref(),
                         ),
                         ManifestSpecificRuleConfig::HasRefs {} => has_refs(exposure, rule),
+                        ManifestSpecificRuleConfig::AllowedSubfolders {
+                            allowed_subfolders,
+                            path_prefix,
+                            path_postfix,
+                        } => check_allowed_subfolders(
+                            exposure,
+                            rule,
+                            allowed_subfolders,
+                            path_prefix.as_ref(),
+                            path_postfix.as_ref(),
+                        ),
                         // These can't be implemented for exposures
                         ManifestSpecificRuleConfig::IsNotOrphaned { .. }
                         | ManifestSpecificRuleConfig::MaxCodeLines { .. }
@@ -273,6 +306,17 @@ fn apply_semantic_model_rules<'a>(
                         custom_message,
                     } => has_metadata_keys(sm, rule, required_keys, custom_message.as_ref()),
                     ManifestSpecificRuleConfig::HasRefs {} => has_refs(sm, rule),
+                    ManifestSpecificRuleConfig::AllowedSubfolders {
+                        allowed_subfolders,
+                        path_prefix,
+                        path_postfix,
+                    } => check_allowed_subfolders(
+                        sm,
+                        rule,
+                        allowed_subfolders,
+                        path_prefix.as_ref(),
+                        path_postfix.as_ref(),
+                    ),
                     // These can't be implemented for semantic models
                     ManifestSpecificRuleConfig::HasTags { .. }
                     | ManifestSpecificRuleConfig::MaxCodeLines { .. }
@@ -323,6 +367,17 @@ fn apply_unit_test_rules<'a>(
                     ManifestSpecificRuleConfig::NameConvention { convention } => {
                         check_name_convention(ut, rule, convention)
                     }
+                    ManifestSpecificRuleConfig::AllowedSubfolders {
+                        allowed_subfolders,
+                        path_prefix,
+                        path_postfix,
+                    } => check_allowed_subfolders(
+                        ut,
+                        rule,
+                        allowed_subfolders,
+                        path_prefix.as_ref(),
+                        path_postfix.as_ref(),
+                    ),
 
                     // Unit Tests do not implement the following rules
                     ManifestSpecificRuleConfig::MaxCodeLines { .. }

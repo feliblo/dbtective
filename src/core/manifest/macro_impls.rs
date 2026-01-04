@@ -2,6 +2,7 @@
 use crate::core::config::applies_to::{RuleTarget, RuleTargetable};
 use crate::core::config::includes_excludes::IncludeExcludable;
 use crate::core::rules::common_traits::Identifiable;
+use crate::core::rules::rule_config::allowed_subfolders::PathCheckable;
 use crate::core::rules::rule_config::has_description::Descriptable;
 use crate::core::rules::rule_config::has_metadata_keys::HasMetadata;
 use crate::core::rules::rule_config::max_code_lines::HasCode;
@@ -56,5 +57,11 @@ impl HasMetadata for Macro {
 impl HasCode for Macro {
     fn get_code(&self) -> Option<&str> {
         Some(&self.macro_sql)
+    }
+}
+
+impl PathCheckable for Macro {
+    fn get_rule_target(&self) -> RuleTarget {
+        self.ruletarget()
     }
 }

@@ -48,6 +48,13 @@ pub enum ManifestSpecificRuleConfig {
         #[serde(default = "default_max_code_lines")]
         max_lines: usize,
     },
+    AllowedSubfolders {
+        allowed_subfolders: Vec<String>,
+        #[serde(default)]
+        path_prefix: Option<String>,
+        #[serde(default)]
+        path_postfix: Option<String>,
+    },
 }
 
 impl ManifestSpecificRuleConfig {
@@ -266,10 +273,21 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             semantic_model_objects: vec![],
             custom_objects: vec![],
         },
+        // allowed_subfolders
+        ManifestSpecificRuleConfig::AllowedSubfolders { .. } => AppliesTo {
+            node_objects: vec![RuleTarget::Models],
+            source_objects: vec![],
+            unit_test_objects: vec![],
+            macro_objects: vec![],
+            exposure_objects: vec![],
+            semantic_model_objects: vec![],
+            custom_objects: vec![],
+        },
     }
 }
 
 // All options a user can choose
+#[allow(clippy::too_many_lines)]
 fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) -> AppliesTo {
     match rule_type {
         // has_description
@@ -367,6 +385,24 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
             source_objects: vec![],
             unit_test_objects: vec![],
             macro_objects: vec![],
+            exposure_objects: vec![RuleTarget::Exposures],
+            semantic_model_objects: vec![RuleTarget::SemanticModels],
+            custom_objects: vec![],
+        },
+        ManifestSpecificRuleConfig::AllowedSubfolders { .. } => AppliesTo {
+            node_objects: vec![
+                RuleTarget::Models,
+                RuleTarget::Seeds,
+                RuleTarget::Snapshots,
+                RuleTarget::Analyses,
+                RuleTarget::Metrics,
+                RuleTarget::HookNodes,
+                RuleTarget::SqlOperations,
+                RuleTarget::SavedQueries,
+            ],
+            source_objects: vec![RuleTarget::Sources],
+            unit_test_objects: vec![RuleTarget::UnitTests],
+            macro_objects: vec![RuleTarget::Macros],
             exposure_objects: vec![RuleTarget::Exposures],
             semantic_model_objects: vec![RuleTarget::SemanticModels],
             custom_objects: vec![],

@@ -3,6 +3,7 @@ use super::node_objects_impls::{AnalysisExt, ModelExt, SnapshotExt};
 use crate::core::config::applies_to::{RuleTarget, RuleTargetable};
 use crate::core::config::includes_excludes::IncludeExcludable;
 use crate::core::rules::common_traits::{Columnable, Identifiable};
+use crate::core::rules::rule_config::allowed_subfolders::PathCheckable;
 use crate::core::rules::rule_config::child_map::ChildMappable;
 use crate::core::rules::rule_config::has_contract_enforced::ContractAble;
 use crate::core::rules::rule_config::has_description::Descriptable;
@@ -83,6 +84,12 @@ impl Columnable for Node {
 impl IncludeExcludable for Node {
     fn get_relative_path(&self) -> &String {
         &self.get_base().original_file_path
+    }
+}
+
+impl PathCheckable for Node {
+    fn get_rule_target(&self) -> RuleTarget {
+        self.ruletarget()
     }
 }
 

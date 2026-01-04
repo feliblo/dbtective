@@ -2,8 +2,9 @@ use crate::cli::table::RuleResult;
 use crate::core::config::applies_to::RuleTargetable;
 use crate::core::config::manifest_rule::ManifestSpecificRuleConfig;
 use crate::core::rules::rule_config::{
-    check_name_convention, child_map::is_not_orphaned, has_contract_enforced, has_description,
-    has_metadata_keys, has_refs, has_tags, has_unique_test, max_code_lines,
+    check_allowed_subfolders, check_name_convention, child_map::is_not_orphaned,
+    has_contract_enforced, has_description, has_metadata_keys, has_refs, has_tags, has_unique_test,
+    max_code_lines,
 };
 
 use crate::core::config::severity::Severity;
@@ -71,6 +72,17 @@ pub fn apply_manifest_node_rules<'a>(
                         max_code_lines(node, rule, *max_lines)
                     }
                     ManifestSpecificRuleConfig::HasRefs {} => has_refs(node, rule),
+                    ManifestSpecificRuleConfig::AllowedSubfolders {
+                        allowed_subfolders,
+                        path_prefix,
+                        path_postfix,
+                    } => check_allowed_subfolders(
+                        node,
+                        rule,
+                        allowed_subfolders,
+                        path_prefix.as_ref(),
+                        path_postfix.as_ref(),
+                    ),
                 };
 
                 if let Some(rule_row) = rule_row_result {
