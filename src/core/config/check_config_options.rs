@@ -1,12 +1,12 @@
 use regex::Regex;
 use serde::de::{self, Deserializer};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize, Serializer};
 use strum_macros::{AsRefStr, EnumString};
 
 // HasTags
-#[derive(EnumString, Debug, PartialEq, Eq, Default)]
+#[derive(EnumString, Debug, Clone, PartialEq, Eq, Default)]
 #[strum(serialize_all = "snake_case")]
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum HasTagsCriteria {
     #[default]
@@ -16,9 +16,9 @@ pub enum HasTagsCriteria {
 }
 
 // IsNotOrphaned
-#[derive(EnumString, Debug, PartialEq, Eq, AsRefStr)]
+#[derive(EnumString, Debug, Clone, PartialEq, Eq, AsRefStr)]
 #[strum(serialize_all = "snake_case")]
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "snake_case")]
 // References that can be made in Orphaned rule
 pub enum OrphanedReferenceType {
@@ -85,6 +85,18 @@ impl<'de> Deserialize<'de> for ColumnNamePattern {
             Ok(Self::Regex(regex))
         } else {
             Ok(Self::Literal(s))
+        }
+    }
+}
+
+impl Serialize for ColumnNamePattern {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match self {
+            Self::Literal(s) => serializer.serialize_str(s),
+            Self::Regex(r) => serializer.serialize_str(r.as_str()),
         }
     }
 }

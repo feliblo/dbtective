@@ -1,5 +1,5 @@
 use regex::Regex;
-use serde::{de, Deserialize, Deserializer};
+use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt;
 
 /// Serde is used to deserialize conventions immediately into regex patterns.
@@ -57,6 +57,15 @@ impl<'de> Deserialize<'de> for NamingConvention {
         let pattern = String::deserialize(deserializer)?;
         Self::from_pattern(&pattern)
             .map_err(|e| de::Error::custom(format!("Invalid regex pattern '{pattern}': {e}")))
+    }
+}
+
+impl Serialize for NamingConvention {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.convention_name)
     }
 }
 

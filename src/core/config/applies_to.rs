@@ -1,5 +1,5 @@
 use log::debug;
-use serde::{de, Deserialize, Deserializer};
+use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt;
 use std::str::FromStr;
 use strum::IntoEnumIterator;
@@ -18,7 +18,7 @@ pub enum RuleTargetType {
     Custom,
 }
 
-#[derive(Debug, Deserialize, Clone, PartialEq, Eq, EnumIter, AsRefStr, EnumString)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, EnumIter, AsRefStr, EnumString)]
 #[strum(serialize_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
 pub enum RuleTarget {
@@ -185,6 +185,23 @@ impl<'de> Deserialize<'de> for AppliesTo {
             semantic_model_objects,
             custom_objects,
         })
+    }
+}
+
+impl Serialize for AppliesTo {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut targets = Vec::new();
+        targets.extend(self.node_objects.iter());
+        targets.extend(self.macro_objects.iter());
+        targets.extend(self.source_objects.iter());
+        targets.extend(self.unit_test_objects.iter());
+        targets.extend(self.exposure_objects.iter());
+        targets.extend(self.semantic_model_objects.iter());
+        targets.extend(self.custom_objects.iter());
+        targets.serialize(serializer)
     }
 }
 

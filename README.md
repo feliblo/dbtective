@@ -125,15 +125,13 @@ Pre-built binaries for Linux, macOS, and Windows are available on the [releases 
 
 All possible rules can be found in the [rules documentation](https://feliblo.github.io/dbtective/docs/rules). Information about customizing `dbtective` is shown at the [config documentation](https://feliblo.github.io/dbtective/docs/config)
 
-1. Create a `dbtective.yml` config file in the root of your dbt project by running:
-
-More about the `init` (it also supports `pyproject.toml` or `dbtective.toml`) command is available in the [init documentation](https://feliblo.github.io/dbtective/docs/running/cli#dbtective-init).
+1. Generate your config file by answering a few simple questions:
 
 ```bash
 dbtective init
 ```
 
-Inspect the contents of the generated `dbtective.yml` file and modify it to fit your project's needs.
+This walks you through picking a config format,  and which rules to enable and generates a config for you to get started. See the [CLI reference](https://feliblo.github.io/dbtective/docs/running/cli#init) for details.
 
 1. (Optional) Generate the dbt manifest and catalog files if you haven't done so already. Most dbt commands automatically generate the `manifest.json`, but if you want to ensure both files are up to date, run:
 

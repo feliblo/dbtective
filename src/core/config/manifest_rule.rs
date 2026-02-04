@@ -2,7 +2,7 @@ use std::vec;
 
 use anyhow::Context;
 use anyhow::Result;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::core::config::applies_to::AppliesTo;
 use crate::core::config::applies_to::RuleTarget;
@@ -15,7 +15,7 @@ use crate::core::config::severity::Severity;
 use crate::core::config::Materialization;
 use strum_macros::{AsRefStr, EnumIter, EnumString};
 
-#[derive(Debug, Deserialize, EnumIter, AsRefStr, EnumString)]
+#[derive(Debug, Clone, Deserialize, Serialize, EnumIter, AsRefStr, EnumString)]
 #[strum(serialize_all = "snake_case")]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ManifestSpecificRuleConfig {
@@ -57,6 +57,23 @@ pub enum ManifestSpecificRuleConfig {
     },
 }
 
+// Compares only on variant discriminant, ignoring field values.
+// In the init flow, rule selection uses these as set membership keys;
+// the actual field values are populated later by the config builder.
+impl PartialEq for ManifestSpecificRuleConfig {
+    fn eq(&self, other: &Self) -> bool {
+        std::mem::discriminant(self) == std::mem::discriminant(other)
+    }
+}
+
+impl Eq for ManifestSpecificRuleConfig {}
+
+impl std::hash::Hash for ManifestSpecificRuleConfig {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        std::mem::discriminant(self).hash(state);
+    }
+}
+
 impl ManifestSpecificRuleConfig {
     pub fn as_str(&self) -> &str {
         self.as_ref()
@@ -67,7 +84,7 @@ const fn manifest_default_severity() -> Severity {
     Severity::Error
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ManifestRule {
     pub name: Option<String>,
     #[serde(default = "manifest_default_severity")]
