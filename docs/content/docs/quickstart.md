@@ -7,24 +7,22 @@ toc: false
 
 All possible rules can be found in the [rules documentation](/docs/rules). Information about customizing `dbtective` is shown at the [config documentation](/docs/config)
 
-1. Create a `dbtective.yml` config file in the root of your dbt project by running:
-
-More about the `init` (it also supports `pyproject.toml` or `dbtective.toml`) command is available in the [init documentation](/docs/running/cli#init).
+1. Generate your config file by answering a few simple questions:
 
 ```bash
 dbtective init
 ```
 
-Inspect the contents of the generated `dbtective.yml` file and modify it to fit your project's needs.
+This walks you through picking a config format, naming convention, data model, strictness level, and which rules to enable — then generates the config for you. See the [CLI reference](/docs/running/cli#init) for details.
 
-2. (Optional) Generate the dbt manifest and catalog files if you haven't done so already. Most dbt commands automatically generate the `manifest.json`, but if you want to ensure both files are up to date, run:
+1. (Optional) Generate the dbt manifest and catalog files if you haven't done so already. Most dbt commands automatically generate the `manifest.json`, but if you want to ensure both files are up to date, run:
 
 ```bash
 dbt compile
 dbt docs generate
 ```
 
-3. Run `dbtective` in the root of your current directory or specify an entry point if your dbt_project is not located in the root/current drectory.
+1. Run `dbtective` in the root of your current directory or specify an entry point if your dbt_project is not located in the root/current directory.
 
 ```bash
 dbtective run

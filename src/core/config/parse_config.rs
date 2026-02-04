@@ -6,7 +6,7 @@ use crate::core::config::{
 use crate::core::utils::unwrap_or_exit;
 use anyhow::{Context, Result};
 use owo_colors::OwoColorize;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::path::Path;
 
@@ -43,7 +43,7 @@ impl ConfigFile {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[allow(dead_code)]
 pub struct Config {
     pub manifest_tests: Option<Vec<ManifestRule>>,

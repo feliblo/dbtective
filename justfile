@@ -1,5 +1,7 @@
 
-
+[working-directory: './dbt_project']
+init:
+    cargo run init
 run:
     cargo run run --verbose --entry-point ./dbt_project
 

@@ -1,6 +1,6 @@
 use anyhow::Context;
 use anyhow::Result;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::core::config::applies_to::RuleTarget;
 use crate::core::config::check_config_options::ColumnNamePattern;
@@ -9,7 +9,7 @@ use crate::core::config::Materialization;
 use crate::core::config::{applies_to::AppliesTo, severity::Severity};
 use strum_macros::{AsRefStr, EnumIter, EnumString};
 
-#[derive(Debug, Deserialize, EnumIter, AsRefStr, EnumString)]
+#[derive(Debug, Clone, Deserialize, Serialize, EnumIter, AsRefStr, EnumString)]
 #[strum(serialize_all = "snake_case")]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[allow(clippy::enum_variant_names)]
@@ -28,7 +28,26 @@ pub enum CatalogSpecificRuleConfig {
     },
 }
 
-#[derive(Debug, Deserialize, EnumIter, AsRefStr, EnumString, PartialEq, Eq, Hash, Clone)]
+// Compares only on variant discriminant, ignoring field values.
+// In the init flow, rule selection uses these as set membership keys;
+// the actual field values are populated later by the config builder.
+impl PartialEq for CatalogSpecificRuleConfig {
+    fn eq(&self, other: &Self) -> bool {
+        std::mem::discriminant(self) == std::mem::discriminant(other)
+    }
+}
+
+impl Eq for CatalogSpecificRuleConfig {}
+
+impl std::hash::Hash for CatalogSpecificRuleConfig {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        std::mem::discriminant(self).hash(state);
+    }
+}
+
+#[derive(
+    Debug, Deserialize, Serialize, EnumIter, AsRefStr, EnumString, PartialEq, Eq, Hash, Clone,
+)]
 #[strum(serialize_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
 pub enum DataTypes {
@@ -85,7 +104,7 @@ const fn catalog_default_severity() -> Severity {
     Severity::Error
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[allow(dead_code)]
 pub struct CatalogRule {
     pub name: Option<String>,
