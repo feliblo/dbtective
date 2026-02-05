@@ -37,6 +37,7 @@ pub struct InitOptions {
     pub format: String,
 }
 
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Args, Debug)]
 pub struct RunOptions {
     /// Path to dbt project root directory
@@ -58,9 +59,11 @@ pub struct RunOptions {
     #[arg(long, default_value_t = false)]
     pub disable_hyperlinks: bool,
 
-    /// Hide warnings from the output (only show errors)
     #[arg(long, default_value_t = false)]
     pub hide_warnings: bool,
+
+    #[arg(long, default_value_t = false)]
+    pub hide_catalog_tip: bool,
 }
 
 #[cfg(test)]
@@ -112,6 +115,7 @@ mod tests {
             only_manifest: false,
             disable_hyperlinks: false,
             hide_warnings: false,
+            hide_catalog_tip: false,
         };
         let debug_str = format!("{options:?}");
         assert!(debug_str.contains("RunOptions"));
@@ -129,6 +133,7 @@ mod tests {
             only_manifest: false,
             disable_hyperlinks: false,
             hide_warnings: false,
+            hide_catalog_tip: false,
         };
 
         assert_eq!(options.entry_point, "./");
@@ -146,6 +151,7 @@ mod tests {
             only_manifest: true,
             disable_hyperlinks: false,
             hide_warnings: false,
+            hide_catalog_tip: false,
         };
 
         assert_eq!(options.entry_point, "/path/to/project");
@@ -173,6 +179,7 @@ mod tests {
                 only_manifest: false,
                 disable_hyperlinks: false,
                 hide_warnings: false,
+                hide_catalog_tip: false,
             },
         };
 
@@ -216,6 +223,7 @@ mod tests {
                     only_manifest: false,
                     disable_hyperlinks: false,
                     hide_warnings: false,
+                    hide_catalog_tip: false,
                 },
             }),
         };
@@ -248,6 +256,7 @@ mod tests {
                 only_manifest: false,
                 disable_hyperlinks: false,
                 hide_warnings: false,
+                hide_catalog_tip: false,
             },
         };
         let debug_str = format!("{run_cmd:?}");

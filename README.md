@@ -67,9 +67,9 @@ Run dbtective as part of your CI/CD pipeline. See the [GitHub Actions documentat
 
 Prerequisite: `dbtective` is installed via one of the methods above.
 
-We (currently) recommend using the `--only-manifest` flag with prek/pre-commit to avoid issues caused by `catalog.json` mismatches. For more details, see the explanation in the [rules documentation](https://feliblo.github.io/dbtective/docs/rules).
+We recommend using `--only-manifest` and `--hide-warnings` with prek/pre-commit to avoid issues caused by `catalog.json` mismatches.See the [pre-commit documentation](https://feliblo.github.io/dbtective/docs/running/precommit).
 
-Add the following to your `.pre-commit-config.yaml`.
+Add the following to your `.pre-commit-config.yaml`:
 
 ```yaml
 repos:
@@ -77,10 +77,11 @@ repos:
     rev: v0.1.29
     hooks:
       - id: dbtective-run
-        args: [--only-manifest]
+        entry: dbtective run
+        args: [--only-manifest, --hide-warnings]
 ```
 
-And run
+And run:
 
 ```bash
 prek install
@@ -88,7 +89,6 @@ prek run --all-files
 # or with pre-commit
 pre-commit install
 pre-commit run --all-files
-
 ```
 
 </details>
