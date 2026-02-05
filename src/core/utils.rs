@@ -10,3 +10,23 @@ pub fn unwrap_or_exit<T>(result: anyhow::Result<T>) -> T {
         }
     }
 }
+
+pub fn print_catalog_warning() {
+    eprintln!(
+        "\n{}{}",
+        "One or more catalog tests failed. ".yellow().bold(),
+        "This may be due to a stale catalog (local development, pre-commit).".yellow()
+    );
+
+    eprintln!(
+        "  {}",
+        "Use --only-manifest everywhere except for CI/CD (recommended), or regenerate with `dbt docs generate`"
+            .cyan()
+            .dimmed()
+    );
+
+    eprintln!(
+        "  {}",
+        "See: https://feliblo.github.io/dbtective/docs/running/precommit".dimmed()
+    );
+}

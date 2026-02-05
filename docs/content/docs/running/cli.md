@@ -37,9 +37,10 @@ Run dbtective analysis on your dbt project.
 | `--config-file <PATH>` | `-c` | Auto-detected | Path to dbtective configuration from the entry-point (overrides auto-detection) |
 | `--manifest-file <PATH>` | `-m` | `target/manifest.json` | Path to dbt manifest.json |
 | `--catalog-file <PATH>` | `-g` | `target/catalog.json` | Path to dbt catalog.json |
-| `--only-manifest` | | `true` | Run only manifest rules |
+| `--only-manifest` | | `false` | Run only manifest rules (recommended for local & pre-commit/prek) |
 | `--disable-hyperlinks` | | `false` | Disable file hyperlinks in the output |
 | `--hide-warnings` | | `false` | Hide warnings from output (only show errors) |
+| `--hide-catalog-tip` | | `false` | Hide the catalog mismatch tip shown when catalog tests fail |
 
 #### Config File Auto-Detection
 
@@ -74,6 +75,9 @@ dbtective run --disable-hyperlinks
 
 # Hide warnings, only show errors (useful for CI)
 dbtective run --hide-warnings
+
+# Auto-regenerate catalog when tests fail (requires catalog_regenerate_command in config)
+dbtective run --autofix-catalog
 ```
 
 ### `init`
