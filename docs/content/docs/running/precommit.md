@@ -26,7 +26,7 @@ For pre-commit/prek hooks, we recommend running **only manifest tests** locally.
 # .pre-commit-config.yaml
 repos:
   - repo: https://github.com/feliblo/dbtective
-    rev: v0.1.32
+    rev: v0.1.33
     hooks:
       - id: dbtective-run
         entry: dbtective run
@@ -47,7 +47,7 @@ In your CI/CD pipeline, generate a fresh catalog before running dbtective with a
     dbt docs generate
 
 - name: Run dbtective
-  uses: feliblo/dbtective@v0.1.32
+  uses: feliblo/dbtective@v0.1.33
   with:
     entry-point: "."
     # No --only-manifest flag: runs all tests including catalog

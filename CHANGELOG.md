@@ -1,3 +1,13 @@
+## v0.1.33 (2026-02-05)
+
+### Fix
+
+- change catalog warning to stdout so it shows in prek/pre-commit - ([27ec13f](https://github.com/feliblo/dbtective/commit/27ec13f277056acd7d5220a384e8bbe3856dcc1d)) - Felix Blom
+
+### Contributors
+
+[@feliblo](https://github.com/feliblo)
+
 ## v0.1.32 (2026-02-05)
 
 ### Feat
