@@ -78,30 +78,40 @@ dbtective run --hide-warnings
 
 ### `init`
 
-Initialize a new dbtective configuration file in your dbt project.
+Generate a new dbtective configuration file by answering a few simple questions.
 
 **Usage:** `dbtective init [OPTIONS]`
+
+When you run `dbtective init` without flags it starts an interactive questionnaire. You will be asked:
+
+1. **Config format** — where to write the output: a standalone `dbtective.yml`/`dbtective.toml`, or a `[tool.dbtective]` section inside an existing `pyproject.toml`.
+2. **Naming convention** — the pattern your project follows (`snake_case`, `kebab-case`, `camelCase`, or `PascalCase`). This is applied to both model and column naming rules.
+3. **Data model structure** — None, Common (`staging`/`marts`/`intermediate`), or Medallion (`bronze`/`silver`/`gold`). Choosing one automatically adds an `allowed_subfolders` rule with the matching folder list.
+4. **Strictness level** — Basic, Standard, or Strict. Each level pre-selects a sensible set of rules; you can adjust them in the next step.
+5. **Which rules to enable** — two multi-select prompts let you add or remove individual manifest and catalog rules on top of what the strictness level chose.
+
+The generated config file is ready to use. You can edit it afterwards to fine-tune any rule options.
 
 #### Options
 
 | Option | Short | Default | Description |
 |--------|-------|---------|-------------|
 | `--location <PATH>` | `-l` | `.` | Directory where the config file will be created |
-| `--format <FORMAT>` | `-f` | `yml` | Config file format: `yml`, `yaml`, `toml`, or `pyproject` |
+| `--format <FORMAT>` | `-f` | `yml` | Config file format: `yml`, `yaml`, `toml`, or `pyproject`. Skips the format question when provided. |
 
 #### Examples
 
 ```bash
-# Create dbtective.yml in current directory (default)
+# Run the interactive questionnaire (default)
 dbtective init
 
-# Create dbtective.toml instead
+# Skip the format question — write dbtective.toml directly
 dbtective init --format toml
 
-# Add [tool.dbtective] section to pyproject.toml
+# Add [tool.dbtective] to an existing pyproject.toml
 dbtective init --format pyproject
 
-# Create config in a specific directory
+# Generate config in a specific directory
 dbtective init --location ./my_dbt_project
 ```
 
