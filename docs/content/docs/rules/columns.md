@@ -261,8 +261,8 @@ This rule ensures that every documented column has a non-empty description. Unli
 
 - **type**: Must be `columns_have_description`.
 - **applies_to**: *(optional)* List of dbt object types to include.
-  - Default: `["models", "seeds", "snapshots", "sources", "semantic_models"]`
-  - Options: `models`, `seeds`, `snapshots`, `sources`, `macros`,`semantic_models`
+  - Default: `["models", "seeds", "snapshots", "sources"]`
+  - Options: `models`, `seeds`, `snapshots`, `sources`
 
 {{< include-markdown "content/snippets/common_rule_config.md" >}}
 
@@ -427,7 +427,6 @@ invalid_names = ["postal_code", "^zip"]
 {{< /tab >}}
 
 {{< /tabs >}}
-
 
 <details closed>
 <summary>Relevant dbt code</summary>
