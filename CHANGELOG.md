@@ -1,3 +1,22 @@
+## v0.1.32 (2026-02-05)
+
+### Feat
+
+- **table**: point to yaml file first in hyperlink if available (over sql) - ([2d09eb7](https://github.com/feliblo/dbtective/commit/2d09eb772ae56d24b0e5279d52cc64405896f7c8)) - Felix Blom
+- **catalog**: add warning on how to fix catalog mismatches & fix pre-commit - ([522632b](https://github.com/feliblo/dbtective/commit/522632ba9a50f3ac72bf6d0bb1b7d9308f39dd83)) - Felix Blom
+- **init**: change init to be a questionaire - ([4d49799](https://github.com/feliblo/dbtective/commit/4d49799408cd9f8eda0123e0d32507ff588bb450)) - Felix Blom
+- **rules**: add allowed_subfolders_rule - ([a6c4cec](https://github.com/feliblo/dbtective/commit/a6c4cec858f1be67bf012c9f444a343bb3d11d60)) - Felix Blom
+
+### Refactor
+
+- **impls**: remove unneeded impls for references - ([bad7a4e](https://github.com/feliblo/dbtective/commit/bad7a4e92bbae92b99d2e58dcbc935ba3c81f004)) - feliblo
+- **nodes**: delegate methods to subobjects for compiler messages - ([678ef6c](https://github.com/feliblo/dbtective/commit/678ef6cc42e60e7034b85b8c8b1ff20c1f5333ca)) - feliblo
+- **impls**: add common Identiable trait for objects representation - ([77fd01b](https://github.com/feliblo/dbtective/commit/77fd01bb53ab065de99b746b8fe2215c21d75ecd)) - feliblo
+
+### Contributors
+
+[@feliblo](https://github.com/feliblo), [@feliblo](https://github.com/feliblo)
+
 ## v0.1.31 (2026-01-03)
 
 ### Feat
