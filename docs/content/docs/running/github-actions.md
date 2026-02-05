@@ -13,7 +13,7 @@ Add `dbtective` to your workflow file (e.g., `.github/workflows/ci.yml`).If you 
 
 ```yaml
     - name: Run dbtective
-      uses: feliblo/dbtective@v0.1.29
+      uses: feliblo/dbtective@v0.1.31
       with:
         config-file: "dbtective.yml"
         entry-point: "."
@@ -44,7 +44,7 @@ jobs:
           dbt docs generate # to generate catalog.json
 
       - name: Run dbtective
-        uses: feliblo/dbtective@v0.1.29
+        uses: feliblo/dbtective@v0.1.31
         with:
           config-file: "dbtective.yml"
           entry-point: "."
@@ -59,7 +59,7 @@ jobs:
 | `entry-point` | `.` | Path to dbt project root directory |
 | `manifest-file` | `target/manifest.json` | Path to dbt manifest file |
 | `verbose` | `false` | Run dbtective in verbose mode |
-| `version` | `latest` | Version of dbtective to install (e.g., 'v0.1.10' or 'latest') |
+| `version` | `latest` | Version of dbtective to install (e.g., 'v0.1.31' or 'latest') |
 
 ### Exit Codes
 
