@@ -249,6 +249,76 @@ mod tests {
 
 Create tests in the `tests/` folder. Copy the structure from existing tests and adapt it to your rule.
 
+### Add to Init Config
+
+Update the init system so users can select your rule during `dbtective init`:
+
+**1. Add Init trait description** in `src/core/init/questionnaire.rs`:
+
+```rust
+impl Init for ManifestSpecificRuleConfig {
+    fn init_description(&self) -> &'static str {
+        match self {
+            // ... existing rules ...
+
+            Self::YourRuleName { .. } => "your_rule_name - Brief description of the rule",
+        }
+    }
+}
+```
+
+**2. Add rule creation logic** in `src/core/init/config_builder.rs`:
+
+```rust
+fn create_manifest_rule(
+    rule: &ManifestSpecificRuleConfig,
+    result: &QuestionnaireResult,
+) -> ManifestSpecificRuleConfig {
+    match rule {
+        // ... existing rules ...
+
+        ManifestSpecificRuleConfig::YourRuleName { .. } => {
+            ManifestSpecificRuleConfig::YourRuleName {
+                your_field_name_for_the_rule: "default_value".to_string(),
+            }
+        }
+    }
+}
+```
+
+**3. Add YAML/TOML serialization** in `config_builder.rs`:
+
+```rust
+fn manifest_rule_to_yaml(rule: &ManifestSpecificRuleConfig) -> String {
+    match rule {
+        // ... existing rules ...
+
+        ManifestSpecificRuleConfig::YourRuleName { your_field_name_for_the_rule } => {
+            format!(
+                r#"  - name: "your_rule_name"
+    type: "your_rule_name"
+    your_field_name_for_the_rule: "{your_field_name_for_the_rule}""#
+            )
+        }
+    }
+}
+
+fn manifest_rule_to_toml(rule: &ManifestSpecificRuleConfig, section: &str) -> String {
+    match rule {
+        // ... existing rules ...
+
+        ManifestSpecificRuleConfig::YourRuleName { your_field_name_for_the_rule } => {
+            format!(
+                r#"[[{section}]]
+name = "your_rule_name"
+type = "your_rule_name"
+your_field_name_for_the_rule = "{your_field_name_for_the_rule}""#
+            )
+        }
+    }
+}
+```
+
 ### Document the Rule
 
 Create documentation in `docs/content/docs/rules/your_rule.md`. Copy the structure from existing rule docs & fill in the details to fit your rule. Remember to include the applies_to options from the `src/core/config/manifest_rule.rs` file.
@@ -259,4 +329,4 @@ Create documentation in `docs/content/docs/rules/your_rule.md`. Copy the structu
 
 - The Rust compiler will guide you through missing implementations after you filled in the original Enum, so relax and take it step by step.
 - Look at existing rules for patterns
-- Ctrll+F on existing rules to show what needs to be updated.
+- Ctrl+F on existing rules to show what needs to be updated.

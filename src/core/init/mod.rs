@@ -39,8 +39,6 @@ fn init_impl(
     _verbose: bool,
     test_questionnaire_result: Option<questionnaire::QuestionnaireResult>,
 ) -> i32 {
-    dbg!("Init options:", options);
-
     // Run interactive questionnaire if using defaults
     let config = if let Some(result) = test_questionnaire_result {
         // Test mode: use injected result
