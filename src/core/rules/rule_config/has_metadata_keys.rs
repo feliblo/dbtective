@@ -27,7 +27,7 @@ pub fn has_metadata_keys<T: HasMetadata>(
                     "{} is missing metadata entirely.",
                     has_metadata.get_object_string()
                 ),
-                has_metadata.get_relative_path().cloned(),
+                has_metadata.get_relative_path().map(str::to_owned),
             ))
         },
         // Metadata present, check for missing keys
@@ -55,7 +55,7 @@ pub fn has_metadata_keys<T: HasMetadata>(
                         },
                         |msg| format!("{} {}", has_metadata.get_object_string(), msg),
                     ),
-                    has_metadata.get_relative_path().cloned(),
+                    has_metadata.get_relative_path().map(str::to_owned),
                 ))
             }
         },
@@ -93,8 +93,8 @@ mod tests {
             &self.object_string
         }
 
-        fn get_relative_path(&self) -> Option<&String> {
-            self.relative_path.as_ref()
+        fn get_relative_path(&self) -> Option<&str> {
+            self.relative_path.as_deref()
         }
     }
     impl HasMetadata for TestObject {

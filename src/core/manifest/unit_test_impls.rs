@@ -28,8 +28,9 @@ impl Identifiable for UnitTest {
         self.get_name()
     }
 
-    fn get_relative_path(&self) -> Option<&String> {
-        Some(self.get_relative_path())
+    fn get_relative_path(&self) -> Option<&str> {
+        self.get_patch_path()
+            .or_else(|| Some(self.get_relative_path()))
     }
 }
 

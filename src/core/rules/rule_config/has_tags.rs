@@ -54,7 +54,7 @@ pub fn check_tags<T: Tagable>(
             tagable.get_object_type(),
             rule.get_name(),
             error_msg,
-            tagable.get_relative_path().cloned(),
+            tagable.get_relative_path().map(str::to_owned),
         ))
     }
 }
@@ -77,7 +77,7 @@ pub fn has_tags<T: Tagable>(
                     required_tags,
                     criteria
                 ),
-                tagable.get_relative_path().cloned(),
+                tagable.get_relative_path().map(str::to_owned),
             ))
         },
         |tags| check_tags(tagable, rule, tags, required_tags, criteria),
@@ -102,8 +102,8 @@ mod tests {
         fn get_object_string(&self) -> &str {
             &self.object_string
         }
-        fn get_relative_path(&self) -> Option<&String> {
-            self.relative_path.as_ref()
+        fn get_relative_path(&self) -> Option<&str> {
+            self.relative_path.as_deref()
         }
     }
     impl Tagable for TestTagable {

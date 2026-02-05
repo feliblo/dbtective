@@ -20,7 +20,7 @@ pub fn has_description<T: Descriptable>(
                 "{} is missing a description.",
                 descriptable.get_object_string()
             ),
-            descriptable.get_relative_path().cloned(),
+            descriptable.get_relative_path().map(str::to_owned),
         )),
     }
 }
@@ -40,7 +40,9 @@ mod tests {
         fn get_object_type(&self) -> &str {
             "TestNode"
         }
-
+        fn get_relative_path(&self) -> Option<&str> {
+            None
+        }
         fn get_object_string(&self) -> &str {
             &self.name
         }
@@ -73,7 +75,7 @@ mod tests {
                 "TestNode",
                 "has_description",
                 "TestNode2 is missing a description.",
-                node_without_desc.get_relative_path().cloned(),
+                node_without_desc.get_relative_path().map(str::to_owned),
             ))
         );
     }
@@ -100,7 +102,7 @@ mod tests {
                 "TestNode",
                 "has_description",
                 "TestNode4 is missing a description.",
-                node_without_desc.get_relative_path().cloned(),
+                node_without_desc.get_relative_path().map(str::to_owned),
             ))
         );
     }

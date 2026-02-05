@@ -23,7 +23,7 @@ pub fn columns_have_description<C: Columnable, M: Columnable>(
             C::get_object_type(catalog_object),
             rule.get_name(),
             error_msg,
-            catalog_object.get_relative_path().cloned(),
+            catalog_object.get_relative_path().map(str::to_owned),
         ));
     };
 
@@ -39,7 +39,7 @@ pub fn columns_have_description<C: Columnable, M: Columnable>(
                     "No columns in '{}' have descriptions.",
                     M::get_object_string(manifest_object)
                 ),
-                manifest_object.get_relative_path().cloned(),
+                manifest_object.get_relative_path().map(str::to_owned),
             ))
         }
     };
@@ -68,7 +68,7 @@ pub fn columns_have_description<C: Columnable, M: Columnable>(
             missing_column_descriptions
         ),
         // manifest object contains the path
-        manifest_object.get_relative_path().cloned(),
+        manifest_object.get_relative_path().map(str::to_owned),
     ))
 }
 
@@ -92,8 +92,8 @@ mod tests {
         fn get_object_string(&self) -> &str {
             &self.object_string
         }
-        fn get_relative_path(&self) -> Option<&String> {
-            self.relative_path.as_ref()
+        fn get_relative_path(&self) -> Option<&str> {
+            self.relative_path.as_deref()
         }
     }
     impl Columnable for TestColumnable {

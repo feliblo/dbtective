@@ -23,3 +23,73 @@ pub use saved_query::{SavedQuery, SavedQueryDependsOn};
 pub use semantic_model::{SemanticModel, SemanticModelDependsOn};
 pub use source::Source;
 pub use unit_test::UnitTest;
+
+/// Strips the project prefix from a `patch_path` (e.g., `project://path` -> "path")
+pub fn strip_patch_path_prefix(patch_path: &str) -> Option<&str> {
+    patch_path.find("://").map(|idx| &patch_path[idx + 3..])
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_strip_patch_path_prefix_valid() {
+        let patch_path = "dbtective_test_project://models/staging/crm/_stg_crm__models.yml";
+        let result = strip_patch_path_prefix(patch_path);
+        assert_eq!(result, Some("models/staging/crm/_stg_crm__models.yml"));
+    }
+
+    #[test]
+    fn test_strip_patch_path_prefix_different_project() {
+        let patch_path = "my_project://models/marts/finance/_finance__models.yml";
+        let result = strip_patch_path_prefix(patch_path);
+        assert_eq!(result, Some("models/marts/finance/_finance__models.yml"));
+    }
+
+    #[test]
+    fn test_strip_patch_path_prefix_no_prefix() {
+        let patch_path = "models/staging/crm/_stg_crm__models.yml";
+        let result = strip_patch_path_prefix(patch_path);
+        assert_eq!(result, None);
+    }
+
+    #[test]
+    fn test_strip_patch_path_prefix_empty_after_prefix() {
+        let patch_path = "project://";
+        let result = strip_patch_path_prefix(patch_path);
+        assert_eq!(result, Some(""));
+    }
+
+    #[test]
+    fn test_strip_patch_path_prefix_windows_backslashes() {
+        // Windows paths may use backslashes
+        let patch_path = r"dbtective_test_project://models\staging\crm\_stg_crm__models.yml";
+        let result = strip_patch_path_prefix(patch_path);
+        assert_eq!(result, Some(r"models\staging\crm\_stg_crm__models.yml"));
+    }
+
+    #[test]
+    fn test_strip_patch_path_prefix_windows_mixed_slashes() {
+        // Some tools produce mixed slashes
+        let patch_path = r"my_project://models/staging\crm\_stg_crm__models.yml";
+        let result = strip_patch_path_prefix(patch_path);
+        assert_eq!(result, Some(r"models/staging\crm\_stg_crm__models.yml"));
+    }
+
+    #[test]
+    fn test_strip_patch_path_prefix_windows_no_prefix_backslashes() {
+        // Path without prefix but with Windows backslashes
+        let patch_path = r"models\staging\crm\_stg_crm__models.yml";
+        let result = strip_patch_path_prefix(patch_path);
+        assert_eq!(result, None);
+    }
+
+    #[test]
+    fn test_strip_patch_path_prefix_windows_dbt_real_example() {
+        // Real Windows dbt output: forward slash after project, then backslashes
+        let patch_path = r"stichtse_vecht_dbt://dbt/models\marts\mart_answered_calls.yml";
+        let result = strip_patch_path_prefix(patch_path);
+        assert_eq!(result, Some(r"dbt/models\marts\mart_answered_calls.yml"));
+    }
+}

@@ -23,7 +23,7 @@ pub fn has_refs<T: CanReference>(item: &T, rule: &ManifestRule) -> Option<RuleRe
             item.get_object_type(),
             rule.get_name(),
             error_msg,
-            item.get_relative_path().cloned(),
+            item.get_relative_path().map(str::to_owned),
         ));
     }
     None
@@ -48,7 +48,7 @@ mod tests {
             &self.name
         }
 
-        fn get_relative_path(&self) -> Option<&String> {
+        fn get_relative_path(&self) -> Option<&str> {
             Some(&self.relative_path)
         }
     }

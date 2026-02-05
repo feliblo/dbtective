@@ -22,7 +22,7 @@ pub fn has_contract_enforced<T: ContractAble>(
             "{} does not have a contract enforced.",
             model.get_object_string()
         ),
-        model.get_relative_path().cloned(),
+        model.get_relative_path().map(str::to_owned),
     ))
 }
 
@@ -44,8 +44,8 @@ mod tests {
         fn get_object_string(&self) -> &str {
             &self.name
         }
-        fn get_relative_path(&self) -> Option<&String> {
-            self.relative_path.as_ref()
+        fn get_relative_path(&self) -> Option<&str> {
+            self.relative_path.as_deref()
         }
     }
     impl ContractAble for TestModel {

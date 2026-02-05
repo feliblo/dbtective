@@ -15,6 +15,7 @@ pub struct Exposure {
     pub name: String,
     pub package_name: String,
     pub original_file_path: String,
+    pub patch_path: Option<String>,
     pub description: Option<String>,
     pub meta: Option<Meta>,
     pub tags: Option<Tags>,
@@ -36,5 +37,11 @@ impl Exposure {
 
     pub const fn get_relative_path(&self) -> &String {
         &self.original_file_path
+    }
+
+    pub fn get_patch_path(&self) -> Option<&str> {
+        self.patch_path
+            .as_deref()
+            .and_then(super::strip_patch_path_prefix)
     }
 }

@@ -39,7 +39,7 @@ pub fn max_code_lines<T: HasCode>(
         object_with_code.get_object_type(),
         rule.get_name(),
         message,
-        object_with_code.get_relative_path().cloned(),
+        object_with_code.get_relative_path().map(str::to_owned),
     ))
 }
 
@@ -61,8 +61,8 @@ mod tests {
         fn get_object_string(&self) -> &str {
             &self.name
         }
-        fn get_relative_path(&self) -> Option<&String> {
-            self.relative_path.as_ref()
+        fn get_relative_path(&self) -> Option<&str> {
+            self.relative_path.as_deref()
         }
     }
     impl HasCode for TestNode {

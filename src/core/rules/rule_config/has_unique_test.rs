@@ -40,7 +40,7 @@ pub fn has_unique_test<T: TestAble>(
                 "{} does should have a unique test",
                 testable.get_object_string(),
             ),
-            testable.get_relative_path().cloned(),
+            testable.get_relative_path().map(str::to_owned),
         ))
     } else {
         None
@@ -74,8 +74,8 @@ mod tests {
             &self.object_string
         }
 
-        fn get_relative_path(&self) -> Option<&String> {
-            self.relative_path.as_ref()
+        fn get_relative_path(&self) -> Option<&str> {
+            self.relative_path.as_deref()
         }
     }
     impl TestAble for MockTestable {
