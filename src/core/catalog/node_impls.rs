@@ -12,7 +12,7 @@ impl Identifiable for CatalogNode {
     }
 
     // Paths are only available in manifest objects
-    fn get_relative_path(&self) -> Option<&String> {
+    fn get_relative_path(&self) -> Option<&str> {
         None
     }
 }

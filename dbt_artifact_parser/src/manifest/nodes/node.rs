@@ -74,6 +74,13 @@ impl Node {
         &self.get_base().original_file_path
     }
 
+    pub fn get_patch_path(&self) -> Option<&str> {
+        self.get_base()
+            .patch_path
+            .as_deref()
+            .and_then(crate::manifest::strip_patch_path_prefix)
+    }
+
     pub fn get_materialization(&self) -> Option<&Materialization> {
         match self {
             Self::Model(_) => self
@@ -130,6 +137,7 @@ pub struct NodeBase {
     pub path: String,
     #[serde(default)]
     pub original_file_path: String,
+    pub patch_path: Option<String>,
     #[serde(default)]
     pub unique_id: String,
     #[serde(default)]
@@ -150,7 +158,6 @@ pub struct NodeBase {
     pub raw_code: Option<String>,
 }
 
-// Layer 2: Compiled node specific fields
 #[derive(Debug, Deserialize, Default)]
 #[allow(dead_code)]
 pub struct CompiledNodeFields {

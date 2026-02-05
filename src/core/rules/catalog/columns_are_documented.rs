@@ -24,7 +24,7 @@ pub fn columns_are_documented<C: Columnable, M: Columnable>(
             C::get_object_type(catalog_object),
             rule.get_name(),
             error_msg,
-            catalog_object.get_relative_path().cloned(),
+            catalog_object.get_relative_path().map(str::to_owned),
         ));
     };
 
@@ -39,7 +39,7 @@ pub fn columns_are_documented<C: Columnable, M: Columnable>(
                 catalog_columns
             ),
             // manifest object contains the path
-            manifest_object.get_relative_path().cloned(),
+            manifest_object.get_relative_path().map(str::to_owned),
         ));
     };
 
@@ -78,7 +78,7 @@ pub fn columns_are_documented<C: Columnable, M: Columnable>(
         rule.get_name(),
         message,
         // manifest object contains the path
-        manifest_object.get_relative_path().cloned(),
+        manifest_object.get_relative_path().map(str::to_owned),
     ))
 }
 
@@ -135,8 +135,8 @@ mod tests {
         fn get_object_string(&self) -> &str {
             &self.object_string
         }
-        fn get_relative_path(&self) -> Option<&String> {
-            self.relative_path.as_ref()
+        fn get_relative_path(&self) -> Option<&str> {
+            self.relative_path.as_deref()
         }
     }
     impl Columnable for TestColumnable {

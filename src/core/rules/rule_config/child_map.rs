@@ -31,7 +31,7 @@ pub fn is_not_orphaned<T: ChildMappable>(
             tagable.get_object_type(),
             rule.get_name(),
             error_msg,
-            tagable.get_relative_path().cloned(),
+            tagable.get_relative_path().map(str::to_owned),
         ));
     }
 
@@ -57,7 +57,7 @@ pub fn is_not_orphaned<T: ChildMappable>(
         tagable.get_object_type(),
         rule.get_name(),
         error_msg,
-        tagable.get_relative_path().cloned(),
+        tagable.get_relative_path().map(str::to_owned),
     ))
 }
 
@@ -84,6 +84,9 @@ mod tests {
         }
         fn get_object_string(&self) -> &str {
             &self.object_string
+        }
+        fn get_relative_path(&self) -> Option<&str> {
+            None
         }
     }
     impl ChildMappable for MockTaggable {

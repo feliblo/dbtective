@@ -56,7 +56,7 @@ pub fn check_allowed_subfolders<T: PathCheckable>(
                 base_path,
                 allowed_subfolders.join(", ")
             ),
-            item.get_relative_path().cloned(),
+            item.get_relative_path().map(str::to_owned),
         ));
     }
 
@@ -77,7 +77,7 @@ pub fn check_allowed_subfolders<T: PathCheckable>(
                 immediate_subfolder,
                 allowed_subfolders.join(", ")
             ),
-            item.get_relative_path().cloned(),
+            item.get_relative_path().map(str::to_owned),
         ))
     }
 }
@@ -144,7 +144,7 @@ mod tests {
             &self.name
         }
 
-        fn get_relative_path(&self) -> Option<&String> {
+        fn get_relative_path(&self) -> Option<&str> {
             Some(&self.path)
         }
     }
