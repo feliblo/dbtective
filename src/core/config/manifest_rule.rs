@@ -58,6 +58,7 @@ pub enum ManifestSpecificRuleConfig {
         #[serde(default)]
         path_postfix: Option<String>,
     },
+    SourcesHaveLoader {},
 }
 
 // Compares only on variant discriminant, ignoring field values.
@@ -198,6 +199,7 @@ impl ManifestRule {
 }
 
 // default options if applies_to is not set
+#[allow(clippy::too_many_lines)]
 pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) -> AppliesTo {
     match rule_type {
         // has_description
@@ -240,8 +242,9 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             semantic_model_objects: vec![],
             custom_objects: vec![],
         },
-        // is_not_orphaned
-        ManifestSpecificRuleConfig::IsNotOrphaned { .. } => AppliesTo {
+        // is_not_orphaned & sources_have_loader
+        ManifestSpecificRuleConfig::IsNotOrphaned { .. }
+        | ManifestSpecificRuleConfig::SourcesHaveLoader {} => AppliesTo {
             node_objects: vec![],
             source_objects: vec![RuleTarget::Sources],
             unit_test_objects: vec![],
@@ -425,6 +428,15 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
             macro_objects: vec![RuleTarget::Macros],
             exposure_objects: vec![RuleTarget::Exposures],
             semantic_model_objects: vec![RuleTarget::SemanticModels],
+            custom_objects: vec![],
+        },
+        ManifestSpecificRuleConfig::SourcesHaveLoader {} => AppliesTo {
+            node_objects: vec![],
+            source_objects: vec![RuleTarget::Sources],
+            unit_test_objects: vec![],
+            macro_objects: vec![],
+            exposure_objects: vec![],
+            semantic_model_objects: vec![],
             custom_objects: vec![],
         },
     }

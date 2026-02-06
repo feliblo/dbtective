@@ -102,6 +102,9 @@ impl InitConfig {
                     path_postfix: None,
                 }
             }
+            ManifestSpecificRuleConfig::SourcesHaveLoader { .. } => {
+                ManifestSpecificRuleConfig::SourcesHaveLoader {}
+            }
         }
     }
 
@@ -320,6 +323,10 @@ impl InitConfig {
     allowed_subfolders: [{folders_str}]"#
                 )
             }
+            ManifestSpecificRuleConfig::SourcesHaveLoader {} => r#"  - name: "sources_have_loader"
+    type: "sources_have_loader"
+"#
+            .to_string(),
         }
     }
 
@@ -496,6 +503,14 @@ max_lines = {max_lines}"#
 name = "allowed_subfolders"
 type = "allowed_subfolders"
 allowed_subfolders = [{folders_str}]"#
+                )
+            }
+            ManifestSpecificRuleConfig::SourcesHaveLoader {} => {
+                format!(
+                    r#"[[{section}]]
+name = "sources_have_loader"
+type = "sources_have_loader"
+"#
                 )
             }
         }
@@ -1119,13 +1134,14 @@ mod tests {
                     allowed_test_names: vec![],
                 },
                 ManifestSpecificRuleConfig::HasContractEnforced { access_level: None },
+                ManifestSpecificRuleConfig::SourcesHaveLoader {},
             ],
             Vec::new(),
             NamingConvention::default(),
         );
 
         let config = InitConfig::from_questionnaire(&result);
-        assert_eq!(config.manifest_rules.len(), 7);
+        assert_eq!(config.manifest_rules.len(), 8);
     }
 
     #[test]
@@ -1787,7 +1803,7 @@ mod tests {
         );
 
         let config = InitConfig::from_questionnaire(&result);
-        assert_eq!(config.manifest_rules.len(), 10); // All 10 manifest rules
+        assert_eq!(config.manifest_rules.len(), 11); // All 11 manifest rules
     }
 
     #[test]
