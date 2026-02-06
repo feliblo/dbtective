@@ -3,6 +3,7 @@ title: FAQ
 weight: 4
 toc: false
 ---
+
 {{% details title="What is dbtective?" closed="true" %}}
 
 `dbtective` is a fast, lightweight linter for dbt projects written in Rust. It helps enforce best practices and coding standards across your dbt codebase by validating your project against configurable rules.
@@ -16,16 +17,16 @@ Similar projects (as far as I know) include:
 - [dbt-score](https://github.com/PicnicSupermarket/dbt-score) - Scores entire dbt projects based on best practices
 - [dbt-bouncer](https://github.com/godatadriven/dbt-bouncer) - A configurable linter for dbt projects
 
-`dbtective` is inspired by `dbt-bouncer` but aims to improve on it in several key areas:
+`dbtective` is inspired by `dbt-bouncer`. The philosophy of `dbtective` is different. It aims to be a UX focussed, batteries included tool that helps you setup best practices, without you needing to think. It does so while keeping the ability for you to customize the configuraiton to your teams needs. It aims to improve on it in several key areas:
 
-| Feature | dbtective |
-|---------|-----------|
-| **Performance** | Written in Rust for smaller binaries and faster execution (in all environments) |
-| **Quick start** | `init` command generates a configuration template that works for most users |
-| **Configuration** | Batteries-included sensible defaults with optional fine-grained customization |
-| **Cross-object rules** | Single rules apply across multiple object types (e.g., one `has_description` rule for models, sources, macros etc.) |
-| **Documentation** | Searchable rules with examples for fixing violations |
-| **User experience** | Formatted output with clickable hyperlinks to problematic files |
+| Feature                      | dbtective                                                                                                           |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| **Performance**              | Written in Rust for smaller binaries and faster execution (in all environments)                                     |
+| **Quick start**              | `init` command generates a configuration template that works for most users                                         |
+| **Configuration**            | Batteries-included sensible defaults with optional fine-grained customization                                       |
+| **Cross-object rules**       | Single rules apply across multiple object types (e.g., one `has_description` rule for models, sources, macros etc.) |
+| **Documentation**            | Searchable rules with examples for fixing violations                                                                |
+| **Focus on User experience** | Formatted output with clickable hyperlinks to problematic files, allowing quick iteration                           |
 
 {{% /details %}}
 
