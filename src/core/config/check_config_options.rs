@@ -44,6 +44,17 @@ impl OrphanedReferenceType {
     }
 }
 
+// HasContractEnforced
+#[derive(EnumString, Debug, Clone, PartialEq, Eq)]
+#[strum(serialize_all = "snake_case")]
+#[derive(serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AccessLevel {
+    Public,
+    Protected,
+    Private,
+}
+
 pub fn default_allowed_test_names() -> Vec<String> {
     vec![
         "dbt_expectations.expect_compound_columns_to_be_unique".to_string(),

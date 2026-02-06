@@ -1,3 +1,5 @@
+use std::fmt::Write;
+
 use super::questionnaire::{DataModel, QuestionnaireResult};
 use crate::core::config::catalog_rule::CatalogSpecificRuleConfig;
 use crate::core::config::check_config_options::HasTagsCriteria;
@@ -8,6 +10,7 @@ use strum::IntoEnumIterator;
 pub struct InitConfig {
     pub manifest_rules: Vec<ManifestSpecificRuleConfig>,
     pub catalog_rules: Vec<CatalogSpecificRuleConfig>,
+    pub data_model: DataModel,
 }
 
 impl InitConfig {
@@ -18,6 +21,7 @@ impl InitConfig {
         Self {
             manifest_rules,
             catalog_rules,
+            data_model: result.data_model,
         }
     }
 
@@ -66,7 +70,7 @@ impl InitConfig {
                 }
             }
             ManifestSpecificRuleConfig::HasContractEnforced { .. } => {
-                ManifestSpecificRuleConfig::HasContractEnforced {}
+                ManifestSpecificRuleConfig::HasContractEnforced { access_level: None }
             }
             ManifestSpecificRuleConfig::HasMetadataKeys { .. } => {
                 ManifestSpecificRuleConfig::HasMetadataKeys {
@@ -156,7 +160,7 @@ impl InitConfig {
         );
 
         for rule in &self.manifest_rules {
-            content.push_str(&Self::manifest_rule_to_yaml(rule));
+            content.push_str(&self.manifest_rule_to_yaml(rule));
             content.push_str("\n\n");
         }
 
@@ -178,7 +182,7 @@ impl InitConfig {
         );
 
         for rule in &self.manifest_rules {
-            content.push_str(&Self::manifest_rule_to_toml(rule, "manifest_tests"));
+            content.push_str(&self.manifest_rule_to_toml(rule, "manifest_tests"));
             content.push_str("\n\n");
         }
 
@@ -199,10 +203,7 @@ impl InitConfig {
         );
 
         for rule in &self.manifest_rules {
-            content.push_str(&Self::manifest_rule_to_toml(
-                rule,
-                "tool.dbtective.manifest_tests",
-            ));
+            content.push_str(&self.manifest_rule_to_toml(rule, "tool.dbtective.manifest_tests"));
             content.push_str("\n\n");
         }
 
@@ -217,7 +218,8 @@ impl InitConfig {
         content.trim_end().to_string()
     }
 
-    fn manifest_rule_to_yaml(rule: &ManifestSpecificRuleConfig) -> String {
+    #[allow(clippy::too_many_lines)]
+    fn manifest_rule_to_yaml(&self, rule: &ManifestSpecificRuleConfig) -> String {
         match rule {
             ManifestSpecificRuleConfig::HasDescription {} => r#"  - name: "has_description"
     type: "has_description"
@@ -259,11 +261,29 @@ impl InitConfig {
             ManifestSpecificRuleConfig::HasUniqueTest { .. } => r#"  - name: "has_unique_test"
     type: "has_unique_test""#
                 .to_string(),
-            ManifestSpecificRuleConfig::HasContractEnforced {} => {
-                r#"  - name: "has_contract_enforced"
+            ManifestSpecificRuleConfig::HasContractEnforced { .. } => {
+                let includes = match self.data_model {
+                    DataModel::Medallion => Some(vec!["models/silver", "models/gold"]),
+                    DataModel::Common => Some(vec!["models/marts", "models/intermediate"]),
+                    DataModel::None => return String::new(),
+                };
+
+                let mut s = r#"  - name: "has_contract_enforced"
     type: "has_contract_enforced""#
-                    .to_string()
+                    .to_string();
+
+                if let Some(folders) = includes {
+                    let folders_str = folders
+                        .iter()
+                        .map(|f| format!("\"{f}\""))
+                        .collect::<Vec<_>>()
+                        .join(", ");
+                    let _ = write!(s, "\n    includes: [{folders_str}]");
+                }
+
+                s
             }
+
             ManifestSpecificRuleConfig::HasMetadataKeys { required_keys, .. } => {
                 let keys_str = required_keys
                     .iter()
@@ -354,7 +374,7 @@ impl InitConfig {
         }
     }
     #[allow(clippy::too_many_lines)]
-    fn manifest_rule_to_toml(rule: &ManifestSpecificRuleConfig, section: &str) -> String {
+    fn manifest_rule_to_toml(&self, rule: &ManifestSpecificRuleConfig, section: &str) -> String {
         match rule {
             ManifestSpecificRuleConfig::HasDescription {} => {
                 format!(
@@ -410,13 +430,31 @@ name = "has_unique_test"
 type = "has_unique_test""#
                 )
             }
-            ManifestSpecificRuleConfig::HasContractEnforced {} => {
-                format!(
+            ManifestSpecificRuleConfig::HasContractEnforced { .. } => {
+                let includes = match self.data_model {
+                    DataModel::Medallion => Some(vec!["models/silver", "models/gold"]),
+                    DataModel::Common => Some(vec!["models/marts", "models/intermediate"]),
+                    DataModel::None => return String::new(),
+                };
+
+                let mut s = format!(
                     r#"[[{section}]]
 name = "has_contract_enforced"
 type = "has_contract_enforced""#
-                )
+                );
+
+                if let Some(folders) = includes {
+                    let folders_str = folders
+                        .iter()
+                        .map(|f| format!("\"{f}\""))
+                        .collect::<Vec<_>>()
+                        .join(", ");
+                    let _ = write!(s, "\nincludes = [{folders_str}]");
+                }
+
+                s
             }
+
             ManifestSpecificRuleConfig::HasMetadataKeys { required_keys, .. } => {
                 let keys_str = required_keys
                     .iter()
@@ -750,7 +788,7 @@ mod tests {
     fn test_create_manifest_rule_has_contract_enforced() {
         let result = create_questionnaire_result(
             DataModel::None,
-            vec![ManifestSpecificRuleConfig::HasContractEnforced {}],
+            vec![ManifestSpecificRuleConfig::HasContractEnforced { access_level: None }],
             Vec::new(),
             NamingConvention::default(),
         );
@@ -759,7 +797,7 @@ mod tests {
         assert_eq!(config.manifest_rules.len(), 1);
         assert!(matches!(
             config.manifest_rules[0],
-            ManifestSpecificRuleConfig::HasContractEnforced {}
+            ManifestSpecificRuleConfig::HasContractEnforced { access_level: None }
         ));
     }
 
@@ -1080,7 +1118,7 @@ mod tests {
                 ManifestSpecificRuleConfig::HasUniqueTest {
                     allowed_test_names: vec![],
                 },
-                ManifestSpecificRuleConfig::HasContractEnforced {},
+                ManifestSpecificRuleConfig::HasContractEnforced { access_level: None },
             ],
             Vec::new(),
             NamingConvention::default(),
@@ -1217,7 +1255,7 @@ mod tests {
                 ManifestSpecificRuleConfig::HasUniqueTest {
                     allowed_test_names: vec![],
                 },
-                ManifestSpecificRuleConfig::HasContractEnforced {},
+                ManifestSpecificRuleConfig::HasContractEnforced { access_level: None },
                 // Note: AllowedSubfolders NOT added when DataModel::None
             ],
             vec![
@@ -1239,6 +1277,74 @@ mod tests {
             .iter()
             .any(|r| matches!(r, ManifestSpecificRuleConfig::AllowedSubfolders { .. }));
         assert!(!has_allowed_subfolders);
+    }
+
+    // ========================================================================
+    // HasContractEnforced Init Tests - Data Model Includes
+    // ========================================================================
+
+    #[test]
+    fn test_contract_enforced_medallion_yaml_includes_silver_gold() {
+        let result = create_questionnaire_result(
+            DataModel::Medallion,
+            vec![ManifestSpecificRuleConfig::HasContractEnforced { access_level: None }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+
+        assert!(yaml.contains(r#"type: "has_contract_enforced""#));
+        assert!(yaml.contains(r#"includes: ["models/silver", "models/gold"]"#));
+    }
+
+    #[test]
+    fn test_contract_enforced_common_yaml_includes_marts() {
+        let result = create_questionnaire_result(
+            DataModel::Common,
+            vec![ManifestSpecificRuleConfig::HasContractEnforced { access_level: None }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+
+        assert!(yaml.contains(r#"type: "has_contract_enforced""#));
+        assert!(yaml.contains(r#"includes: ["models/marts", "models/intermediate"]"#));
+    }
+
+    #[test]
+    fn test_contract_enforced_none_yaml_no_includes() {
+        let result = create_questionnaire_result(
+            DataModel::None,
+            vec![ManifestSpecificRuleConfig::HasContractEnforced { access_level: None }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+
+        assert!(!yaml.contains(r#"type: "has_contract_enforced""#));
+        assert!(!yaml.contains("includes:"));
+    }
+
+    #[test]
+    fn test_contract_enforced_medallion_toml_includes_silver_gold() {
+        let result = create_questionnaire_result(
+            DataModel::Medallion,
+            vec![ManifestSpecificRuleConfig::HasContractEnforced { access_level: None }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+
+        let config = InitConfig::from_questionnaire(&result);
+        let toml = config.to_toml();
+
+        assert!(toml.contains(r#"type = "has_contract_enforced""#));
+        assert!(toml.contains(r#"includes = ["models/silver", "models/gold"]"#));
     }
 
     // ========================================================================

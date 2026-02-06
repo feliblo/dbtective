@@ -61,8 +61,8 @@ pub fn apply_manifest_node_rules<'a>(
                     ManifestSpecificRuleConfig::HasUniqueTest { allowed_test_names } => {
                         has_unique_test(node, rule, manifest, allowed_test_names)
                     }
-                    ManifestSpecificRuleConfig::HasContractEnforced {} => {
-                        has_contract_enforced(node, rule)
+                    ManifestSpecificRuleConfig::HasContractEnforced { ref access_level } => {
+                        has_contract_enforced(node, rule, access_level.as_ref())
                     }
                     ManifestSpecificRuleConfig::HasMetadataKeys {
                         required_keys,

@@ -98,7 +98,7 @@ fn apply_source_rules<'a>(
                     // These can't be implemented for sources
                     ManifestSpecificRuleConfig::HasRefs {}
                     | ManifestSpecificRuleConfig::MaxCodeLines { .. }
-                    | ManifestSpecificRuleConfig::HasContractEnforced {} => return Ok(acc),
+                    | ManifestSpecificRuleConfig::HasContractEnforced { .. } => return Ok(acc),
                 };
 
                 if let Some(rule_row) = rule_row_result {
@@ -175,7 +175,7 @@ fn apply_macro_rules<'a>(
                         | ManifestSpecificRuleConfig::IsNotOrphaned { .. }
                         | ManifestSpecificRuleConfig::HasUniqueTest { .. }
                         | ManifestSpecificRuleConfig::HasRefs {}
-                        | ManifestSpecificRuleConfig::HasContractEnforced {} => return Ok(acc),
+                        | ManifestSpecificRuleConfig::HasContractEnforced { .. } => return Ok(acc),
                     };
 
                     if let Some(rule_row) = rule_row_result {
@@ -254,7 +254,7 @@ fn apply_exposure_rules<'a>(
                         ManifestSpecificRuleConfig::IsNotOrphaned { .. }
                         | ManifestSpecificRuleConfig::MaxCodeLines { .. }
                         | ManifestSpecificRuleConfig::HasUniqueTest { .. }
-                        | ManifestSpecificRuleConfig::HasContractEnforced {} => return Ok(acc),
+                        | ManifestSpecificRuleConfig::HasContractEnforced { .. } => return Ok(acc),
                     };
 
                     if let Some(rule_row) = rule_row_result {
@@ -322,7 +322,7 @@ fn apply_semantic_model_rules<'a>(
                     | ManifestSpecificRuleConfig::MaxCodeLines { .. }
                     | ManifestSpecificRuleConfig::IsNotOrphaned { .. }
                     | ManifestSpecificRuleConfig::HasUniqueTest { .. }
-                    | ManifestSpecificRuleConfig::HasContractEnforced {} => return Ok(acc),
+                    | ManifestSpecificRuleConfig::HasContractEnforced { .. } => return Ok(acc),
                 };
 
                 if let Some(rule_row) = rule_row_result {
@@ -385,7 +385,7 @@ fn apply_unit_test_rules<'a>(
                     | ManifestSpecificRuleConfig::HasRefs {}
                     | ManifestSpecificRuleConfig::IsNotOrphaned { .. }
                     | ManifestSpecificRuleConfig::HasUniqueTest { .. }
-                    | ManifestSpecificRuleConfig::HasContractEnforced {}
+                    | ManifestSpecificRuleConfig::HasContractEnforced { .. }
                     | ManifestSpecificRuleConfig::HasMetadataKeys { .. } => return Ok(acc),
                 };
 
