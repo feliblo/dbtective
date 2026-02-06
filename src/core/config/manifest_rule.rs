@@ -59,6 +59,7 @@ pub enum ManifestSpecificRuleConfig {
         path_postfix: Option<String>,
     },
     SourcesHaveLoader {},
+    SourcesHaveFreshness {},
 }
 
 // Compares only on variant discriminant, ignoring field values.
@@ -242,9 +243,10 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             semantic_model_objects: vec![],
             custom_objects: vec![],
         },
-        // is_not_orphaned & sources_have_loader
+        // is_not_orphaned & sources_have_loader & sources_have_freshness
         ManifestSpecificRuleConfig::IsNotOrphaned { .. }
-        | ManifestSpecificRuleConfig::SourcesHaveLoader {} => AppliesTo {
+        | ManifestSpecificRuleConfig::SourcesHaveLoader {}
+        | ManifestSpecificRuleConfig::SourcesHaveFreshness {} => AppliesTo {
             node_objects: vec![],
             source_objects: vec![RuleTarget::Sources],
             unit_test_objects: vec![],
@@ -430,7 +432,8 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
             semantic_model_objects: vec![RuleTarget::SemanticModels],
             custom_objects: vec![],
         },
-        ManifestSpecificRuleConfig::SourcesHaveLoader {} => AppliesTo {
+        ManifestSpecificRuleConfig::SourcesHaveLoader {}
+        | ManifestSpecificRuleConfig::SourcesHaveFreshness {} => AppliesTo {
             node_objects: vec![],
             source_objects: vec![RuleTarget::Sources],
             unit_test_objects: vec![],

@@ -87,6 +87,12 @@ Here you can find an overview of all possible rules. Use the filter below to fin
       <td>Check if sources have a loader defined. Ensures sources document which tool loads data into the warehouse.</td>
       <td style="font-size: 12px; color: #666;">loader, source, etl, pipeline, ingestion</td>
     </tr>
+    <tr class="rule-item" data-keywords="freshness source staleness warn error monitoring data quality loaded_at" data-category="manifest">
+      <td><a href="has_freshness" class="rule-name">sources_have_freshness</a></td>
+      <td><span class="rule-category-badge badge-manifest">Manifest</span></td>
+      <td>Check if sources have freshness configured. Ensures sources define acceptable data staleness thresholds.</td>
+      <td style="font-size: 12px; color: #666;">freshness, source, staleness, monitoring, data quality</td>
+    </tr>
   </tbody>
 </table>
 

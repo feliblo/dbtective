@@ -21,7 +21,7 @@ pub use nodes::Node;
 pub use parse_manifest::{Manifest, ManifestMetadata, Quoting};
 pub use saved_query::{SavedQuery, SavedQueryDependsOn};
 pub use semantic_model::{SemanticModel, SemanticModelDependsOn};
-pub use source::Source;
+pub use source::{Source, SourceFreshness};
 pub use unit_test::UnitTest;
 
 /// Strips the project prefix from a `patch_path` (e.g., `project://path` -> "path")

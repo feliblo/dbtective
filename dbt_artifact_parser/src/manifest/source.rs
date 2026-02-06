@@ -5,6 +5,27 @@ use super::dbt_objects::{Meta, Tags};
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
+pub struct FreshnessThreshold {
+    pub count: Option<u64>,
+    pub period: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct SourceFreshness {
+    pub warn_after: Option<FreshnessThreshold>,
+    pub error_after: Option<FreshnessThreshold>,
+}
+
+impl SourceFreshness {
+    // Either warn or error needs to be configured for source freshness to be valid (from docs)
+    pub fn is_configured(&self) -> bool {
+        let warn = self.warn_after.as_ref().and_then(|t| t.count).is_some();
+        let error = self.error_after.as_ref().and_then(|t| t.count).is_some();
+        warn || error
+    }
+}
+
+#[derive(Debug, Deserialize)]
 #[allow(dead_code)]
 pub struct Source {
     // Required fields
@@ -19,6 +40,7 @@ pub struct Source {
     pub meta: Option<Meta>,
     pub tags: Option<Tags>,
     pub loader: Option<String>,
+    pub freshness: Option<SourceFreshness>,
 }
 
 impl Source {
