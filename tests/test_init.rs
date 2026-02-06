@@ -368,16 +368,16 @@ fn get_manifest_rules(
         rules.push(ManifestSpecificRuleConfig::HasUniqueTest {
             allowed_test_names: vec![],
         });
-        rules.push(ManifestSpecificRuleConfig::HasContractEnforced {});
     }
 
-    // Add allowed_subfolders if data model is specified
+    // Add data-model-specific rules if data model is specified
     if !matches!(data_model, DataModel::None) {
         rules.push(ManifestSpecificRuleConfig::AllowedSubfolders {
             allowed_subfolders: vec![],
             path_prefix: None,
             path_postfix: None,
         });
+        rules.push(ManifestSpecificRuleConfig::HasContractEnforced { access_level: None });
     }
 
     rules
@@ -586,7 +586,7 @@ fn test_strict_strictness_has_correct_rules() {
 
     assert!(content.contains("has_tags"));
     assert!(content.contains("has_unique_test"));
-    assert!(content.contains("has_contract_enforced"));
+    assert!(!content.contains("has_contract_enforced"));
 }
 
 // ========================================================================

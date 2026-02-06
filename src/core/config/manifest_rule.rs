@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use crate::core::config::applies_to::AppliesTo;
 use crate::core::config::applies_to::RuleTarget;
 use crate::core::config::check_config_options::{
-    default_allowed_references, default_allowed_test_names, default_max_code_lines,
+    default_allowed_references, default_allowed_test_names, default_max_code_lines, AccessLevel,
     HasTagsCriteria, OrphanedReferenceType,
 };
 use crate::core::config::naming_convention::NamingConvention;
@@ -37,7 +37,10 @@ pub enum ManifestSpecificRuleConfig {
         #[serde(default = "default_allowed_test_names")]
         allowed_test_names: Vec<String>,
     },
-    HasContractEnforced {},
+    HasContractEnforced {
+        #[serde(default)]
+        access_level: Option<AccessLevel>,
+    },
     HasMetadataKeys {
         required_keys: Vec<String>,
         #[serde(default)]

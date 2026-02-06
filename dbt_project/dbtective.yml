@@ -11,14 +11,9 @@ manifest_tests:
     type: "name_convention"
     pattern: "snake_case"
 
-  - name: "require_execution_tags"
-    type: "has_tags"
-    required_tags: ["daily", "monthly", "yearly", "inactive"]
-    criteria: "one_of"
-    description: "Resources need to have at least one of the required tags. To decide when a resource should be run."
-
-  - name: "is_not_orphaned"
-    type: "is_not_orphaned"
+  - name: "has_contract_enforced"
+    type: "has_contract_enforced"
+    includes: ["models/marts", "models/intermediate"]
 
   - name: "has_owner"
     type: "has_metadata_keys"
@@ -32,11 +27,6 @@ manifest_tests:
     allowed_subfolders: ["staging", "marts", "intermediate"]
 
 catalog_tests:
-  - name: "all_columns_documented"
-    type: "columns_all_documented"
-    description: "All columns must exist in the documentation."
-    severity: "warning"
-
   - name: "all_columns_described"
     type: "columns_have_description"
     description: "All columns must have a description."
@@ -45,8 +35,3 @@ catalog_tests:
     type: "columns_name_convention"
     description: "All column names must be snake_case."
     pattern: "snake_case"
-
-  - name: "canonical_column_names"
-    type: "columns_canonical_name"
-    canonical: "user_id"
-    invalid_names: ["userid", "UserId"]

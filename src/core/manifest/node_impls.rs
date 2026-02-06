@@ -1,6 +1,7 @@
 // Trait implementations for Node that stay in dbtective
 use super::node_objects_impls::{AnalysisExt, ModelExt, SnapshotExt};
 use crate::core::config::applies_to::{RuleTarget, RuleTargetable};
+use crate::core::config::check_config_options::AccessLevel;
 use crate::core::config::includes_excludes::IncludeExcludable;
 use crate::core::rules::common_traits::{Columnable, Identifiable};
 use crate::core::rules::rule_config::allowed_subfolders::PathCheckable;
@@ -138,13 +139,17 @@ impl ContractAble for Node {
     fn get_contract_enforced(&self) -> Option<bool> {
         match self {
             Self::Model(m) => m.get_contract_enforced(),
-            // Nothing for other node types
-            Self::Seed(_)
-            | Self::Analysis(_)
-            | Self::Test(_)
-            | Self::Snapshot(_)
-            | Self::HookNode(_)
-            | Self::SqlOperation(_) => None,
+            _ => unreachable!("HasContractEnforced can only be called on models"),
+        }
+    }
+
+    fn get_access(&self) -> Option<AccessLevel> {
+        match self {
+            Self::Model(m) => m
+                .access
+                .as_ref()
+                .map(|a| a.parse::<AccessLevel>().expect("Unknown access level")),
+            _ => unreachable!("HasContractEnforced can only be called on models"),
         }
     }
 }

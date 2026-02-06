@@ -143,8 +143,8 @@ pub struct QuestionnaireResult {
 pub fn run_questionnaire() -> Result<QuestionnaireResult, String> {
     println!("\n🕵️ {}", "Welcome to dbtective!".green().bold());
     println!(
-        "{}\n",
-        "Let's set up your configuration. (Don't worry, you can always change it later)".white()
+        "Let's set up your configuration. {}\n",
+        "(Don't worry, you can always change it later)".dimmed()
     );
 
     // 1. Ask for config format
@@ -249,7 +249,6 @@ pub fn run_questionnaire() -> Result<QuestionnaireResult, String> {
                 ManifestSpecificRuleConfig::HasUniqueTest {
                     allowed_test_names: vec![],
                 },
-                ManifestSpecificRuleConfig::HasContractEnforced {},
             ],
             vec![
                 CatalogSpecificRuleConfig::ColumnsNameConvention {
@@ -262,13 +261,14 @@ pub fn run_questionnaire() -> Result<QuestionnaireResult, String> {
         ),
     };
 
-    // Add allowed_subfolders if a data model structure was selected
+    // Add data-model-specific rules if a data model structure was selected
     if data_model != DataModel::None {
         manifest_rules.push(ManifestSpecificRuleConfig::AllowedSubfolders {
             allowed_subfolders: vec![],
             path_prefix: None,
             path_postfix: None,
         });
+        manifest_rules.push(ManifestSpecificRuleConfig::HasContractEnforced { access_level: None });
     }
 
     // 5. Ask for additional manifest rules
