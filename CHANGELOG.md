@@ -1,3 +1,15 @@
+## v0.2.0 (2026-02-06)
+
+### Feat
+
+- **rules**: add sources_have_freshness rule - ([9ebc6ca](https://github.com/feliblo/dbtective/commit/9ebc6ca9b9fd5662356544a217a40e2a4312fd0a)) - feliblo
+- **rules**: add sources_have_loader rule - ([94f3e62](https://github.com/feliblo/dbtective/commit/94f3e628d86584e023826d882a14d87f591cdc39)) - feliblo
+- **rules**: enhance contract enforced with access level and add to init command - ([ed05c25](https://github.com/feliblo/dbtective/commit/ed05c25f2f18573ae43086ecfbc5e691fae0171d)) - feliblo
+
+### Contributors
+
+[@feliblo](https://github.com/feliblo)
+
 ## v0.1.33 (2026-02-05)
 
 ### Fix
