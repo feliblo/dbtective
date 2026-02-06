@@ -92,6 +92,7 @@ impl Init for ManifestSpecificRuleConfig {
             Self::HasRefs { .. } => "has_refs - Require use of ref() function",
             Self::MaxCodeLines { .. } => "max_code_lines - Limit code line count",
             Self::AllowedSubfolders { .. } => "allowed_subfolders - Restrict subfolder usage",
+            Self::SourcesHaveLoader { .. } => "sources_have_loader - Require loader for sources",
         }
     }
 }
@@ -249,6 +250,7 @@ pub fn run_questionnaire() -> Result<QuestionnaireResult, String> {
                 ManifestSpecificRuleConfig::HasUniqueTest {
                     allowed_test_names: vec![],
                 },
+                ManifestSpecificRuleConfig::SourcesHaveLoader {},
             ],
             vec![
                 CatalogSpecificRuleConfig::ColumnsNameConvention {
@@ -391,6 +393,7 @@ mod tests {
         assert!(descriptions.contains(&"has_refs - Require use of ref() function"));
         assert!(descriptions.contains(&"max_code_lines - Limit code line count"));
         assert!(descriptions.contains(&"allowed_subfolders - Restrict subfolder usage"));
+        assert!(descriptions.contains(&"sources_have_loader - Require loader for sources"));
     }
 
     #[test]
@@ -412,7 +415,7 @@ mod tests {
 
     #[test]
     fn test_manifest_rule_iter_count() {
-        assert_eq!(ManifestSpecificRuleConfig::iter().count(), 10);
+        assert_eq!(ManifestSpecificRuleConfig::iter().count(), 11);
     }
 
     #[test]

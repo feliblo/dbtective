@@ -1,7 +1,7 @@
 use crate::core::config::applies_to::RuleTargetable;
 use crate::core::rules::rule_config::{
-    check_allowed_subfolders, check_name_convention, has_description, has_metadata_keys, has_refs,
-    has_tags, has_unique_test, is_not_orphaned, max_code_lines,
+    check_allowed_subfolders, check_name_convention, has_description, has_loader,
+    has_metadata_keys, has_refs, has_tags, has_unique_test, is_not_orphaned, max_code_lines,
 };
 use crate::{
     cli::table::RuleResult,
@@ -95,6 +95,8 @@ fn apply_source_rules<'a>(
                         path_postfix.as_ref(),
                     ),
 
+                    ManifestSpecificRuleConfig::SourcesHaveLoader {} => has_loader(source, rule),
+
                     // These can't be implemented for sources
                     ManifestSpecificRuleConfig::HasRefs {}
                     | ManifestSpecificRuleConfig::MaxCodeLines { .. }
@@ -175,7 +177,8 @@ fn apply_macro_rules<'a>(
                         | ManifestSpecificRuleConfig::IsNotOrphaned { .. }
                         | ManifestSpecificRuleConfig::HasUniqueTest { .. }
                         | ManifestSpecificRuleConfig::HasRefs {}
-                        | ManifestSpecificRuleConfig::HasContractEnforced { .. } => return Ok(acc),
+                        | ManifestSpecificRuleConfig::HasContractEnforced { .. }
+                        | ManifestSpecificRuleConfig::SourcesHaveLoader {} => return Ok(acc),
                     };
 
                     if let Some(rule_row) = rule_row_result {
@@ -254,7 +257,8 @@ fn apply_exposure_rules<'a>(
                         ManifestSpecificRuleConfig::IsNotOrphaned { .. }
                         | ManifestSpecificRuleConfig::MaxCodeLines { .. }
                         | ManifestSpecificRuleConfig::HasUniqueTest { .. }
-                        | ManifestSpecificRuleConfig::HasContractEnforced { .. } => return Ok(acc),
+                        | ManifestSpecificRuleConfig::HasContractEnforced { .. }
+                        | ManifestSpecificRuleConfig::SourcesHaveLoader {} => return Ok(acc),
                     };
 
                     if let Some(rule_row) = rule_row_result {
@@ -322,7 +326,8 @@ fn apply_semantic_model_rules<'a>(
                     | ManifestSpecificRuleConfig::MaxCodeLines { .. }
                     | ManifestSpecificRuleConfig::IsNotOrphaned { .. }
                     | ManifestSpecificRuleConfig::HasUniqueTest { .. }
-                    | ManifestSpecificRuleConfig::HasContractEnforced { .. } => return Ok(acc),
+                    | ManifestSpecificRuleConfig::HasContractEnforced { .. }
+                    | ManifestSpecificRuleConfig::SourcesHaveLoader {} => return Ok(acc),
                 };
 
                 if let Some(rule_row) = rule_row_result {
@@ -386,7 +391,8 @@ fn apply_unit_test_rules<'a>(
                     | ManifestSpecificRuleConfig::IsNotOrphaned { .. }
                     | ManifestSpecificRuleConfig::HasUniqueTest { .. }
                     | ManifestSpecificRuleConfig::HasContractEnforced { .. }
-                    | ManifestSpecificRuleConfig::HasMetadataKeys { .. } => return Ok(acc),
+                    | ManifestSpecificRuleConfig::HasMetadataKeys { .. }
+                    | ManifestSpecificRuleConfig::SourcesHaveLoader {} => return Ok(acc),
                 };
 
                 if let Some(rule_row) = rule_row_result {

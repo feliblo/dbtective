@@ -83,6 +83,8 @@ pub fn apply_manifest_node_rules<'a>(
                         path_prefix.as_ref(),
                         path_postfix.as_ref(),
                     ),
+                    // SourcesHaveLoader only applies to sources
+                    ManifestSpecificRuleConfig::SourcesHaveLoader {} => return Ok(acc),
                 };
 
                 if let Some(rule_row) = rule_row_result {

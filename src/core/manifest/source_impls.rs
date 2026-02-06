@@ -5,6 +5,7 @@ use crate::core::rules::common_traits::{Columnable, Identifiable};
 use crate::core::rules::rule_config::allowed_subfolders::PathCheckable;
 use crate::core::rules::rule_config::child_map::ChildMappable;
 use crate::core::rules::rule_config::has_description::Descriptable;
+use crate::core::rules::rule_config::has_loader::SourcesHaveLoader;
 use crate::core::rules::rule_config::has_metadata_keys::HasMetadata;
 use crate::core::rules::rule_config::has_tags::Tagable;
 use crate::core::rules::rule_config::has_unique_test::TestAble;
@@ -106,6 +107,12 @@ impl TestAble for Source {
 impl HasMetadata for Source {
     fn get_metadata(&self) -> Option<&Meta> {
         self.meta.as_ref()
+    }
+}
+
+impl SourcesHaveLoader for Source {
+    fn loader(&self) -> Option<&String> {
+        self.loader.as_ref()
     }
 }
 

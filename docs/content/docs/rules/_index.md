@@ -81,6 +81,12 @@ Here you can find an overview of all possible rules. Use the filter below to fin
       <td>Enforce that objects are organized within specific allowed subfolders. Ensures consistent project structure and proper categorization by source or domain.</td>
       <td style="font-size: 12px; color: #666;">folder, structure, organization, path, subfolders</td>
     </tr>
+    <tr class="rule-item" data-keywords="loader source etl elt pipeline ingestion fivetran stitch airflow documentation" data-category="manifest">
+      <td><a href="has_loader" class="rule-name">sources_have_loader</a></td>
+      <td><span class="rule-category-badge badge-manifest">Manifest</span></td>
+      <td>Check if sources have a loader defined. Ensures sources document which tool loads data into the warehouse.</td>
+      <td style="font-size: 12px; color: #666;">loader, source, etl, pipeline, ingestion</td>
+    </tr>
   </tbody>
 </table>
 

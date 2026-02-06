@@ -18,6 +18,7 @@ pub struct Source {
     pub columns: Option<HashMap<String, Column>>,
     pub meta: Option<Meta>,
     pub tags: Option<Tags>,
+    pub loader: Option<String>,
 }
 
 impl Source {
