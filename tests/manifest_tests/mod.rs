@@ -1,5 +1,6 @@
 mod test_has_contract_enforced;
 mod test_has_description;
+mod test_has_freshness;
 mod test_has_loader;
 mod test_has_metadata_keys;
 mod test_has_refs;

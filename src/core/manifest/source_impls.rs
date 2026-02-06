@@ -5,13 +5,14 @@ use crate::core::rules::common_traits::{Columnable, Identifiable};
 use crate::core::rules::rule_config::allowed_subfolders::PathCheckable;
 use crate::core::rules::rule_config::child_map::ChildMappable;
 use crate::core::rules::rule_config::has_description::Descriptable;
+use crate::core::rules::rule_config::has_freshness::SourcesHaveFreshness;
 use crate::core::rules::rule_config::has_loader::SourcesHaveLoader;
 use crate::core::rules::rule_config::has_metadata_keys::HasMetadata;
 use crate::core::rules::rule_config::has_tags::Tagable;
 use crate::core::rules::rule_config::has_unique_test::TestAble;
 use crate::core::rules::rule_config::name_convention::NameAble;
 use dbt_artifact_parser::manifest::dbt_objects::{Meta, Tags};
-use dbt_artifact_parser::manifest::{Manifest, Source};
+use dbt_artifact_parser::manifest::{Manifest, Source, SourceFreshness};
 
 impl RuleTargetable for Source {
     fn ruletarget(&self) -> RuleTarget {
@@ -113,6 +114,14 @@ impl HasMetadata for Source {
 impl SourcesHaveLoader for Source {
     fn loader(&self) -> Option<&String> {
         self.loader.as_ref()
+    }
+}
+
+impl SourcesHaveFreshness for Source {
+    fn has_freshness_configured(&self) -> bool {
+        self.freshness
+            .as_ref()
+            .is_some_and(SourceFreshness::is_configured)
     }
 }
 

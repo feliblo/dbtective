@@ -93,6 +93,9 @@ impl Init for ManifestSpecificRuleConfig {
             Self::MaxCodeLines { .. } => "max_code_lines - Limit code line count",
             Self::AllowedSubfolders { .. } => "allowed_subfolders - Restrict subfolder usage",
             Self::SourcesHaveLoader { .. } => "sources_have_loader - Require loader for sources",
+            Self::SourcesHaveFreshness { .. } => {
+                "sources_have_freshness - Require freshness for sources"
+            }
         }
     }
 }
@@ -251,6 +254,7 @@ pub fn run_questionnaire() -> Result<QuestionnaireResult, String> {
                     allowed_test_names: vec![],
                 },
                 ManifestSpecificRuleConfig::SourcesHaveLoader {},
+                ManifestSpecificRuleConfig::SourcesHaveFreshness {},
             ],
             vec![
                 CatalogSpecificRuleConfig::ColumnsNameConvention {
@@ -415,7 +419,7 @@ mod tests {
 
     #[test]
     fn test_manifest_rule_iter_count() {
-        assert_eq!(ManifestSpecificRuleConfig::iter().count(), 11);
+        assert_eq!(ManifestSpecificRuleConfig::iter().count(), 12);
     }
 
     #[test]
