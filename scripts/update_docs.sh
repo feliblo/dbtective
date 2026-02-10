@@ -13,8 +13,8 @@ sedi() {
 }
 
 # Update GitHub Actions version in docs
-sedi "s/uses: feliblo\/dbtective@v[0-9]\+\.[0-9]\+\.[0-9]\+/uses: feliblo\/dbtective@v$NEW_VERSION/" docs/content/docs/running/github-actions.md
+sedi -E "s/uses: feliblo\/dbtective@v[0-9]+\.[0-9]+\.[0-9]+/uses: feliblo\/dbtective@v$NEW_VERSION/" docs/content/docs/running/github-actions.md
 
 # Update pre-commit version in precommit docs
-sedi "s/rev: v[0-9]\+\.[0-9]\+\.[0-9]\+/rev: v$NEW_VERSION/" docs/content/docs/running/precommit.md
-sedi "s/uses: feliblo\/dbtective@v[0-9]\+\.[0-9]\+\.[0-9]\+/uses: feliblo\/dbtective@v$NEW_VERSION/" docs/content/docs/running/precommit.md
+sedi -E "s/rev: v[0-9]+\.[0-9]+\.[0-9]+/rev: v$NEW_VERSION/" docs/content/docs/running/precommit.md
+sedi -E "s/uses: feliblo\/dbtective@v[0-9]+\.[0-9]+\.[0-9]+/uses: feliblo\/dbtective@v$NEW_VERSION/" docs/content/docs/running/precommit.md
