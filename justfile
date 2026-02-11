@@ -11,6 +11,9 @@ run-verbose:
 run-release:
     cargo run --release run --verbose --entry-point ./dbt_project
 
+run-release-manifest:
+    cargo run --release run --verbose --entry-point ./dbt_project --only-manifest
+
 install:
     cargo install --path .
 

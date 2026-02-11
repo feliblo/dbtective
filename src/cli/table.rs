@@ -43,7 +43,7 @@ impl RuleResult {
     }
 }
 
-pub fn show_results_and_exit(
+pub fn show_results_and_exitcode(
     results: &[(RuleResult, &Severity)],
     verbose: bool,
     entry_point: &str,
@@ -293,7 +293,7 @@ mod tests {
     #[test]
     fn test_show_results_exit_code_zero_when_empty() {
         let results: Vec<(RuleResult, &Severity)> = vec![];
-        let exit_code = show_results_and_exit(&results, false, ".", true, false, None);
+        let exit_code = show_results_and_exitcode(&results, false, ".", true, false, None);
         assert_eq!(exit_code, 0);
     }
 
@@ -302,7 +302,7 @@ mod tests {
         let warning = make_warning_result("Model", "rule_a", "warning message");
         let results: Vec<(RuleResult, &Severity)> = vec![(warning, &Severity::Warning)];
 
-        let exit_code = show_results_and_exit(&results, false, ".", true, false, None);
+        let exit_code = show_results_and_exitcode(&results, false, ".", true, false, None);
         assert_eq!(exit_code, 0);
     }
 
@@ -311,7 +311,7 @@ mod tests {
         let error = make_error_result("Model", "rule_a", "error message");
         let results: Vec<(RuleResult, &Severity)> = vec![(error, &Severity::Error)];
 
-        let exit_code = show_results_and_exit(&results, false, ".", true, false, None);
+        let exit_code = show_results_and_exitcode(&results, false, ".", true, false, None);
         assert_eq!(exit_code, 1);
     }
 
@@ -322,7 +322,7 @@ mod tests {
         let results: Vec<(RuleResult, &Severity)> =
             vec![(error, &Severity::Error), (warning, &Severity::Warning)];
 
-        let exit_code = show_results_and_exit(&results, false, ".", true, false, None);
+        let exit_code = show_results_and_exitcode(&results, false, ".", true, false, None);
         assert_eq!(exit_code, 1);
     }
 
@@ -332,7 +332,7 @@ mod tests {
         let results: Vec<(RuleResult, &Severity)> = vec![(warning, &Severity::Warning)];
 
         // hide_warnings = true, but exit code should still be 0 (no errors)
-        let exit_code = show_results_and_exit(&results, false, ".", true, true, None);
+        let exit_code = show_results_and_exitcode(&results, false, ".", true, true, None);
         assert_eq!(exit_code, 0);
     }
 
@@ -344,7 +344,7 @@ mod tests {
             vec![(error, &Severity::Error), (warning, &Severity::Warning)];
 
         // hide_warnings = true, exit code should be 1 (has errors)
-        let exit_code = show_results_and_exit(&results, false, ".", true, true, None);
+        let exit_code = show_results_and_exitcode(&results, false, ".", true, true, None);
         assert_eq!(exit_code, 1);
     }
 

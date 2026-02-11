@@ -6,11 +6,110 @@ sidebar:
   open: true
 ---
 
+### Manifest Fallback Mode <span class="rule-category-badge badge-manifest-fallback">Fallback</span>
+
+When running with `--only-manifest`, eligible catalog rules (containing the badge) automatically fall back to running against manifest data. See [Only Manifest Mode](../running/manifest-only) for full details on which rules support fallback, recommendations for pre-commit vs CI/CD, and known limitations.
+
+<hr style="border: 1px solid #666; margin: 2em 0;">
+
+### Rule: `columns_all_documented`
+
+<span class="rule-category-badge badge-catalog">Catalog Rule</span> {{< include-markdown "content/snippets/catalog_info.md" >}}
+
+<details closed>
+<summary>columns_all_documented details</summary>
+<br>
+This rule ensures that every database object  (model, seed, source, macro, etc.) has documented all their columns (e.g. mentioned them in a `.yaml` file). It cannot use `manifest-fallback`, since it is used to compare the database state with the state of the metadata in the dbt configuration.
+
+---
+
+**Configuration**
+
+- **type**: Must be `columns_all_documented`.
+- **applies_to**: _(optional)_ List of dbt object types to include.
+  - Default: `["models", "seeds", "snapshots", "sources", "semantic_models"]`
+  - Options: `models`, `seeds`, `snapshots`, `sources`, `macros`,`semantic_models`
+
+{{< include-markdown "content/snippets/common_rule_config.md" >}}
+
+**Example Config**
+
+{{< tabs items="dbtective.yml,dbtective.toml,pyproject.toml" >}}
+
+{{< tab >}}
+
+```yaml
+catalog_tests:
+  - name: "all_columns_should_be_documented"
+    type: "columns_all_documented"
+    description: "Everything must have a description."
+    # severity: "warning"  (optional)
+    # applies_to: ['models', 'seeds']  (optional)
+    # includes: ["path/to/include/*"]
+    # excludes: ["path/to/exclude/*"]
+```
+
+{{< /tab >}}
+
+{{< tab >}}
+
+```toml
+[[catalog_tests]]
+name = "all_columns_should_be_documented"
+type = "columns_all_documented"
+description = "Everything must have a description."
+# severity = "warning"  # (optional)
+# applies_to = ["models", "seeds"]  # (optional)
+# includes = ["path/to/include/*"]
+# excludes = ["path/to/exclude/*"]
+```
+
+{{< /tab >}}
+
+{{< tab >}}
+
+```toml
+[[tool.dbtective.catalog_tests]]
+name = "all_columns_should_be_documented"
+type = "columns_all_documented"
+description = "Everything must have a description."
+# severity = "warning"  # (optional)
+# applies_to = ["models", "seeds"]  # (optional)
+# includes = ["path/to/include/*"]
+# excludes = ["path/to/exclude/*"]
+```
+
+{{< /tab >}}
+
+{{< /tabs >}}
+
+<details closed>
+<summary>Relevant dbt code</summary>
+
+```yaml
+models:
+  - name: model_without_columns_documented
+    columns:
+      - column_1
+      - column_2
+  # Example if the model has 2 columns
+  - name: model_with_missing_documentation_for_column_2
+    columns:
+      - column_1
+  - name: model_without_columns_documented
+```
+
+</details>
+
+</details>
+
+<hr style="border: 2px solid #444; margin: 2em 0;">
+
 ### Rule: `columns_name_convention`
 
 For object naming conventions, see the [`name_convention`](../naming_conventions#name_convention) rule.
 
-<span class="rule-category-badge badge-catalog">Catalog Rule</span> {{< include-markdown "content/snippets/catalog_info.md" >}}
+<span class="rule-category-badge badge-catalog">Catalog Rule</span> <span class="rule-category-badge badge-manifest-fallback">Fallback</span> {{< include-markdown "content/snippets/catalog_info.md" >}}
 
 <br>
 <details closed>
@@ -23,7 +122,7 @@ This rule ensures that column names follow naming conventions based on a specifi
 **Configuration**
 
 - **type**: Must be `columns_name_convention`.
-- **applies_to**: *(optional)* List of dbt object types to include.
+- **applies_to**: _(optional)_ List of dbt object types to include.
   - Default: `["models", "seeds", "snapshots"]`
   - Options: `models`, `seeds`, `snapshots`, `sources`
 - **pattern**: The naming convention pattern to enforce. Can be one of the following presets or a custom regex pattern.
@@ -33,10 +132,10 @@ This rule ensures that column names follow naming conventions based on a specifi
     - `camelCase`: starts with a lowercase letter, followed by uppercase letters for new words (e.g., `userId`, `createdAt`)
     - `PascalCase`: starts with an uppercase letter, followed by uppercase letters for new words (e.g., `UserId`, `CreatedAt`)
   - Custom Regex: Any valid regex pattern to match against column names.
-- **data_types**: *(optional)* List of SQL data types to filter columns by. Only columns with these data types will be checked included in the naming convention rule. If not specified, all columns are included.
-  - *Default*: All data types
-  - *Example*: If you want all datetime columns to end with 'dt', you can set `data_types: ['date', 'date_time', 'timestamp', 'timestamptz']` with pattern `.*_dt$`
-  - *Available types*: `integer`, `big_int`, `small_int`, `tiny_int`, `decimal`, `numeric`, `float`, `double`, `real`, `string`, `text`, `varchar`, `char`, `date`, `date_time`, `time`, `timestamp`, `timestamptz`, `boolean`, `json`, `jsonb`, `array`, `object`, `variant`, `binary`, `varbinary`, `uuid`, `interval`
+- **data_types**: _(optional)_ List of SQL data types to filter columns by. Only columns with these data types will be checked included in the naming convention rule. If not specified, all columns are included. This can cause mismatches when `--only-manifest` is being used!
+  - _Default_: All data types
+  - _Example_: If you want all datetime columns to end with 'dt', you can set `data_types: ['date', 'date_time', 'timestamp', 'timestamptz']` with pattern `.*_dt$`
+  - _Available types_: `integer`, `big_int`, `small_int`, `tiny_int`, `decimal`, `numeric`, `float`, `double`, `real`, `string`, `text`, `varchar`, `char`, `date`, `date_time`, `time`, `timestamp`, `timestamptz`, `boolean`, `json`, `jsonb`, `array`, `object`, `variant`, `binary`, `varbinary`, `uuid`, `interval`
 
 {{< include-markdown "content/snippets/common_rule_config.md" >}}
 
@@ -153,102 +252,9 @@ FROM users
 
 <hr style="border: 2px solid #444; margin: 2em 0;">
 
-### Rule: `columns_all_documented`
-
-<span class="rule-category-badge badge-catalog">Catalog Rule</span> {{< include-markdown "content/snippets/catalog_info.md" >}}
-
-<details closed>
-<summary>columns_all_documented details</summary>
-<br>
-This rule ensures that every dbt object  (model, seed, source, macro, etc.) documented their columns (e.g. mentioned them in a `.yaml` file).
-
----
-
-**Configuration**
-
-- **type**: Must be `columns_all_documented`.
-- **applies_to**: *(optional)* List of dbt object types to include.
-  - Default: `["models", "seeds", "snapshots", "sources", "semantic_models"]`
-  - Options: `models`, `seeds`, `snapshots`, `sources`, `macros`,`semantic_models`
-
-{{< include-markdown "content/snippets/common_rule_config.md" >}}
-
-**Example Config**
-
-{{< tabs items="dbtective.yml,dbtective.toml,pyproject.toml" >}}
-
-{{< tab >}}
-
-```yaml
-catalog_tests:
-  - name: "all_columns_should_be_documented"
-    type: "columns_all_documented"
-    description: "Everything must have a description."
-    # severity: "warning"  (optional)
-    # applies_to: ['models', 'seeds']  (optional)
-    # includes: ["path/to/include/*"]
-    # excludes: ["path/to/exclude/*"]
-```
-
-{{< /tab >}}
-
-{{< tab >}}
-
-```toml
-[[catalog_tests]]
-name = "all_columns_should_be_documented"
-type = "columns_all_documented"
-description = "Everything must have a description."
-# severity = "warning"  # (optional)
-# applies_to = ["models", "seeds"]  # (optional)
-# includes = ["path/to/include/*"]
-# excludes = ["path/to/exclude/*"]
-```
-
-{{< /tab >}}
-
-{{< tab >}}
-
-```toml
-[[tool.dbtective.catalog_tests]]
-name = "all_columns_should_be_documented"
-type = "columns_all_documented"
-description = "Everything must have a description."
-# severity = "warning"  # (optional)
-# applies_to = ["models", "seeds"]  # (optional)
-# includes = ["path/to/include/*"]
-# excludes = ["path/to/exclude/*"]
-```
-
-{{< /tab >}}
-
-{{< /tabs >}}
-
-<details closed>
-<summary>Relevant dbt code</summary>
-
-```yaml
-models:
-  - name: model_without_columns_documented
-    columns:
-      - column_1
-      - column_2
-  # Example if the model has 2 columns
-  - name: model_with_missing_documentation_for_column_2
-    columns:
-      - column_1
-  - name: model_without_columns_documented
-```
-
-</details>
-
-</details>
-
-<hr style="border: 2px solid #444; margin: 2em 0;">
-
 ### Rule: `columns_have_description`
 
-<span class="rule-category-badge badge-catalog">Catalog Rule</span> {{< include-markdown "content/snippets/catalog_info.md" >}}
+<span class="rule-category-badge badge-catalog">Catalog Rule</span> <span class="rule-category-badge badge-manifest-fallback">Fallback</span> {{< include-markdown "content/snippets/catalog_info.md" >}}
 
 <details closed>
 <summary>columns_have_description details</summary>
@@ -260,7 +266,7 @@ This rule ensures that every documented column has a non-empty description. Unli
 **Configuration**
 
 - **type**: Must be `columns_have_description`.
-- **applies_to**: *(optional)* List of dbt object types to include.
+- **applies_to**: _(optional)_ List of dbt object types to include.
   - Default: `["models", "seeds", "snapshots", "sources"]`
   - Options: `models`, `seeds`, `snapshots`, `sources`
 
@@ -325,9 +331,9 @@ models:
   - name: customers
     columns:
       - name: id
-        description: "Customer ID"  # PASS: has description
+        description: "Customer ID" # PASS: has description
       - name: name
-        description: ""  # FAIL: empty description
+        description: "" # FAIL: empty description
       - name: email
         # FAIL: no description field
 ```
@@ -340,7 +346,7 @@ models:
 
 ### Rule: `columns_canonical_name`
 
-<span class="rule-category-badge badge-catalog">Catalog Rule</span> {{< include-markdown "content/snippets/catalog_info.md" >}}
+<span class="rule-category-badge badge-catalog">Catalog Rule</span> <span class="rule-category-badge badge-manifest-fallback">Fallback</span> {{< include-markdown "content/snippets/catalog_info.md" >}}
 
 <details closed>
 <summary>columns_canonical_name details</summary>
@@ -356,10 +362,10 @@ Can be both regex or strings.
 - **type**: Must be `columns_canonical_name`.
 - **canonical**: The preferred/canonical column name (e.g., `zip_code`).
 - **invalid_names**: List of patterns that should be flagged as violations. Each pattern can be:
-  - *Strings*: An exact string match (e.g., `postal_code`)
-  - *Regex*: A pattern starting with `^`, ending with `$`, or containing `.*` or `.+` (e.g., `^zip.*`)
-- **exceptions**: *(optional)* List of patterns to exclude from violations. Columns matching these patterns will not be flagged even if they match `invalid_names`. Uses the same literal/regex format as `invalid_names`.
-- **applies_to**: *(optional)* List of dbt object types to include.
+  - _Strings_: An exact string match (e.g., `postal_code`)
+  - _Regex_: A pattern starting with `^`, ending with `$`, or containing `.*` or `.+` (e.g., `^zip.*`)
+- **exceptions**: _(optional)_ List of patterns to exclude from violations. Columns matching these patterns will not be flagged even if they match `invalid_names`. Uses the same literal/regex format as `invalid_names`.
+- **applies_to**: _(optional)_ List of dbt object types to include.
   - Default: `["models", "seeds", "snapshots"]`
   - Options: `models`, `seeds`, `snapshots`, `sources`
 
@@ -378,8 +384,8 @@ catalog_tests:
     description: "All zip-related columns should be named 'zip_code'."
     canonical: "zip_code"
     invalid_names:
-      - "postal_code"     # literal match
-      - "^zip"            # regex: matches zipcode, zip_cd, etc.
+      - "postal_code" # literal match
+      - "^zip" # regex: matches zipcode, zip_cd, etc.
     # exceptions:
     #   - "zip_code_legacy"  # allow this specific column
     # severity: "warning"  (optional)

@@ -1,3 +1,5 @@
+pub mod apply_catalog_fallback_node_rules;
+pub mod apply_catalog_fallback_source_rules;
 pub mod apply_catalog_node_rules;
 pub mod apply_catalog_source_rules;
 pub mod column_name_convention;
