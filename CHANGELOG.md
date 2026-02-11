@@ -1,3 +1,13 @@
+## v0.2.1 (2026-02-11)
+
+### Feat
+
+- **rules**: add manifest fallback for eligible rules - ([c605eff](https://github.com/feliblo/dbtective/commit/c605effcb77c957375998af293f1abbe191d25ce)) - feliblo
+
+### Contributors
+
+[@feliblo](https://github.com/feliblo)
+
 ## v0.2.0 (2026-02-06)
 
 ### Feat
