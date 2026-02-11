@@ -109,6 +109,17 @@ Here you can find an overview of all possible rules. Use the filter below to fin
   </p>
 </details>
 
+<details>
+  <summary><strong>What is <span class="rule-category-badge badge-manifest-fallback">Fallback</span>?</strong></summary>
+
+  <p>
+    When running with <code>--only-manifest</code>, some catalog rules can still run using only manifest data. These rules are marked with the <span class="rule-category-badge badge-manifest-fallback">Fallback</span> badge. Rules without this badge require data from <code>catalog.json</code> and are skipped.
+  </p>
+  <p>
+    See <a href="../running/manifest-only">Only Manifest Mode</a> for full details.
+  </p>
+</details>
+
 <table class="rules-table">
   <thead>
     <tr>
@@ -121,25 +132,25 @@ Here you can find an overview of all possible rules. Use the filter below to fin
   <tbody>
     <tr class="rule-item" data-keywords="columns catalog database schema yml yaml documentation undocumented missing docs column-level" data-category="catalog">
       <td><a href="columns" class="rule-name">columns_all_documented</a></td>
-      <td><span class="rule-category-badge badge-catalog">Catalog</span> </td>
+      <td><span class="rule-category-badge badge-catalog">Catalog</span></td>
       <td>Check if all SQL columns are documented in e.g. their yml file. Validates that database columns match documentation.</td>
       <td style="font-size: 12px; color: #666;">columns, catalog, database, schema, undocumented</td>
     </tr>
-    <tr class="rule-item" data-keywords="columns descriptions documentation catalog database schema yml yaml column-level missing docs" data-category="catalog">
+    <tr class="rule-item" data-keywords="columns descriptions documentation catalog database schema yml yaml column-level missing docs fallback manifest" data-category="catalog">
       <td><a href="columns" class="rule-name">columns_have_description</a></td>
-      <td><span class="rule-category-badge badge-catalog">Catalog</span> </td>
+      <td><span class="rule-category-badge badge-catalog">Catalog</span> <span class="rule-category-badge badge-manifest-fallback">Fallback</span></td>
       <td>Check if all documented columns have non-empty descriptions. Ensures column-level documentation is complete</td>
       <td style="font-size: 12px; color: #666;">columns, descriptions, documentation, catalog, database</td>
     </tr>
-    <tr class="rule-item" data-keywords="columns naming pattern regex standards conventions prefixes suffixes name format" data-category="catalog">
+    <tr class="rule-item" data-keywords="columns naming pattern regex standards conventions prefixes suffixes name format fallback manifest" data-category="catalog">
       <td><a href="columns" class="rule-name">columns_name_convention</a></td>
-      <td><span class="rule-category-badge badge-catalog">Catalog</span> </td>
+      <td><span class="rule-category-badge badge-catalog">Catalog</span> <span class="rule-category-badge badge-manifest-fallback">Fallback</span></td>
       <td>Check if column names follow casing (e.g.<code>snake_case</code>) or custom regex patterns. Enforces naming standards using configurable patterns.</td>
       <td style="font-size: 12px; color: #666;">columns, naming, pattern, regex, conventions</td>
     </tr>
-    <tr class="rule-item" data-keywords="columns canonical naming standards conventions consistency aliases synonyms" data-category="catalog">
+    <tr class="rule-item" data-keywords="columns canonical naming standards conventions consistency aliases synonyms fallback manifest" data-category="catalog">
       <td><a href="columns" class="rule-name">columns_canonical_name</a></td>
-      <td><span class="rule-category-badge badge-catalog">Catalog</span> </td>
+      <td><span class="rule-category-badge badge-catalog">Catalog</span> <span class="rule-category-badge badge-manifest-fallback">Fallback</span></td>
       <td>Enforce canonical column naming by flagging invalid name patterns. Supports exceptions for allowed variations.</td>
       <td style="font-size: 12px; color: #666;">columns, canonical, naming, standards, consistency</td>
     </tr>

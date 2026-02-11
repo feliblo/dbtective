@@ -18,3 +18,7 @@ sedi -E "s/uses: feliblo\/dbtective@v[0-9]+\.[0-9]+\.[0-9]+/uses: feliblo\/dbtec
 # Update pre-commit version in precommit docs
 sedi -E "s/rev: v[0-9]+\.[0-9]+\.[0-9]+/rev: v$NEW_VERSION/" docs/content/docs/running/precommit.md
 sedi -E "s/uses: feliblo\/dbtective@v[0-9]+\.[0-9]+\.[0-9]+/uses: feliblo\/dbtective@v$NEW_VERSION/" docs/content/docs/running/precommit.md
+
+# Update versions in only-manifest docs
+sedi -E "s/rev: v[0-9]+\.[0-9]+\.[0-9]+/rev: v$NEW_VERSION/" docs/content/docs/running/manifest-only.md
+sedi -E "s/uses: feliblo\/dbtective@v[0-9]+\.[0-9]+\.[0-9]+/uses: feliblo\/dbtective@v$NEW_VERSION/" docs/content/docs/running/manifest-only.md

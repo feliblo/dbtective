@@ -89,13 +89,6 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
 
 Check `src/core/rules/rule_config/` for an existing trait that matches your rule's needs:
 
-| Trait | Purpose | File |
-|-------|---------|------|
-| `Descriptable` | Objects with descriptions | `has_description.rs` |
-| `HasTags` | Objects with tags | `has_tags.rs` |
-| `HasMetadata` | Objects with metadata | `has_metadata_keys.rs` |
-| `Nameable` | Objects with names | `name_convention.rs` |
-
 **If a trait exists**, add your function to it. **If not**, create a new file in `src/core/rules/rule_config/`.
 
 All traits need to extend the `Identifiable` supertrait (defined in `src/core/rules/common_traits.rs`), which provides the following methods needed for RuleResult (table reporting):
@@ -322,6 +315,20 @@ your_field_name_for_the_rule = "{your_field_name_for_the_rule}""#
 ### Document the Rule
 
 Create documentation in `docs/content/docs/rules/your_rule.md`. Copy the structure from existing rule docs & fill in the details to fit your rule. Remember to include the applies_to options from the `src/core/config/manifest_rule.rs` file.
+
+### Manifest Fallback (Catalog Rules Only)
+
+If your **catalog rule** can produce meaningful results from manifest data alone (e.g. without actual real-time database columns from `catalog.json`), you should add manifest-fallback support. See [Only Manifest Mode](../../running/manifest-only) for background.
+
+1. **Set `supports_manifest_fallback()`** in the `CatalogSpecificRuleConfig` enum (`src/core/config/catalog_rule.rs`). Return `true` if the rule can work with only manifest data, `false` if it fundamentally needs catalog columns like the `all_columns_documented` rule.
+
+2. **Ensure your rule function is generic over a trait** (not specific to catalog types). This allows manifest objects to be passed as the "catalog object" parameter. For example, the existing column rules use the `Columnable` trait.
+
+3. **Add your rule to the match arms** in both `apply_catalog_fallback_node_rules.rs` and `apply_catalog_fallback_source_rules.rs`.
+
+4. **Add fallback tests** in `tests/catalog_tests/test_manifest_fallback.rs`.
+
+5. **Document fallback support** by adding the <span class="rule-category-badge badge-manifest-fallback">Fallback</span> badge in the rule documentation.
 
 {{% /steps %}}
 

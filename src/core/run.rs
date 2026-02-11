@@ -1,11 +1,13 @@
 use crate::cli::commands::RunOptions;
-use crate::cli::table::{show_results_and_exit, RuleResult};
+use crate::cli::table::{show_results_and_exitcode, RuleResult};
 use crate::core::catalog::Catalog;
 use crate::core::config::parse_config::resolve_config_path;
 use crate::core::config::severity::Severity;
 use crate::core::config::Config;
 use crate::core::manifest::Manifest;
 use crate::core::rules::catalog::{
+    apply_catalog_fallback_node_rules::apply_catalog_fallback_node_rules,
+    apply_catalog_fallback_source_rules::apply_catalog_fallback_source_rules,
     apply_catalog_node_rules::apply_catalog_node_rules,
     apply_catalog_source_rules::apply_catalog_source_rules,
 };
@@ -15,6 +17,7 @@ use crate::core::rules::manifest::{
 };
 use crate::core::utils::{print_catalog_warning, unwrap_or_exit};
 use log::debug;
+use std::collections::HashSet;
 use std::time::Instant;
 
 #[must_use]
@@ -50,10 +53,13 @@ pub fn run(options: &RunOptions, verbose: bool) -> i32 {
         Some(unwrap_or_exit(Catalog::from_file(&catalog_path)))
     };
 
-    // Track if any catalog tests failed
+    // Track if any catalog tests failed and whether we used fallback mode
     let mut has_catalog_failures = false;
+    let mut fallback_rules: Vec<String> = Vec::new();
+    let mut skipped_rules: Vec<String> = Vec::new();
 
     if let Some(ref cat) = catalog {
+        // Normal catalog mode
         let mut catalog_findings = Vec::new();
 
         catalog_findings.extend(unwrap_or_exit(apply_catalog_node_rules(
@@ -65,10 +71,37 @@ pub fn run(options: &RunOptions, verbose: bool) -> i32 {
 
         has_catalog_failures = !catalog_findings.is_empty();
         findings.extend(catalog_findings);
+    } else if config.catalog_tests.is_some() {
+        // Manifest-fallback mode: --only-manifest is set but catalog_tests exist
+        // Collect which rules ran in fallback and which were skipped
+        if let Some(catalog_tests) = &config.catalog_tests {
+            let mut seen_fallback = HashSet::new();
+            let mut seen_skipped = HashSet::new();
+            for rule in catalog_tests {
+                let name = rule.get_name();
+                if rule.rule.supports_manifest_fallback() {
+                    if seen_fallback.insert(name.clone()) {
+                        fallback_rules.push(name);
+                    }
+                } else if seen_skipped.insert(name.clone()) {
+                    skipped_rules.push(name);
+                }
+            }
+        }
+
+        let mut fallback_findings = Vec::new();
+        fallback_findings.extend(unwrap_or_exit(apply_catalog_fallback_node_rules(
+            &config, &manifest, verbose,
+        )));
+        fallback_findings.extend(unwrap_or_exit(apply_catalog_fallback_source_rules(
+            &config, &manifest, verbose,
+        )));
+
+        has_catalog_failures = !fallback_findings.is_empty();
+        findings.extend(fallback_findings);
     }
 
-    // Show results table first
-    let exit_code = show_results_and_exit(
+    let exit_code = show_results_and_exitcode(
         &findings,
         verbose,
         options.entry_point.as_ref(),
@@ -77,9 +110,8 @@ pub fn run(options: &RunOptions, verbose: bool) -> i32 {
         Some(start.elapsed()),
     );
 
-    // Print catalog warning *after* table
     if has_catalog_failures && !options.hide_catalog_tip {
-        print_catalog_warning();
+        print_catalog_warning(&fallback_rules, &skipped_rules);
     }
 
     exit_code

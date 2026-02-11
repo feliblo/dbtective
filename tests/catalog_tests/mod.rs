@@ -2,3 +2,4 @@ mod test_columns_all_documented;
 mod test_columns_canonical_name;
 mod test_columns_have_description;
 mod test_columns_name_convention;
+mod test_manifest_fallback;

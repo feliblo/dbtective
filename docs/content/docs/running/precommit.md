@@ -4,23 +4,13 @@ description: Using dbtective with pre-commit hooks and prek
 weight: 4
 ---
 
-This guide covers how to integrate dbtective with pre-commit hooks (using [pre-commit](https://pre-commit.com/) or [prek](https://github.com/feliblo/prek)) and best practices for avoiding common issues.
+This guide covers how to integrate dbtective with pre-commit hooks using [pre-commit](https://pre-commit.com/) or [prek](https://github.com/j178/prek).
 
-## The Catalog Mismatch Problem
+For details on `--only-manifest` mode, manifest fallback for catalog rules, and our recommendations for local vs CI/CD usage, see [Only Manifest Mode](../running/manifest-only).
 
-When using dbtective locally with pre-commit hooks, you may encounter **catalog/manifest mismatches**. This happens because:
+## Pre-commit Setup
 
-1. The `manifest.json` is updated automatically by most dbt commands (`dbt run`, `dbt build`, `dbt compile`, etc.)
-2. The `catalog.json` is **only** updated when you run `dbt docs generate`
-3. If you modify models and run dbt commands without regenerating the catalog, your `catalog.json` becomes stale
-
-This causes catalog tests to fail with misleading errors.
-
-## Recommended Setup
-
-### Use `--only-manifest` for Local Development & pre-commit hooks
-
-For pre-commit/prek hooks, we recommend running **only manifest tests** locally. We also recommend using `--hide-warnings` to keep the output clean and only show errors that block commits:
+We recommend running with `--only-manifest` and `--hide-warnings` for pre-commit hooks:
 
 ```yaml
 # .pre-commit-config.yaml
@@ -33,24 +23,4 @@ repos:
         args: [--only-manifest, --hide-warnings]
 ```
 
-This avoids the catalog mismatch problem entirely while still catching most metadata issues.
-
-### Run Full Tests in CI/CD
-
-In your CI/CD pipeline, generate a fresh catalog before running dbtective with all tests:
-
-```yaml
-# GitHub Actions example
-- name: Generate dbt artifacts
-  run: |
-    dbt compile
-    dbt docs generate
-
-- name: Run dbtective
-  uses: feliblo/dbtective@v0.2.0
-  with:
-    entry-point: "."
-    # No --only-manifest flag: runs all tests including catalog
-```
-
-This ensures catalog tests run against a freshly generated `catalog.json`.
+This avoids stale catalog issues while still catching metadata problems. Eligible catalog rules will automatically [fall back to manifest data](../running/manifest-only#manifest-fallback-for-catalog-rules).

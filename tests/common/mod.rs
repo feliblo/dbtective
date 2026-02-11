@@ -1,10 +1,12 @@
 #![allow(dead_code)]
 
-use dbtective::cli::table::{show_results_and_exit, RuleResult};
+use dbtective::cli::table::{show_results_and_exitcode, RuleResult};
 use dbtective::core::catalog::Catalog;
 use dbtective::core::config::severity::Severity;
 use dbtective::core::config::Config;
 use dbtective::core::manifest::Manifest;
+use dbtective::core::rules::catalog::apply_catalog_fallback_node_rules::apply_catalog_fallback_node_rules;
+use dbtective::core::rules::catalog::apply_catalog_fallback_source_rules::apply_catalog_fallback_source_rules;
 use dbtective::core::rules::catalog::apply_catalog_node_rules::apply_catalog_node_rules;
 use dbtective::core::rules::catalog::apply_catalog_source_rules::apply_catalog_source_rules;
 use dbtective::core::rules::manifest::apply_manifest_node_rules::apply_manifest_node_rules;
@@ -128,6 +130,27 @@ impl TestEnvironment {
             .collect())
     }
 
+    pub fn run_catalog_fallback_rules(
+        &self,
+        verbose: bool,
+    ) -> anyhow::Result<Vec<(RuleResult, Severity)>> {
+        let manifest = Manifest::from_file(&self.manifest_path)?;
+        let config = Config::from_file(&self.config_path)?;
+
+        let mut findings = Vec::new();
+        findings.extend(apply_catalog_fallback_node_rules(
+            &config, &manifest, verbose,
+        )?);
+        findings.extend(apply_catalog_fallback_source_rules(
+            &config, &manifest, verbose,
+        )?);
+
+        Ok(findings
+            .into_iter()
+            .map(|(result, severity)| (result, severity.clone()))
+            .collect())
+    }
+
     pub fn run_and_show_results(&self, verbose: bool) -> i32 {
         let manifest = Manifest::from_file(&self.manifest_path).expect("Failed to load manifest");
         let config = Config::from_file(&self.config_path).expect("Failed to load config");
@@ -139,7 +162,7 @@ impl TestEnvironment {
                 .expect("Failed to apply source rules"),
         );
 
-        show_results_and_exit(
+        show_results_and_exitcode(
             &findings,
             verbose,
             self.temp_dir.path().to_str().unwrap(),

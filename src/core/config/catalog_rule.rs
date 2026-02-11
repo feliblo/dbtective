@@ -98,6 +98,15 @@ impl CatalogSpecificRuleConfig {
     pub fn as_str(&self) -> &str {
         self.as_ref()
     }
+
+    pub const fn supports_manifest_fallback(&self) -> bool {
+        match self {
+            Self::ColumnsHaveDescription { .. }
+            | Self::ColumnsNameConvention { .. }
+            | Self::ColumnsCanonicalName { .. } => true,
+            Self::ColumnsAllDocumented { .. } => false,
+        }
+    }
 }
 
 const fn catalog_default_severity() -> Severity {
@@ -258,5 +267,28 @@ impl CatalogRule {
             model_materializations: None,
             rule,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::core::config::naming_convention::NamingConvention;
+
+    #[test]
+    fn test_supports_manifest_fallback() {
+        assert!(!CatalogSpecificRuleConfig::ColumnsAllDocumented {}.supports_manifest_fallback());
+        assert!(CatalogSpecificRuleConfig::ColumnsHaveDescription {}.supports_manifest_fallback());
+        assert!(CatalogSpecificRuleConfig::ColumnsNameConvention {
+            convention: NamingConvention::from_pattern("snake_case").unwrap(),
+            data_types: None,
+        }
+        .supports_manifest_fallback());
+        assert!(CatalogSpecificRuleConfig::ColumnsCanonicalName {
+            canonical: "id".to_string(),
+            invalid_names: vec![],
+            exceptions: None,
+        }
+        .supports_manifest_fallback());
     }
 }

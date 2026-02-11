@@ -6,7 +6,6 @@ manifest_tests:
   - name: "has_description"
     type: "has_description"
 
-
   - name: "naming_convention"
     type: "name_convention"
     pattern: "snake_case"
@@ -27,6 +26,9 @@ manifest_tests:
     allowed_subfolders: ["staging", "marts", "intermediate"]
 
 catalog_tests:
+  - name: columns_all_documented
+    type: columns_all_documented
+
   - name: "all_columns_described"
     type: "columns_have_description"
     description: "All columns must have a description."
