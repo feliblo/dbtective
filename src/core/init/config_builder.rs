@@ -173,6 +173,11 @@ impl InitConfig {
             content.push_str("\n\n");
         }
 
+        if let Some(extra) = self.marts_exposure_rule_yaml() {
+            content.push_str(&extra);
+            content.push_str("\n\n");
+        }
+
         content.push_str("catalog_tests:\n");
 
         for rule in &self.catalog_rules {
@@ -195,6 +200,11 @@ impl InitConfig {
             content.push_str("\n\n");
         }
 
+        if let Some(extra) = self.marts_exposure_rule_toml("manifest_tests") {
+            content.push_str(&extra);
+            content.push_str("\n\n");
+        }
+
         for rule in &self.catalog_rules {
             content.push_str(&Self::catalog_rule_to_toml(rule, "catalog_tests"));
             content.push_str("\n\n");
@@ -213,6 +223,11 @@ impl InitConfig {
 
         for rule in &self.manifest_rules {
             content.push_str(&self.manifest_rule_to_toml(rule, "tool.dbtective.manifest_tests"));
+            content.push_str("\n\n");
+        }
+
+        if let Some(extra) = self.marts_exposure_rule_toml("tool.dbtective.manifest_tests") {
+            content.push_str(&extra);
             content.push_str("\n\n");
         }
 
@@ -264,9 +279,25 @@ impl InitConfig {
     description: "Resources need to have at least one of the required tags. To decide when a resource should be run.""#
                 )
             }
-            ManifestSpecificRuleConfig::IsNotOrphaned { .. } => r#"  - name: "is_not_orphaned"
+            ManifestSpecificRuleConfig::IsNotOrphaned { .. } => match self.data_model {
+                DataModel::Medallion => r#"  - name: "all_gold_models_are_exposed"
+    type: "is_not_orphaned"
+    description: "All gold models should be referenced by at least one exposure."
+    applies_to: ["models"]
+    includes: ["models/gold"]
+    allowed_references: ["exposures"]"#
+                    .to_string(),
+                DataModel::Common => r#"  - name: "all_marts_are_exposed"
+    type: "is_not_orphaned"
+    description: "All mart models should be referenced by at least one exposure."
+    applies_to: ["models"]
+    includes: ["models/marts"]
+    allowed_references: ["exposures"]"#
+                    .to_string(),
+                DataModel::None => r#"  - name: "is_not_orphaned"
     type: "is_not_orphaned""#
-                .to_string(),
+                    .to_string(),
+            },
             ManifestSpecificRuleConfig::HasUniqueTest { .. } => r#"  - name: "has_unique_test"
     type: "has_unique_test""#
                 .to_string(),
@@ -340,6 +371,39 @@ impl InitConfig {
                 .to_string()
             }
         }
+    }
+
+    fn marts_exposure_rule_yaml(&self) -> Option<String> {
+        let (name, folder) = match self.data_model {
+            DataModel::Common => ("all_marts_are_exposed", "models/marts"),
+            DataModel::Medallion => ("all_gold_models_are_exposed", "models/gold"),
+            DataModel::None => return None,
+        };
+        Some(format!(
+            r#"  - name: "{name}"
+    type: "is_not_orphaned"
+    applies_to: ["models"]
+    includes: ["{folder}"]
+    allowed_references: ["exposures"]
+    severity: "warning""#
+        ))
+    }
+
+    fn marts_exposure_rule_toml(&self, section: &str) -> Option<String> {
+        let (name, folder) = match self.data_model {
+            DataModel::Common => ("all_marts_are_exposed", "models/marts"),
+            DataModel::Medallion => ("all_gold_models_are_exposed", "models/gold"),
+            DataModel::None => return None,
+        };
+        Some(format!(
+            r#"[[{section}]]
+name = "{name}"
+type = "is_not_orphaned"
+applies_to = ["models"]
+includes = ["{folder}"]
+allowed_references = ["exposures"]
+severity = "warning""#
+        ))
     }
 
     fn catalog_rule_to_yaml(rule: &CatalogSpecificRuleConfig) -> String {
@@ -435,13 +499,37 @@ criteria = "{criteria_str}"
 description = "Resources need to have at least one of the required tags. To decide when a resource should be run.""#
                 )
             }
-            ManifestSpecificRuleConfig::IsNotOrphaned { .. } => {
-                format!(
-                    r#"[[{section}]]
+            ManifestSpecificRuleConfig::IsNotOrphaned { .. } => match self.data_model {
+                DataModel::Medallion => {
+                    format!(
+                        r#"[[{section}]]
+name = "all_gold_models_are_exposed"
+type = "is_not_orphaned"
+description = "All gold models should be referenced by at least one exposure."
+applies_to = ["models"]
+includes = ["models/gold"]
+allowed_references = ["exposures"]"#
+                    )
+                }
+                DataModel::Common => {
+                    format!(
+                        r#"[[{section}]]
+name = "all_marts_are_exposed"
+type = "is_not_orphaned"
+description = "All mart models should be referenced by at least one exposure."
+applies_to = ["models"]
+includes = ["models/marts"]
+allowed_references = ["exposures"]"#
+                    )
+                }
+                DataModel::None => {
+                    format!(
+                        r#"[[{section}]]
 name = "is_not_orphaned"
 type = "is_not_orphaned""#
-                )
-            }
+                    )
+                }
+            },
             ManifestSpecificRuleConfig::HasUniqueTest { .. } => {
                 format!(
                     r#"[[{section}]]
@@ -1390,6 +1478,90 @@ mod tests {
 
         assert!(!yaml.contains(r#"type: "has_contract_enforced""#));
         assert!(!yaml.contains("includes:"));
+    }
+
+    // ========================================================================
+    // IsNotOrphaned Init Tests - Data Model Includes
+    // ========================================================================
+
+    #[test]
+    fn test_is_not_orphaned_common_yaml_all_marts_exposed() {
+        let result = create_questionnaire_result(
+            DataModel::Common,
+            vec![ManifestSpecificRuleConfig::IsNotOrphaned {
+                allowed_references: vec![],
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+
+        assert!(yaml.contains(r#"name: "all_marts_are_exposed""#));
+        assert!(yaml.contains(r#"type: "is_not_orphaned""#));
+        assert!(yaml.contains(r#"includes: ["models/marts"]"#));
+        assert!(yaml.contains(r#"allowed_references: ["exposures"]"#));
+    }
+
+    #[test]
+    fn test_is_not_orphaned_medallion_yaml_all_gold_exposed() {
+        let result = create_questionnaire_result(
+            DataModel::Medallion,
+            vec![ManifestSpecificRuleConfig::IsNotOrphaned {
+                allowed_references: vec![],
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+
+        assert!(yaml.contains(r#"name: "all_gold_models_are_exposed""#));
+        assert!(yaml.contains(r#"type: "is_not_orphaned""#));
+        assert!(yaml.contains(r#"includes: ["models/gold"]"#));
+        assert!(yaml.contains(r#"allowed_references: ["exposures"]"#));
+    }
+
+    #[test]
+    fn test_is_not_orphaned_none_yaml_generic() {
+        let result = create_questionnaire_result(
+            DataModel::None,
+            vec![ManifestSpecificRuleConfig::IsNotOrphaned {
+                allowed_references: vec![],
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+
+        assert!(yaml.contains(r#"name: "is_not_orphaned""#));
+        assert!(yaml.contains(r#"type: "is_not_orphaned""#));
+        assert!(!yaml.contains("all_marts_are_exposed"));
+        assert!(!yaml.contains("all_gold_models_are_exposed"));
+    }
+
+    #[test]
+    fn test_is_not_orphaned_common_toml_all_marts_exposed() {
+        let result = create_questionnaire_result(
+            DataModel::Common,
+            vec![ManifestSpecificRuleConfig::IsNotOrphaned {
+                allowed_references: vec![],
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+
+        let config = InitConfig::from_questionnaire(&result);
+        let toml = config.to_toml();
+
+        assert!(toml.contains(r#"name = "all_marts_are_exposed""#));
+        assert!(toml.contains(r#"type = "is_not_orphaned""#));
+        assert!(toml.contains(r#"includes = ["models/marts"]"#));
+        assert!(toml.contains(r#"allowed_references = ["exposures"]"#));
     }
 
     #[test]
