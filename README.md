@@ -1,5 +1,8 @@
 # 🕵️ dbtective
 
+![dbt Core](https://img.shields.io/badge/dbt%20Core-v1.8%2B-FF694B?logo=dbt&logoColor=white)
+![dbt Fusion](https://img.shields.io/badge/dbt%20Fusion-dbt%20Cloud-FF694B?logo=dbt&logoColor=white)
+
 dbtective is a Rust-powered 'detective' for `dbt metadata` best practices. As your dbt project grows, keeping metadata consistent and high-quality can become a real challenge.
 
 ![CLI demo](/docs/static/demo.gif)
