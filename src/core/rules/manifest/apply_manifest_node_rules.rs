@@ -47,7 +47,10 @@ pub fn apply_manifest_node_rules<'a>(
                 }
 
                 let rule_row_result = match &rule.rule {
-                    ManifestSpecificRuleConfig::HasDescription {} => has_description(node, rule),
+                    ManifestSpecificRuleConfig::HasDescription {
+                        ref min_length,
+                        ref forbidden_substrings,
+                    } => has_description(node, rule, *min_length, forbidden_substrings.as_deref()),
                     ManifestSpecificRuleConfig::NameConvention { convention } => {
                         check_name_convention(node, rule, convention)
                     }

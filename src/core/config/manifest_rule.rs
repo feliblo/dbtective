@@ -19,7 +19,12 @@ use strum_macros::{AsRefStr, EnumIter, EnumString};
 #[strum(serialize_all = "snake_case")]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ManifestSpecificRuleConfig {
-    HasDescription {},
+    HasDescription {
+        #[serde(default)]
+        min_length: Option<usize>,
+        #[serde(default)]
+        forbidden_substrings: Option<Vec<String>>,
+    },
     NameConvention {
         #[serde(rename = "pattern")]
         convention: NamingConvention,
@@ -204,7 +209,7 @@ impl ManifestRule {
 pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) -> AppliesTo {
     match rule_type {
         // has_description
-        ManifestSpecificRuleConfig::HasDescription {} => AppliesTo {
+        ManifestSpecificRuleConfig::HasDescription { .. } => AppliesTo {
             node_objects: vec![RuleTarget::Models, RuleTarget::Seeds, RuleTarget::Snapshots],
             source_objects: vec![RuleTarget::Sources],
             unit_test_objects: vec![RuleTarget::UnitTests],
@@ -316,7 +321,7 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
 fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) -> AppliesTo {
     match rule_type {
         // has_description
-        ManifestSpecificRuleConfig::HasDescription {} => AppliesTo {
+        ManifestSpecificRuleConfig::HasDescription { .. } => AppliesTo {
             node_objects: vec![RuleTarget::Models, RuleTarget::Seeds, RuleTarget::Snapshots],
             source_objects: vec![RuleTarget::Sources],
             unit_test_objects: vec![RuleTarget::UnitTests],

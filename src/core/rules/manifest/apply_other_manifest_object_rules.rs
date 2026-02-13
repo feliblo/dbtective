@@ -65,7 +65,12 @@ fn apply_source_rules<'a>(
                 }
 
                 let rule_row_result = match &rule.rule {
-                    ManifestSpecificRuleConfig::HasDescription {} => has_description(source, rule),
+                    ManifestSpecificRuleConfig::HasDescription {
+                        ref min_length,
+                        ref forbidden_substrings,
+                    } => {
+                        has_description(source, rule, *min_length, forbidden_substrings.as_deref())
+                    }
                     ManifestSpecificRuleConfig::NameConvention { convention } => {
                         check_name_convention(source, rule, convention)
                     }
@@ -146,9 +151,15 @@ fn apply_macro_rules<'a>(
                     }
 
                     let rule_row_result = match &rule.rule {
-                        ManifestSpecificRuleConfig::HasDescription {} => {
-                            has_description(macro_obj, rule)
-                        }
+                        ManifestSpecificRuleConfig::HasDescription {
+                            ref min_length,
+                            ref forbidden_substrings,
+                        } => has_description(
+                            macro_obj,
+                            rule,
+                            *min_length,
+                            forbidden_substrings.as_deref(),
+                        ),
                         ManifestSpecificRuleConfig::NameConvention { convention } => {
                             check_name_convention(macro_obj, rule, convention)
                         }
@@ -226,9 +237,15 @@ fn apply_exposure_rules<'a>(
                     }
 
                     let rule_row_result = match &rule.rule {
-                        ManifestSpecificRuleConfig::HasDescription {} => {
-                            has_description(exposure, rule)
-                        }
+                        ManifestSpecificRuleConfig::HasDescription {
+                            ref min_length,
+                            ref forbidden_substrings,
+                        } => has_description(
+                            exposure,
+                            rule,
+                            *min_length,
+                            forbidden_substrings.as_deref(),
+                        ),
                         ManifestSpecificRuleConfig::NameConvention { convention } => {
                             check_name_convention(exposure, rule, convention)
                         }
@@ -306,7 +323,10 @@ fn apply_semantic_model_rules<'a>(
                 }
 
                 let rule_row_result = match &rule.rule {
-                    ManifestSpecificRuleConfig::HasDescription {} => has_description(sm, rule),
+                    ManifestSpecificRuleConfig::HasDescription {
+                        ref min_length,
+                        ref forbidden_substrings,
+                    } => has_description(sm, rule, *min_length, forbidden_substrings.as_deref()),
                     ManifestSpecificRuleConfig::NameConvention { convention } => {
                         check_name_convention(sm, rule, convention)
                     }
@@ -374,7 +394,10 @@ fn apply_unit_test_rules<'a>(
                 }
 
                 let rule_row_result = match &rule.rule {
-                    ManifestSpecificRuleConfig::HasDescription {} => has_description(ut, rule),
+                    ManifestSpecificRuleConfig::HasDescription {
+                        ref min_length,
+                        ref forbidden_substrings,
+                    } => has_description(ut, rule, *min_length, forbidden_substrings.as_deref()),
                     ManifestSpecificRuleConfig::NameConvention { convention } => {
                         check_name_convention(ut, rule, convention)
                     }

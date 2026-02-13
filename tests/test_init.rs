@@ -29,7 +29,10 @@ fn create_default_init_config() -> dbtective::core::init::config_builder::InitCo
         naming_convention: NamingConvention::default(),
         data_model: DataModel::Common,
         manifest_rules: vec![
-            ManifestSpecificRuleConfig::HasDescription {},
+            ManifestSpecificRuleConfig::HasDescription {
+                min_length: None,
+                forbidden_substrings: None,
+            },
             ManifestSpecificRuleConfig::NameConvention {
                 convention: NamingConvention::default(),
             },
@@ -345,7 +348,10 @@ fn get_manifest_rules(
     let mut rules = Vec::new();
 
     // Basic rules (always included)
-    rules.push(ManifestSpecificRuleConfig::HasDescription {});
+    rules.push(ManifestSpecificRuleConfig::HasDescription {
+        min_length: None,
+        forbidden_substrings: None,
+    });
     rules.push(ManifestSpecificRuleConfig::NameConvention {
         convention: NamingConvention::default(),
     });

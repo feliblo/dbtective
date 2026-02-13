@@ -276,7 +276,7 @@ mod tests {
             naming_convention: crate::core::config::naming_convention::NamingConvention::default(),
             data_model: questionnaire::DataModel::None,
             manifest_rules: vec![
-                crate::core::config::manifest_rule::ManifestSpecificRuleConfig::HasDescription {},
+                crate::core::config::manifest_rule::ManifestSpecificRuleConfig::HasDescription { min_length: None, forbidden_substrings: None },
                 crate::core::config::manifest_rule::ManifestSpecificRuleConfig::NameConvention { convention: NamingConvention::default() },
             ],
             catalog_rules: vec![
@@ -344,7 +344,10 @@ requires = ["setuptools"]
             naming_convention: crate::core::config::naming_convention::NamingConvention::default(),
             data_model: questionnaire::DataModel::None,
             manifest_rules: vec![
-                crate::core::config::manifest_rule::ManifestSpecificRuleConfig::HasDescription {},
+                crate::core::config::manifest_rule::ManifestSpecificRuleConfig::HasDescription {
+                    min_length: None,
+                    forbidden_substrings: None,
+                },
             ],
             catalog_rules: vec![],
         };

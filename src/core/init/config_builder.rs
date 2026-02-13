@@ -43,7 +43,10 @@ impl InitConfig {
     ) -> ManifestSpecificRuleConfig {
         match rule {
             ManifestSpecificRuleConfig::HasDescription { .. } => {
-                ManifestSpecificRuleConfig::HasDescription {}
+                ManifestSpecificRuleConfig::HasDescription {
+                    min_length: None,
+                    forbidden_substrings: None,
+                }
             }
             ManifestSpecificRuleConfig::NameConvention { .. } => {
                 ManifestSpecificRuleConfig::NameConvention {
@@ -227,7 +230,7 @@ impl InitConfig {
     #[allow(clippy::too_many_lines)]
     fn manifest_rule_to_yaml(&self, rule: &ManifestSpecificRuleConfig) -> String {
         match rule {
-            ManifestSpecificRuleConfig::HasDescription {} => r#"  - name: "has_description"
+            ManifestSpecificRuleConfig::HasDescription { .. } => r#"  - name: "has_description"
     type: "has_description"
 "#
             .to_string(),
@@ -392,7 +395,7 @@ impl InitConfig {
     #[allow(clippy::too_many_lines)]
     fn manifest_rule_to_toml(&self, rule: &ManifestSpecificRuleConfig, section: &str) -> String {
         match rule {
-            ManifestSpecificRuleConfig::HasDescription {} => {
+            ManifestSpecificRuleConfig::HasDescription { .. } => {
                 format!(
                     r#"[[{section}]]
 name = "has_description"
@@ -709,7 +712,10 @@ mod tests {
     fn test_create_manifest_rule_has_description() {
         let result = create_questionnaire_result(
             DataModel::None,
-            vec![ManifestSpecificRuleConfig::HasDescription {}],
+            vec![ManifestSpecificRuleConfig::HasDescription {
+                min_length: None,
+                forbidden_substrings: None,
+            }],
             Vec::new(),
             NamingConvention::default(),
         );
@@ -718,7 +724,10 @@ mod tests {
         assert_eq!(config.manifest_rules.len(), 1);
         assert!(matches!(
             config.manifest_rules[0],
-            ManifestSpecificRuleConfig::HasDescription {}
+            ManifestSpecificRuleConfig::HasDescription {
+                min_length: None,
+                forbidden_substrings: None
+            }
         ));
     }
 
@@ -1007,7 +1016,10 @@ mod tests {
         let result = create_questionnaire_result(
             DataModel::None,
             vec![
-                ManifestSpecificRuleConfig::HasDescription {},
+                ManifestSpecificRuleConfig::HasDescription {
+                    min_length: None,
+                    forbidden_substrings: None,
+                },
                 ManifestSpecificRuleConfig::NameConvention {
                     convention: NamingConvention::default(),
                 },
@@ -1023,7 +1035,7 @@ mod tests {
         let has_description = config
             .manifest_rules
             .iter()
-            .any(|r| matches!(r, ManifestSpecificRuleConfig::HasDescription {}));
+            .any(|r| matches!(r, ManifestSpecificRuleConfig::HasDescription { .. }));
         let has_name_convention = config
             .manifest_rules
             .iter()
@@ -1058,7 +1070,10 @@ mod tests {
         let result = create_questionnaire_result(
             DataModel::None,
             vec![
-                ManifestSpecificRuleConfig::HasDescription {},
+                ManifestSpecificRuleConfig::HasDescription {
+                    min_length: None,
+                    forbidden_substrings: None,
+                },
                 ManifestSpecificRuleConfig::NameConvention {
                     convention: NamingConvention::default(),
                 },
@@ -1078,7 +1093,7 @@ mod tests {
         let has_description = config
             .manifest_rules
             .iter()
-            .any(|r| matches!(r, ManifestSpecificRuleConfig::HasDescription {}));
+            .any(|r| matches!(r, ManifestSpecificRuleConfig::HasDescription { .. }));
         let has_name_convention = config
             .manifest_rules
             .iter()
@@ -1134,7 +1149,10 @@ mod tests {
         let result = create_questionnaire_result(
             DataModel::None,
             vec![
-                ManifestSpecificRuleConfig::HasDescription {},
+                ManifestSpecificRuleConfig::HasDescription {
+                    min_length: None,
+                    forbidden_substrings: None,
+                },
                 ManifestSpecificRuleConfig::NameConvention {
                     convention: NamingConvention::default(),
                 },
@@ -1191,7 +1209,10 @@ mod tests {
         let result = create_questionnaire_result(
             DataModel::Medallion,
             vec![
-                ManifestSpecificRuleConfig::HasDescription {},
+                ManifestSpecificRuleConfig::HasDescription {
+                    min_length: None,
+                    forbidden_substrings: None,
+                },
                 ManifestSpecificRuleConfig::NameConvention {
                     convention: NamingConvention::default(),
                 },
@@ -1236,7 +1257,10 @@ mod tests {
         let result = create_questionnaire_result(
             DataModel::Common,
             vec![
-                ManifestSpecificRuleConfig::HasDescription {},
+                ManifestSpecificRuleConfig::HasDescription {
+                    min_length: None,
+                    forbidden_substrings: None,
+                },
                 ManifestSpecificRuleConfig::NameConvention {
                     convention: NamingConvention::default(),
                 },
@@ -1273,7 +1297,10 @@ mod tests {
         let result = create_questionnaire_result(
             DataModel::None,
             vec![
-                ManifestSpecificRuleConfig::HasDescription {},
+                ManifestSpecificRuleConfig::HasDescription {
+                    min_length: None,
+                    forbidden_substrings: None,
+                },
                 ManifestSpecificRuleConfig::NameConvention {
                     convention: NamingConvention::default(),
                 },
@@ -1490,7 +1517,10 @@ mod tests {
     fn test_to_yaml_basic_structure() {
         let result = create_questionnaire_result(
             DataModel::None,
-            vec![ManifestSpecificRuleConfig::HasDescription {}],
+            vec![ManifestSpecificRuleConfig::HasDescription {
+                min_length: None,
+                forbidden_substrings: None,
+            }],
             vec![CatalogSpecificRuleConfig::ColumnsNameConvention {
                 convention: NamingConvention::default(),
                 data_types: None,
@@ -1513,7 +1543,10 @@ mod tests {
     fn test_to_yaml_has_description() {
         let result = create_questionnaire_result(
             DataModel::None,
-            vec![ManifestSpecificRuleConfig::HasDescription {}],
+            vec![ManifestSpecificRuleConfig::HasDescription {
+                min_length: None,
+                forbidden_substrings: None,
+            }],
             Vec::new(),
             NamingConvention::default(),
         );
@@ -1620,7 +1653,10 @@ mod tests {
     fn test_to_toml_basic_structure() {
         let result = create_questionnaire_result(
             DataModel::None,
-            vec![ManifestSpecificRuleConfig::HasDescription {}],
+            vec![ManifestSpecificRuleConfig::HasDescription {
+                min_length: None,
+                forbidden_substrings: None,
+            }],
             vec![CatalogSpecificRuleConfig::ColumnsNameConvention {
                 convention: NamingConvention::default(),
                 data_types: None,
@@ -1640,7 +1676,10 @@ mod tests {
     fn test_to_toml_has_description() {
         let result = create_questionnaire_result(
             DataModel::None,
-            vec![ManifestSpecificRuleConfig::HasDescription {}],
+            vec![ManifestSpecificRuleConfig::HasDescription {
+                min_length: None,
+                forbidden_substrings: None,
+            }],
             Vec::new(),
             NamingConvention::default(),
         );
@@ -1683,7 +1722,10 @@ mod tests {
     fn test_to_pyproject_basic_structure() {
         let result = create_questionnaire_result(
             DataModel::None,
-            vec![ManifestSpecificRuleConfig::HasDescription {}],
+            vec![ManifestSpecificRuleConfig::HasDescription {
+                min_length: None,
+                forbidden_substrings: None,
+            }],
             vec![CatalogSpecificRuleConfig::ColumnsNameConvention {
                 convention: NamingConvention::default(),
                 data_types: None,
@@ -1704,7 +1746,10 @@ mod tests {
     fn test_to_pyproject_has_description() {
         let result = create_questionnaire_result(
             DataModel::None,
-            vec![ManifestSpecificRuleConfig::HasDescription {}],
+            vec![ManifestSpecificRuleConfig::HasDescription {
+                min_length: None,
+                forbidden_substrings: None,
+            }],
             Vec::new(),
             NamingConvention::default(),
         );
@@ -1742,7 +1787,10 @@ mod tests {
         // We can verify by checking the type of each rule matches the expected order
         assert!(matches!(
             config.manifest_rules[0],
-            ManifestSpecificRuleConfig::HasDescription {}
+            ManifestSpecificRuleConfig::HasDescription {
+                min_length: None,
+                forbidden_substrings: None
+            }
         ));
         assert!(matches!(
             config.manifest_rules[1],
@@ -1798,7 +1846,10 @@ mod tests {
     fn test_empty_catalog_rules() {
         let result = create_questionnaire_result(
             DataModel::None,
-            vec![ManifestSpecificRuleConfig::HasDescription {}],
+            vec![ManifestSpecificRuleConfig::HasDescription {
+                min_length: None,
+                forbidden_substrings: None,
+            }],
             Vec::new(),
             NamingConvention::default(),
         );

@@ -205,7 +205,10 @@ pub fn run_questionnaire() -> Result<QuestionnaireResult, String> {
     let (mut manifest_rules, mut catalog_rules) = match strictness {
         Strictness::Basic => (
             vec![
-                ManifestSpecificRuleConfig::HasDescription {},
+                ManifestSpecificRuleConfig::HasDescription {
+                    min_length: None,
+                    forbidden_substrings: None,
+                },
                 ManifestSpecificRuleConfig::NameConvention {
                     convention: NamingConvention::default(),
                 },
@@ -217,7 +220,10 @@ pub fn run_questionnaire() -> Result<QuestionnaireResult, String> {
         ),
         Strictness::Standard => (
             vec![
-                ManifestSpecificRuleConfig::HasDescription {},
+                ManifestSpecificRuleConfig::HasDescription {
+                    min_length: None,
+                    forbidden_substrings: None,
+                },
                 ManifestSpecificRuleConfig::NameConvention {
                     convention: NamingConvention::default(),
                 },
@@ -237,7 +243,10 @@ pub fn run_questionnaire() -> Result<QuestionnaireResult, String> {
         ),
         Strictness::Strict => (
             vec![
-                ManifestSpecificRuleConfig::HasDescription {},
+                ManifestSpecificRuleConfig::HasDescription {
+                    min_length: None,
+                    forbidden_substrings: None,
+                },
                 ManifestSpecificRuleConfig::NameConvention {
                     convention: NamingConvention::default(),
                 },
