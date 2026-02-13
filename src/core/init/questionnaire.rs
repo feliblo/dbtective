@@ -45,7 +45,7 @@ impl std::fmt::Display for DataModel {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Medallion => write!(f, "Medallion (bronze, silver, gold)"),
-            Self::Common => write!(f, "Common (staging, marts, intermediate)"),
+            Self::Common => write!(f, "Common (staging, intermediate, marts)"),
             Self::None => write!(f, "None (no folder structure enforcement)"),
         }
     }
@@ -276,6 +276,11 @@ pub fn run_questionnaire() -> Result<QuestionnaireResult, String> {
         ),
     };
 
+    // Always add the is_not_orphaned rule
+    manifest_rules.push(ManifestSpecificRuleConfig::IsNotOrphaned {
+        allowed_references: vec![],
+    });
+
     // Add data-model-specific rules if a data model structure was selected
     if data_model != DataModel::None {
         manifest_rules.push(ManifestSpecificRuleConfig::AllowedSubfolders {
@@ -363,7 +368,7 @@ mod tests {
         );
         assert_eq!(
             DataModel::Common.to_string(),
-            "Common (staging, marts, intermediate)"
+            "Common (staging, intermediate, marts)"
         );
         assert_eq!(
             DataModel::None.to_string(),

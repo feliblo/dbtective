@@ -29,11 +29,11 @@ This helps identify unused or underutilized data assets that may be candidates f
 **Configuration**
 
 - **type**: Must be `is_not_orphaned`.
-- **allowed_references**: *(optional)* List of object types that count as valid consumers of the checked objects.
+- **allowed_references**: _(optional)_ List of object types that count as valid consumers of the checked objects.
   - Default: `["models"]`
   - Options: `models`, `snapshots`, `exposures`, `unit_tests`
   - This indicates which objects count as val
-- **applies_to**: *(optional)* List of dbt object types to include.
+- **applies_to**: _(optional)_ List of dbt object types to include.
   - Default: `["sources"]`
   - Options: `models`, `seeds`, `sources`
 
@@ -57,6 +57,13 @@ manifest_tests:
     excludes: ["models/marts/*"]
     allowed_references: ["models", "exposures"]
     severity: "warning"
+
+  - name: "all_marts_are_exposed"
+    type: "is_not_orphaned"
+    description: "All mart models should be referenced by at least one exposure."
+    applies_to: ["models"]
+    includes: ["models/marts"]
+    allowed_references: ["exposures"]
 ```
 
 {{< /tab >}}
@@ -76,6 +83,15 @@ applies_to = ["models", "seeds"]
 excludes = ["models/marts/*"]
 allowed_references = ["models", "exposures"]
 severity = "warning"
+
+
+[[manifest_tests]]
+name = "all_marts_are_exposed"
+type = "is_not_orphaned"
+description = "All mart models should be referenced by at least one exposure."
+applies_to = ["models"]
+includes = ["models/marts"]
+allowed_references = ["exposures"]
 ```
 
 {{< /tab >}}
@@ -95,6 +111,14 @@ applies_to = ["models", "seeds"]
 excludes = ["models/marts/*"]
 allowed_references = ["models", "exposures"]
 severity = "warning"
+
+[[tool.dbtective.manifest_tests]]
+name = "all_marts_are_exposed"
+type = "is_not_orphaned"
+description = "All mart models should be referenced by at least one exposure."
+applies_to = ["models"]
+includes = ["models/marts"]
+allowed_references = ["exposures"]
 ```
 
 {{< /tab >}}
