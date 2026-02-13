@@ -1,3 +1,13 @@
+## v0.2.2 (2026-02-13)
+
+### Feat
+
+- **rules**: add min_length and forbidden substrings to has_description rule - ([71b2930](https://github.com/feliblo/dbtective/commit/71b29300ce4c837da8ac3de64721bb29acf0d9b5)) - feliblo
+
+### Contributors
+
+[@feliblo](https://github.com/feliblo)
+
 ## v0.2.1 (2026-02-11)
 
 ### Feat
