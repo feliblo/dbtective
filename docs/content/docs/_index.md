@@ -3,6 +3,8 @@ title: dbtective documentation
 next: first-page
 ---
 
+![dbt Core](https://img.shields.io/badge/dbt%20Core-v1.8%2B-FF694B?logo=dbt&logoColor=white)
+![dbt Fusion](https://img.shields.io/badge/dbt%20Fusion-dbt%20Cloud-FF694B?logo=dbt&logoColor=white)
 
 On the case for your dbt best practices.
 
