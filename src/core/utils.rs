@@ -24,16 +24,16 @@ pub fn print_catalog_warning(fallback_rules: &[String], skipped_rules: &[String]
         if !fallback_rules.is_empty() {
             println!(
                 "  {} {}",
-                "Test types that ran with manifest fallback:".dimmed(),
-                fallback_rules.join(", ").dimmed()
+                "Tests that ran with manifest fallback:".dimmed(),
+                format!("[{}]", fallback_rules.join(", ")).dimmed()
             );
         }
 
         if !skipped_rules.is_empty() {
             println!(
                 "  {} {}",
-                "Skipped types (requires catalog.json):".dimmed(),
-                skipped_rules.join(", ").dimmed()
+                "Skipped tests (require catalog.json):".dimmed(),
+                format!("[{}]", skipped_rules.join(", ")).dimmed()
             );
         }
 
