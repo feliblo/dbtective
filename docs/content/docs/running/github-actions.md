@@ -4,7 +4,6 @@ description: Run dbtective in your CI/CD pipeline with GitHub Actions
 weight: 4
 ---
 
-
 Run dbtective as part of your CI/CD pipeline using the official GitHub Action.
 
 ### Basic Setup
@@ -12,12 +11,12 @@ Run dbtective as part of your CI/CD pipeline using the official GitHub Action.
 Add `dbtective` to your workflow file (e.g., `.github/workflows/ci.yml`).If you don't have access to your warehouse in the CI environment, you can set `only_manifest: true` to skip catalog based rules. We recommend pinning both a major and minor version number.
 
 ```yaml
-    - name: Run dbtective
-      uses: feliblo/dbtective@v0.2.2
-      with:
-        config-file: "dbtective.yml"
-        entry-point: "."
-        verbose: "false"
+- name: Run dbtective
+  uses: feliblo/dbtective@v0.2.2
+  with:
+    config-file: "dbtective.yml"
+    entry-point: "."
+    verbose: "false"
 ```
 
 Complete example:
@@ -53,13 +52,35 @@ jobs:
 
 ### Configuration Options
 
-| Input | Default | Description |
-|-------|---------|-------------|
-| `config-file` | `dbtective.yml` | Location of the YML config file |
-| `entry-point` | `.` | Path to dbt project root directory |
-| `manifest-file` | `target/manifest.json` | Path to dbt manifest file |
-| `verbose` | `false` | Run dbtective in verbose mode |
-| `version` | `latest` | Version of dbtective to install (e.g., 'v0.1.31' or 'latest') |
+| Input           | Default                | Description                                                   |
+| --------------- | ---------------------- | ------------------------------------------------------------- |
+| `config-file`   | `dbtective.yml`        | Location of the YML config file                               |
+| `entry-point`   | `.`                    | Path to dbt project root directory                            |
+| `manifest-file` | `target/manifest.json` | Path to dbt manifest file                                     |
+| `verbose`       | `false`                | Run dbtective in verbose mode                                 |
+| `output-format` | `table`                | Output format: `table`, `json`, `csv`, or `ndjson`            |
+| `output-file`   |                        | W(does nothing in combination with `table` output format).    |
+| `version`       | `latest`               | Version of dbtective to install (e.g., 'v0.1.31' or 'latest') |
+
+### Structured Output for CI
+
+You can capture dbtective results as JSON for downstream processing (dashboards, Slack alerts, artifact storage):
+
+```yaml
+- name: Run dbtective (JSON output)
+  uses: feliblo/dbtective@v0.2.2
+  with:
+    output-format: "json"
+    output-file: "dbtective-results.json"
+
+- name: Upload results
+  uses: actions/upload-artifact@v4
+  with:
+    name: dbtective-results
+    path: dbtective-results.json
+```
+
+Available formats: `json`, `csv`, `ndjson`. See the [CLI reference](/docs/running/cli/#structured-output-formats) for details.
 
 ### Exit Codes
 

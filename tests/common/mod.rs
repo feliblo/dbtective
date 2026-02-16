@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+use dbtective::cli::structured_output::StructuredOutput;
 use dbtective::cli::table::{show_results_and_exitcode, RuleResult};
 use dbtective::core::catalog::Catalog;
 use dbtective::core::config::severity::Severity;
@@ -12,6 +13,7 @@ use dbtective::core::rules::catalog::apply_catalog_source_rules::apply_catalog_s
 use dbtective::core::rules::manifest::apply_manifest_node_rules::apply_manifest_node_rules;
 use dbtective::core::rules::manifest::apply_other_manifest_object_rules::apply_manifest_object_rules;
 use std::io::Write;
+use std::time::Duration;
 use tempfile::TempDir;
 
 pub struct TestEnvironment {
@@ -149,6 +151,21 @@ impl TestEnvironment {
             .into_iter()
             .map(|(result, severity)| (result, severity.clone()))
             .collect())
+    }
+
+    pub fn run_structured_output(&self, verbose: bool) -> StructuredOutput {
+        let findings = self.run_maniest_rules(verbose);
+        let refs: Vec<(RuleResult, &Severity)> =
+            findings.iter().map(|(r, s)| (r.clone(), s)).collect();
+        StructuredOutput::from_results(
+            &refs,
+            "2026-01-01T00:00:00+00:00",
+            Duration::from_millis(42),
+            false,
+            "test_project",
+            "target/manifest.json",
+            "target/catalog.json",
+        )
     }
 
     pub fn run_and_show_results(&self, verbose: bool) -> i32 {

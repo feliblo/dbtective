@@ -1,4 +1,5 @@
-use crate::cli::commands::RunOptions;
+use crate::cli::commands::{OutputFormat, RunOptions};
+use crate::cli::structured_output::{write_output, StructuredOutput};
 use crate::cli::table::{show_results_and_exitcode, RuleResult};
 use crate::core::catalog::Catalog;
 use crate::core::config::parse_config::resolve_config_path;
@@ -16,12 +17,15 @@ use crate::core::rules::manifest::{
     apply_other_manifest_object_rules::apply_manifest_object_rules,
 };
 use crate::core::utils::{print_catalog_warning, unwrap_or_exit};
+use chrono::Utc;
 use log::debug;
 use std::collections::HashSet;
 use std::time::Instant;
 
 #[must_use]
+#[allow(clippy::too_many_lines)]
 pub fn run(options: &RunOptions, verbose: bool) -> i32 {
+    let started_at = Utc::now().to_rfc3339();
     let start = Instant::now();
 
     let config_path = resolve_config_path(&options.entry_point, options.config_file.as_ref());
@@ -101,18 +105,53 @@ pub fn run(options: &RunOptions, verbose: bool) -> i32 {
         findings.extend(fallback_findings);
     }
 
-    let exit_code = show_results_and_exitcode(
-        &findings,
-        verbose,
-        options.entry_point.as_ref(),
-        options.disable_hyperlinks,
-        options.hide_warnings,
-        Some(start.elapsed()),
-    );
+    let elapsed = start.elapsed();
 
-    if has_catalog_failures && !options.hide_catalog_tip {
-        print_catalog_warning(&fallback_rules, &skipped_rules);
-    }
+    let exit_code = match options.output_format {
+        OutputFormat::Table => {
+            let code = show_results_and_exitcode(
+                &findings,
+                verbose,
+                options.entry_point.as_ref(),
+                options.disable_hyperlinks,
+                options.hide_warnings,
+                Some(elapsed),
+            );
+
+            if has_catalog_failures && !options.hide_catalog_tip {
+                print_catalog_warning(&fallback_rules, &skipped_rules);
+            }
+
+            code
+        }
+        OutputFormat::Json | OutputFormat::Csv | OutputFormat::Ndjson => {
+            let project_name = manifest
+                .metadata
+                .project_name
+                .as_deref()
+                .unwrap_or("unknown");
+            let output = StructuredOutput::from_results(
+                &findings,
+                &started_at,
+                elapsed,
+                options.hide_warnings,
+                project_name,
+                &options.manifest_file,
+                &options.catalog_file,
+            );
+
+            let rendered = match options.output_format {
+                OutputFormat::Json => output.to_json(),
+                OutputFormat::Csv => output.to_csv(),
+                OutputFormat::Ndjson => output.to_ndjson(),
+                OutputFormat::Table => unreachable!(),
+            };
+
+            unwrap_or_exit(write_output(&rendered, options.output_file.as_deref()));
+
+            i32::from(findings.iter().any(|(_, sev)| **sev == Severity::Error))
+        }
+    };
 
     exit_code
 }
