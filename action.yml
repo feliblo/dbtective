@@ -21,6 +21,14 @@ inputs:
     default: "false"
     description: "Run only manifest-based rules, skip catalog rules."
     required: false
+  output-format:
+    default: "table"
+    description: "Output format: table, json, csv, or ndjson."
+    required: false
+  output-file:
+    default: ""
+    description: "Write output to a file instead of stdout (does nothing in combination with `table` output format)."
+    required: false
   version:
     default: "latest"
     description: "Version of dbtective to install (e.g., 'v0.1.10' or 'latest')."
@@ -60,6 +68,26 @@ runs:
           echo "only-manifest-param=--only-manifest" >> $GITHUB_OUTPUT
         fi
 
+    - name: Assemble `output-format` parameter
+      id: assemble-output-format-param
+      shell: bash
+      run: |
+        if [[ "${{ inputs.output-format }}" == "table" ]]; then
+          echo "output-format-param=" >> $GITHUB_OUTPUT
+        else
+          echo "output-format-param=--output-format ${{ inputs.output-format }}" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Assemble `output-file` parameter
+      id: assemble-output-file-param
+      shell: bash
+      run: |
+        if [[ -z "${{ inputs.output-file }}" ]]; then
+          echo "output-file-param=" >> $GITHUB_OUTPUT
+        else
+          echo "output-file-param=--output-file ${{ inputs.output-file }}" >> $GITHUB_OUTPUT
+        fi
+
     # Always run with --disable-hyperlinks (nothing renders properly in GitHub Actions)
     # Always run with --hide-catalog-tip (catalog is freshly generated in CI/CD)
     - name: Run dbtective
@@ -73,4 +101,6 @@ runs:
           --disable-hyperlinks \
           --hide-catalog-tip \
           ${{ steps.assemble-only-manifest-param.outputs.only-manifest-param }} \
-          ${{ steps.assemble-verbose-param.outputs.verbose-param }}
+          ${{ steps.assemble-verbose-param.outputs.verbose-param }} \
+          ${{ steps.assemble-output-format-param.outputs.output-format-param }} \
+          ${{ steps.assemble-output-file-param.outputs.output-file-param }}

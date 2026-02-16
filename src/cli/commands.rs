@@ -1,4 +1,4 @@
-use clap::{Args, Parser, Subcommand};
+use clap::{Args, Parser, Subcommand, ValueEnum};
 
 #[derive(Parser)]
 #[command(author, about, version, long_about = None)]
@@ -37,6 +37,20 @@ pub struct InitOptions {
     pub format: String,
 }
 
+/// Output format for the run command
+#[derive(ValueEnum, Debug, Clone, Default)]
+pub enum OutputFormat {
+    /// Human-readable terminal table (default)
+    #[default]
+    Table,
+    /// JSON with nested summary and results
+    Json,
+    /// CSV with metadata on every row
+    Csv,
+    /// Newline-delimited JSON with metadata on every row
+    Ndjson,
+}
+
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Args, Debug)]
 pub struct RunOptions {
@@ -44,31 +58,46 @@ pub struct RunOptions {
     #[arg(long, default_value = ".")]
     pub entry_point: String,
 
+    /// Path to dbtective configuration file (overrides auto-detection)
     #[arg(long, short = 'c')]
     pub config_file: Option<String>,
 
+    /// Path to dbt manifest.json relative to entry point
     #[arg(long, short = 'm', default_value = "target/manifest.json")]
     pub manifest_file: String,
 
+    /// Path to dbt catalog.json relative to entry point
     #[arg(long, short = 'g', default_value = "target/catalog.json")]
     pub catalog_file: String,
 
+    /// Run only manifest-based rules, skip catalog rules (or try manifest-fallback)
     #[arg(long, default_value_t = false)]
     pub only_manifest: bool,
 
+    /// Disable clickable file hyperlinks in table output
     #[arg(long, default_value_t = false)]
     pub disable_hyperlinks: bool,
 
+    /// Hide warnings from output, only show errors
     #[arg(long, default_value_t = false)]
     pub hide_warnings: bool,
 
+    /// Hide the catalog mismatch tip when catalog tests fail
     #[arg(long, default_value_t = false)]
     pub hide_catalog_tip: bool,
+
+    /// Output format: table (default), json, csv, or ndjson
+    #[arg(long, value_enum, default_value_t = OutputFormat::Table)]
+    pub output_format: OutputFormat,
+
+    /// Write output to a file instead of stdout (does nothing in combination with `table` output format).
+    #[arg(long)]
+    pub output_file: Option<String>,
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::cli::commands::{Cli, Commands, InitOptions, RunOptions};
+    use crate::cli::commands::{Cli, Commands, InitOptions, OutputFormat, RunOptions};
 
     fn default_init_options() -> InitOptions {
         InitOptions {
@@ -116,6 +145,8 @@ mod tests {
             disable_hyperlinks: false,
             hide_warnings: false,
             hide_catalog_tip: false,
+            output_format: OutputFormat::Table,
+            output_file: None,
         };
         let debug_str = format!("{options:?}");
         assert!(debug_str.contains("RunOptions"));
@@ -134,6 +165,8 @@ mod tests {
             disable_hyperlinks: false,
             hide_warnings: false,
             hide_catalog_tip: false,
+            output_format: OutputFormat::Table,
+            output_file: None,
         };
 
         assert_eq!(options.entry_point, "./");
@@ -152,6 +185,8 @@ mod tests {
             disable_hyperlinks: false,
             hide_warnings: false,
             hide_catalog_tip: false,
+            output_format: OutputFormat::Table,
+            output_file: None,
         };
 
         assert_eq!(options.entry_point, "/path/to/project");
@@ -180,6 +215,8 @@ mod tests {
                 disable_hyperlinks: false,
                 hide_warnings: false,
                 hide_catalog_tip: false,
+                output_format: OutputFormat::Table,
+                output_file: None,
             },
         };
 
@@ -224,6 +261,8 @@ mod tests {
                     disable_hyperlinks: false,
                     hide_warnings: false,
                     hide_catalog_tip: false,
+                    output_format: OutputFormat::Table,
+                    output_file: None,
                 },
             }),
         };
@@ -257,6 +296,8 @@ mod tests {
                 disable_hyperlinks: false,
                 hide_warnings: false,
                 hide_catalog_tip: false,
+                output_format: OutputFormat::Table,
+                output_file: None,
             },
         };
         let debug_str = format!("{run_cmd:?}");

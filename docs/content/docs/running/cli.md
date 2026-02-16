@@ -10,11 +10,11 @@ See the [README](https://github.com/feliblo/dbtective#installation) for installa
 
 ## Global Options
 
-| Option | Description |
-|--------|-------------|
+| Option            | Description                   |
+| ----------------- | ----------------------------- |
 | `--verbose`, `-v` | Enable verbose logging output |
-| `--help`, `-h` | Display help information |
-| `--version`, `-V` | Display version |
+| `--help`, `-h`    | Display help information      |
+| `--version`, `-V` | Display version               |
 
 ## Commands
 
@@ -31,16 +31,18 @@ Run dbtective analysis on your dbt project.
 
 #### Options
 
-| Option | Short | Default | Description |
-|--------|-------|---------|-------------|
-| `--entry-point <PATH>` | | `.` | Path to dbt project root |
-| `--config-file <PATH>` | `-c` | Auto-detected | Path to dbtective configuration from the entry-point (overrides auto-detection) |
-| `--manifest-file <PATH>` | `-m` | `target/manifest.json` | Path to dbt manifest.json |
-| `--catalog-file <PATH>` | `-g` | `target/catalog.json` | Path to dbt catalog.json |
-| `--only-manifest` | | `false` | Run only manifest rules (recommended for local & pre-commit/prek) |
-| `--disable-hyperlinks` | | `false` | Disable file hyperlinks in the output |
-| `--hide-warnings` | | `false` | Hide warnings from output (only show errors) |
-| `--hide-catalog-tip` | | `false` | Hide the catalog mismatch tip shown when catalog tests fail |
+| Option                     | Short | Default                | Description                                                                                        |
+| -------------------------- | ----- | ---------------------- | -------------------------------------------------------------------------------------------------- |
+| `--entry-point <PATH>`     |       | `.`                    | Path to dbt project root                                                                           |
+| `--config-file <PATH>`     | `-c`  | Auto-detected          | Path to dbtective configuration from the entry-point (overrides auto-detection)                    |
+| `--manifest-file <PATH>`   | `-m`  | `target/manifest.json` | Path to dbt manifest.json                                                                          |
+| `--catalog-file <PATH>`    | `-g`  | `target/catalog.json`  | Path to dbt catalog.json                                                                           |
+| `--only-manifest`          |       | `false`                | Run only manifest rules (recommended for local & pre-commit/prek)                                  |
+| `--disable-hyperlinks`     |       | `false`                | Disable file hyperlinks in the output                                                              |
+| `--hide-warnings`          |       | `false`                | Hide warnings from output (only show errors)                                                       |
+| `--hide-catalog-tip`       |       | `false`                | Hide the catalog mismatch tip shown when catalog tests fail                                        |
+| `--output-format <FORMAT>` |       | `table`                | Output format: `table`, `json`, `csv`, or `ndjson`                                                 |
+| `--output-file <PATH>`     |       |                        | Write output to a file instead of stdout (does nothing in combination with `table` output format). |
 
 #### Config File Auto-Detection
 
@@ -76,8 +78,57 @@ dbtective run --disable-hyperlinks
 # Hide warnings, only show errors (useful for CI)
 dbtective run --hide-warnings
 
-# Auto-regenerate catalog when tests fail (requires catalog_regenerate_command in config)
-dbtective run --autofix-catalog
+# Output results as JSON
+dbtective run --output-format json
+
+# Output results as CSV to a file
+dbtective run --output-format csv --output-file results.csv
+
+# Output results as newline-delimited JSON (NDJSON) for streaming
+dbtective run --output-format ndjson
+
+# Pipe JSON output for downstream processing
+dbtective run --output-format json | jq '.metadata'
+```
+
+#### Structured Output Formats
+
+When using `--output-format`, dbtective produces machine-readable output instead of the terminal table. The exit code behavior is unchanged: exit `0` if all rules pass (or only warnings), exit `1` if any errors.
+
+**JSON** (`--output-format json`) produces a nested structure with metadata, summary, and results:
+
+```json
+{
+  "metadata": {
+    "dbtective_version": "0.2.2",
+    "timestamp": "2026-02-16T14:30:00.123+00:00",
+    "project_name": "my_dbt_project",
+    "manifest_path": "target/manifest.json",
+    "catalog_path": "target/catalog.json",
+    "execution_time_seconds": 0.042
+  },
+  "summary": {
+    "total": 2,
+    "errors": 1,
+    "warnings": 1,
+    "pass": false
+  },
+  "results": [
+    {
+      "severity": "error",
+      "object_type": "Model",
+      "rule_name": "has_description",
+      "message": "Model 'orders' is missing a description",
+      "relative_path": "models/orders.sql"
+    }
+  ]
+}
+```
+
+**CSV** (`--output-format csv`) and **NDJSON** (`--output-format ndjson`) produce flat rows with metadata and summary repeated on every row, making them suitable for loading into databases or streaming pipelines:
+
+```
+dbtective_version,timestamp,project_name,manifest_path,catalog_path,execution_time_seconds,total,total_errors,total_warnings,pass,severity,object_type,rule_name,message,relative_path
 ```
 
 ### `init`
@@ -98,10 +149,10 @@ The generated config file is ready to use. You can edit it afterwards to fine-tu
 
 #### Options
 
-| Option | Short | Default | Description |
-|--------|-------|---------|-------------|
-| `--location <PATH>` | `-l` | `.` | Directory where the config file will be created |
-| `--format <FORMAT>` | `-f` | `yml` | Config file format: `yml`, `yaml`, `toml`, or `pyproject`. Skips the format question when provided. |
+| Option              | Short | Default | Description                                                                                         |
+| ------------------- | ----- | ------- | --------------------------------------------------------------------------------------------------- |
+| `--location <PATH>` | `-l`  | `.`     | Directory where the config file will be created                                                     |
+| `--format <FORMAT>` | `-f`  | `yml`   | Config file format: `yml`, `yaml`, `toml`, or `pyproject`. Skips the format question when provided. |
 
 #### Examples
 

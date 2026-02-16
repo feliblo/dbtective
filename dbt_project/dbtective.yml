@@ -6,7 +6,6 @@ manifest_tests:
   - name: "has_description"
     type: "has_description"
 
-
   - name: "naming_convention"
     type: "name_convention"
     pattern: "snake_case"
@@ -49,10 +48,8 @@ manifest_tests:
   - name: "sources_have_loader"
     type: "sources_have_loader"
 
-
   - name: "sources_have_freshness"
     type: "sources_have_freshness"
-
 
   - name: "all_marts_are_exposed"
     type: "is_not_orphaned"
