@@ -1,3 +1,20 @@
+## v0.2.3 (2026-02-16)
+
+### Feat
+
+- **output**: add json, csv and ndjson output options & add output-file option - ([03f0085](https://github.com/feliblo/dbtective/commit/03f0085c10b024fc14b0064022a4bfee4733e099)) - feliblo
+- **rules**: add columns_have_data_type rule - ([5313d43](https://github.com/feliblo/dbtective/commit/5313d4394428a5a2b1d694f5f7801ee4fa56b86c)) - feliblo
+- **rules**: add has_forbidden_code rule - ([3e458c9](https://github.com/feliblo/dbtective/commit/3e458c94e81c7a7e166091fde02f0330db24a339)) - feliblo
+- **init**: add marts/gold models should be exposed to init command - ([a2e6d82](https://github.com/feliblo/dbtective/commit/a2e6d82d0afa6c2475fb1a42b4590ce8e862b38a)) - feliblo
+
+### Fix
+
+- **cli**: show better skipped tests and manifest fallback tests - ([57b766b](https://github.com/feliblo/dbtective/commit/57b766bbbe0db2ea9d44368086aeb11f40e33c65)) - feliblo
+
+### Contributors
+
+[@feliblo](https://github.com/feliblo)
+
 ## v0.2.2 (2026-02-13)
 
 ### Feat
