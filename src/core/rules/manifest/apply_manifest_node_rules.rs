@@ -3,8 +3,8 @@ use crate::core::config::applies_to::RuleTargetable;
 use crate::core::config::manifest_rule::ManifestSpecificRuleConfig;
 use crate::core::rules::rule_config::{
     check_allowed_subfolders, check_name_convention, child_map::is_not_orphaned,
-    has_contract_enforced, has_description, has_metadata_keys, has_refs, has_tags, has_unique_test,
-    max_code_lines,
+    has_contract_enforced, has_description, has_forbidden_code, has_metadata_keys, has_refs,
+    has_tags, has_unique_test, max_code_lines,
 };
 
 use crate::core::config::severity::Severity;
@@ -74,6 +74,10 @@ pub fn apply_manifest_node_rules<'a>(
                     ManifestSpecificRuleConfig::MaxCodeLines { max_lines } => {
                         max_code_lines(node, rule, *max_lines)
                     }
+                    ManifestSpecificRuleConfig::HasForbiddenCode {
+                        forbidden_patterns,
+                        case_sensitive,
+                    } => has_forbidden_code(node, rule, forbidden_patterns, *case_sensitive),
                     ManifestSpecificRuleConfig::HasRefs {} => has_refs(node, rule),
                     ManifestSpecificRuleConfig::AllowedSubfolders {
                         allowed_subfolders,

@@ -62,8 +62,8 @@ impl std::fmt::Display for Strictness {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Basic => write!(f, "Basic - Essential rules only"),
-            Self::Standard => write!(f, "Standard (recommended) - Balanced set of rules"),
-            Self::Strict => write!(f, "Strict - Comprehensive rule coverage"),
+            Self::Standard => write!(f, "Standard - Balanced set of rules"),
+            Self::Strict => write!(f, "Strict (recommended) - Comprehensive rule coverage"),
         }
     }
 }
@@ -93,6 +93,9 @@ impl Init for ManifestSpecificRuleConfig {
             Self::MaxCodeLines { .. } => "max_code_lines - Limit code line count",
             Self::AllowedSubfolders { .. } => "allowed_subfolders - Restrict subfolder usage",
             Self::SourcesHaveLoader { .. } => "sources_have_loader - Require loader for sources",
+            Self::HasForbiddenCode { .. } => {
+                "has_forbidden_code - Check for forbidden code patterns"
+            }
             Self::SourcesHaveFreshness { .. } => {
                 "sources_have_freshness - Require freshness for sources"
             }
@@ -198,7 +201,7 @@ pub fn run_questionnaire() -> Result<QuestionnaireResult, String> {
     // 4. Ask for strictness level
     let strictness_options = vec![Strictness::Basic, Strictness::Standard, Strictness::Strict];
     let strictness = Select::new("How strict do you want the rules?", strictness_options)
-        .with_starting_cursor(1) // Default to Standard (recommended)
+        .with_starting_cursor(2) // Default to Strict (recommended start)
         .prompt()
         .map_err(|e| format!("Failed to get strictness level: {e}"))?;
 
@@ -262,6 +265,10 @@ pub fn run_questionnaire() -> Result<QuestionnaireResult, String> {
                 ManifestSpecificRuleConfig::HasUniqueTest {
                     allowed_test_names: vec![],
                 },
+                ManifestSpecificRuleConfig::HasForbiddenCode {
+                    forbidden_patterns: vec![],
+                    case_sensitive: false,
+                },
                 ManifestSpecificRuleConfig::SourcesHaveLoader {},
                 ManifestSpecificRuleConfig::SourcesHaveFreshness {},
             ],
@@ -324,7 +331,7 @@ pub fn run_questionnaire() -> Result<QuestionnaireResult, String> {
 
     if !available_catalog_rules.is_empty() {
         let selected_catalog = MultiSelect::new(
-            "Select additional catalog rules (optional). These will proivide examples for you to use.",
+            "Select additional catalog rules (optional). These will provide examples for you to use.",
             available_catalog_rules,
         )
         .prompt()
@@ -384,11 +391,11 @@ mod tests {
         );
         assert_eq!(
             Strictness::Standard.to_string(),
-            "Standard (recommended) - Balanced set of rules"
+            "Standard - Balanced set of rules"
         );
         assert_eq!(
             Strictness::Strict.to_string(),
-            "Strict - Comprehensive rule coverage"
+            "Strict (recommended) - Comprehensive rule coverage"
         );
     }
 
@@ -433,7 +440,7 @@ mod tests {
 
     #[test]
     fn test_manifest_rule_iter_count() {
-        assert_eq!(ManifestSpecificRuleConfig::iter().count(), 12);
+        assert_eq!(ManifestSpecificRuleConfig::iter().count(), 13);
     }
 
     #[test]

@@ -6,9 +6,26 @@ manifest_tests:
   - name: "has_description"
     type: "has_description"
 
+
   - name: "naming_convention"
     type: "name_convention"
     pattern: "snake_case"
+
+  - name: "require_execution_tags"
+    type: "has_tags"
+    required_tags: ["daily", "monthly", "yearly", "inactive"]
+    criteria: "one_of"
+    description: "Resources need to have at least one of the required tags. To decide when a resource should be run."
+
+  - name: "all_marts_are_exposed"
+    type: "is_not_orphaned"
+    description: "All mart models should be referenced by at least one exposure."
+    applies_to: ["models"]
+    includes: ["models/marts"]
+    allowed_references: ["exposures"]
+
+  - name: "has_unique_test"
+    type: "has_unique_test"
 
   - name: "has_contract_enforced"
     type: "has_contract_enforced"
@@ -25,9 +42,30 @@ manifest_tests:
     type: "allowed_subfolders"
     allowed_subfolders: ["staging", "marts", "intermediate"]
 
+  - name: "has_forbidden_code"
+    type: "has_forbidden_code"
+    forbidden_patterns: ["SELECT *"]
+
+  - name: "sources_have_loader"
+    type: "sources_have_loader"
+
+
+  - name: "sources_have_freshness"
+    type: "sources_have_freshness"
+
+
+  - name: "all_marts_are_exposed"
+    type: "is_not_orphaned"
+    applies_to: ["models"]
+    includes: ["models/marts"]
+    allowed_references: ["exposures"]
+    severity: "warning"
+
 catalog_tests:
-  - name: columns_all_documented
-    type: columns_all_documented
+  - name: "all_columns_documented"
+    type: "columns_all_documented"
+    description: "All columns must exist in the documentation."
+    severity: "warning"
 
   - name: "all_columns_described"
     type: "columns_have_description"
