@@ -9,7 +9,7 @@ use crate::{
         manifest::Manifest,
         rules::catalog::{
             column_name_convention, columns_are_documented, columns_canonical_name,
-            columns_have_description,
+            columns_have_data_type, columns_have_description,
         },
     },
 };
@@ -108,6 +108,16 @@ pub fn apply_catalog_node_rules<'a>(
                         verbose,
                     )
                 }
+                CatalogSpecificRuleConfig::ColumnsHaveDataType { min_coverage } => {
+                    columns_have_data_type(
+                        catalog_node,
+                        manifest_node,
+                        rule,
+                        *min_coverage,
+                        verbose,
+                    )
+                }
+
             };
 
             if let Some(rule_row) = rule_row_result {

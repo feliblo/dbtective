@@ -7,7 +7,8 @@ use crate::{
         },
         manifest::Manifest,
         rules::catalog::{
-            column_name_convention, columns_canonical_name, columns_have_description,
+            column_name_convention, columns_canonical_name, columns_have_data_type,
+            columns_have_description,
         },
     },
 };
@@ -69,6 +70,9 @@ pub fn apply_catalog_fallback_source_rules<'a>(
                     rule,
                     verbose,
                 ),
+                CatalogSpecificRuleConfig::ColumnsHaveDataType { min_coverage } => {
+                    columns_have_data_type(source, source, rule, *min_coverage, verbose)
+                }
             };
 
             if let Some(rule_row) = rule_row_result {

@@ -75,3 +75,9 @@ catalog_tests:
     type: "columns_name_convention"
     description: "All column names must be snake_case."
     pattern: "snake_case"
+
+  - name: "columns_have_data_type"
+    type: "columns_have_data_type"
+    description: "All columns must have data types defined."
+    min_coverage: 100
+    includes: ["models/marts", "models/intermediate"]
