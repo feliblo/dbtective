@@ -124,6 +124,9 @@ impl Init for CatalogSpecificRuleConfig {
             Self::ColumnsCanonicalName { .. } => {
                 "columns_canonical_name - Enforce canonical column names"
             }
+            Self::ColumnsHaveDataType { .. } => {
+                "columns_have_data_type - Columns must have data types defined"
+            }
         }
     }
 }
@@ -296,6 +299,18 @@ pub fn run_questionnaire() -> Result<QuestionnaireResult, String> {
             path_postfix: None,
         });
         manifest_rules.push(ManifestSpecificRuleConfig::HasContractEnforced { access_level: None });
+        catalog_rules.push(CatalogSpecificRuleConfig::ColumnsHaveDataType { min_coverage: None });
+
+        // Add forbidden code patterns for direct schema references if not already present
+        if !manifest_rules
+            .iter()
+            .any(|r| matches!(r, ManifestSpecificRuleConfig::HasForbiddenCode { .. }))
+        {
+            manifest_rules.push(ManifestSpecificRuleConfig::HasForbiddenCode {
+                forbidden_patterns: vec![],
+                case_sensitive: false,
+            });
+        }
     }
 
     // 5. Ask for additional manifest rules
@@ -432,6 +447,9 @@ mod tests {
             descriptions.contains(&"columns_name_convention - Enforce column naming conventions")
         );
         assert!(descriptions.contains(&"columns_canonical_name - Enforce canonical column names"));
+        assert!(
+            descriptions.contains(&"columns_have_data_type - Columns must have data types defined")
+        );
     }
 
     // ========================================================================
@@ -445,6 +463,6 @@ mod tests {
 
     #[test]
     fn test_catalog_rule_iter_count() {
-        assert_eq!(CatalogSpecificRuleConfig::iter().count(), 4);
+        assert_eq!(CatalogSpecificRuleConfig::iter().count(), 5);
     }
 }

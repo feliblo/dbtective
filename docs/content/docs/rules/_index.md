@@ -160,6 +160,12 @@ Here you can find an overview of all possible rules. Use the filter below to fin
       <td>Enforce canonical column naming by flagging invalid name patterns. Supports exceptions for allowed variations.</td>
       <td style="font-size: 12px; color: #666;">columns, canonical, naming, standards, consistency</td>
     </tr>
+    <tr class="rule-item" data-keywords="columns data types type coverage catalog database schema yml yaml column-level fallback manifest" data-category="catalog">
+      <td><a href="columns" class="rule-name">columns_have_data_type</a></td>
+      <td><span class="rule-category-badge badge-catalog">Catalog</span> <span class="rule-category-badge badge-manifest-fallback">Fallback</span></td>
+      <td>Check if columns have data types defined. Supports coverage threshold (all or percentage).</td>
+      <td style="font-size: 12px; color: #666;">columns, data types, coverage, catalog, database</td>
+    </tr>
   </tbody>
 </table>
 

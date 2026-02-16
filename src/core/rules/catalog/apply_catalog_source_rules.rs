@@ -9,7 +9,7 @@ use crate::{
         manifest::Manifest,
         rules::catalog::{
             column_name_convention, columns_are_documented, columns_canonical_name,
-            columns_have_description,
+            columns_have_data_type, columns_have_description,
         },
     },
 };
@@ -97,6 +97,15 @@ pub fn apply_catalog_source_rules<'a>(
                         invalid_names,
                         exceptions.as_ref(),
                         rule,
+                        verbose,
+                    )
+                }
+                CatalogSpecificRuleConfig::ColumnsHaveDataType { min_coverage } => {
+                    columns_have_data_type(
+                        catalog_source,
+                        manifest_source,
+                        rule,
+                        *min_coverage,
                         verbose,
                     )
                 }

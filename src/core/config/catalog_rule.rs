@@ -26,6 +26,9 @@ pub enum CatalogSpecificRuleConfig {
         invalid_names: Vec<ColumnNamePattern>,
         exceptions: Option<Vec<ColumnNamePattern>>,
     },
+    ColumnsHaveDataType {
+        min_coverage: Option<u8>,
+    },
 }
 
 // Compares only on variant discriminant, ignoring field values.
@@ -103,7 +106,8 @@ impl CatalogSpecificRuleConfig {
         match self {
             Self::ColumnsHaveDescription { .. }
             | Self::ColumnsNameConvention { .. }
-            | Self::ColumnsCanonicalName { .. } => true,
+            | Self::ColumnsCanonicalName { .. }
+            | Self::ColumnsHaveDataType { .. } => true,
             Self::ColumnsAllDocumented { .. } => false,
         }
     }
@@ -213,7 +217,8 @@ impl CatalogRule {
 pub fn default_applies_to_for_catalog_rule(rule_type: &CatalogSpecificRuleConfig) -> AppliesTo {
     match rule_type {
         CatalogSpecificRuleConfig::ColumnsAllDocumented { .. }
-        | CatalogSpecificRuleConfig::ColumnsHaveDescription { .. } => AppliesTo {
+        | CatalogSpecificRuleConfig::ColumnsHaveDescription { .. }
+        | CatalogSpecificRuleConfig::ColumnsHaveDataType { .. } => AppliesTo {
             node_objects: vec![RuleTarget::Models, RuleTarget::Seeds, RuleTarget::Snapshots],
             source_objects: vec![RuleTarget::Sources],
             unit_test_objects: vec![],
@@ -240,7 +245,8 @@ fn applies_to_options_for_catalog_rule(rule_type: &CatalogSpecificRuleConfig) ->
         CatalogSpecificRuleConfig::ColumnsAllDocumented { .. }
         | CatalogSpecificRuleConfig::ColumnsNameConvention { .. }
         | CatalogSpecificRuleConfig::ColumnsHaveDescription { .. }
-        | CatalogSpecificRuleConfig::ColumnsCanonicalName { .. } => AppliesTo {
+        | CatalogSpecificRuleConfig::ColumnsCanonicalName { .. }
+        | CatalogSpecificRuleConfig::ColumnsHaveDataType { .. } => AppliesTo {
             node_objects: vec![RuleTarget::Models, RuleTarget::Seeds, RuleTarget::Snapshots],
             source_objects: vec![RuleTarget::Sources],
             unit_test_objects: vec![],
@@ -290,5 +296,9 @@ mod tests {
             exceptions: None,
         }
         .supports_manifest_fallback());
+        assert!(
+            CatalogSpecificRuleConfig::ColumnsHaveDataType { min_coverage: None }
+                .supports_manifest_fallback()
+        );
     }
 }

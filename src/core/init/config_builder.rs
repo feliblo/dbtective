@@ -106,8 +106,26 @@ impl InitConfig {
                 }
             }
             ManifestSpecificRuleConfig::HasForbiddenCode { .. } => {
+                let mut patterns = vec!["SELECT *".to_string()];
+                match result.data_model {
+                    DataModel::Medallion => {
+                        patterns.extend([
+                            "bronze.".to_string(),
+                            "silver.".to_string(),
+                            "gold.".to_string(),
+                        ]);
+                    }
+                    DataModel::Common => {
+                        patterns.extend([
+                            "staging.".to_string(),
+                            "intermediate.".to_string(),
+                            "marts.".to_string(),
+                        ]);
+                    }
+                    DataModel::None => {}
+                }
                 ManifestSpecificRuleConfig::HasForbiddenCode {
-                    forbidden_patterns: vec!["SELECT *".to_string()],
+                    forbidden_patterns: patterns,
                     case_sensitive: false,
                 }
             }
@@ -163,6 +181,9 @@ impl InitConfig {
                     exceptions: None,
                 }
             }
+            CatalogSpecificRuleConfig::ColumnsHaveDataType { .. } => {
+                CatalogSpecificRuleConfig::ColumnsHaveDataType { min_coverage: None }
+            }
         }
     }
 
@@ -187,7 +208,7 @@ impl InitConfig {
         content.push_str("catalog_tests:\n");
 
         for rule in &self.catalog_rules {
-            content.push_str(&Self::catalog_rule_to_yaml(rule));
+            content.push_str(&self.catalog_rule_to_yaml(rule));
             content.push_str("\n\n");
         }
 
@@ -212,7 +233,7 @@ impl InitConfig {
         }
 
         for rule in &self.catalog_rules {
-            content.push_str(&Self::catalog_rule_to_toml(rule, "catalog_tests"));
+            content.push_str(&self.catalog_rule_to_toml(rule, "catalog_tests"));
             content.push_str("\n\n");
         }
 
@@ -238,10 +259,7 @@ impl InitConfig {
         }
 
         for rule in &self.catalog_rules {
-            content.push_str(&Self::catalog_rule_to_toml(
-                rule,
-                "tool.dbtective.catalog_tests",
-            ));
+            content.push_str(&self.catalog_rule_to_toml(rule, "tool.dbtective.catalog_tests"));
             content.push_str("\n\n");
         }
 
@@ -383,6 +401,7 @@ impl InitConfig {
                 if *case_sensitive {
                     s.push_str("\n    case_sensitive: true");
                 }
+
                 s
             }
             ManifestSpecificRuleConfig::SourcesHaveLoader {} => r#"  - name: "sources_have_loader"
@@ -431,7 +450,7 @@ severity = "warning""#
         ))
     }
 
-    fn catalog_rule_to_yaml(rule: &CatalogSpecificRuleConfig) -> String {
+    fn catalog_rule_to_yaml(&self, rule: &CatalogSpecificRuleConfig) -> String {
         match rule {
             CatalogSpecificRuleConfig::ColumnsAllDocumented {} => {
                 r#"  - name: "all_columns_documented"
@@ -478,6 +497,33 @@ severity = "warning""#
     canonical: "{canonical}"
     invalid_names: [{invalid_str}]"#
                 )
+            }
+            CatalogSpecificRuleConfig::ColumnsHaveDataType { min_coverage } => {
+                let includes = match self.data_model {
+                    DataModel::Medallion => Some(vec!["models/silver", "models/gold"]),
+                    DataModel::Common => Some(vec!["models/marts", "models/intermediate"]),
+                    DataModel::None => None,
+                };
+
+                let mut s = r#"  - name: "columns_have_data_type"
+    type: "columns_have_data_type"
+    description: "All columns must have data types defined.""#
+                    .to_string();
+
+                if let Some(threshold) = min_coverage {
+                    let _ = write!(s, "\n    min_coverage: {threshold}");
+                }
+
+                if let Some(folders) = includes {
+                    let folders_str = folders
+                        .iter()
+                        .map(|f| format!("\"{f}\""))
+                        .collect::<Vec<_>>()
+                        .join(", ");
+                    let _ = write!(s, "\n    includes: [{folders_str}]");
+                }
+
+                s
             }
         }
     }
@@ -669,7 +715,7 @@ type = "sources_have_freshness"
         }
     }
 
-    fn catalog_rule_to_toml(rule: &CatalogSpecificRuleConfig, section: &str) -> String {
+    fn catalog_rule_to_toml(&self, rule: &CatalogSpecificRuleConfig, section: &str) -> String {
         match rule {
             CatalogSpecificRuleConfig::ColumnsAllDocumented {} => {
                 format!(
@@ -721,6 +767,35 @@ type = "columns_canonical_name"
 canonical = "{canonical}"
 invalid_names = [{invalid_str}]"#
                 )
+            }
+            CatalogSpecificRuleConfig::ColumnsHaveDataType { min_coverage } => {
+                let includes = match self.data_model {
+                    DataModel::Medallion => Some(vec!["models/silver", "models/gold"]),
+                    DataModel::Common => Some(vec!["models/marts", "models/intermediate"]),
+                    DataModel::None => None,
+                };
+
+                let mut s = format!(
+                    r#"[[{section}]]
+name = "columns_have_data_type"
+type = "columns_have_data_type"
+description = "All columns must have data types defined.""#
+                );
+
+                if let Some(threshold) = min_coverage {
+                    let _ = write!(s, "\nmin_coverage = {threshold}");
+                }
+
+                if let Some(folders) = includes {
+                    let folders_str = folders
+                        .iter()
+                        .map(|f| format!("\"{f}\""))
+                        .collect::<Vec<_>>()
+                        .join(", ");
+                    let _ = write!(s, "\nincludes = [{folders_str}]");
+                }
+
+                s
             }
         }
     }
@@ -1630,6 +1705,130 @@ mod tests {
     }
 
     // ========================================================================
+    // HasForbiddenCode Init Tests - Data Model Patterns
+    // ========================================================================
+
+    #[test]
+    fn test_forbidden_code_medallion_patterns() {
+        let result = create_questionnaire_result(
+            DataModel::Medallion,
+            vec![ManifestSpecificRuleConfig::HasForbiddenCode {
+                forbidden_patterns: vec![],
+                case_sensitive: false,
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+
+        let config = InitConfig::from_questionnaire(&result);
+        match &config.manifest_rules[0] {
+            ManifestSpecificRuleConfig::HasForbiddenCode {
+                forbidden_patterns, ..
+            } => {
+                assert!(forbidden_patterns.contains(&"SELECT *".to_string()));
+                assert!(forbidden_patterns.contains(&"bronze.".to_string()));
+                assert!(forbidden_patterns.contains(&"silver.".to_string()));
+                assert!(forbidden_patterns.contains(&"gold.".to_string()));
+                assert_eq!(forbidden_patterns.len(), 4);
+            }
+            _ => panic!("Expected HasForbiddenCode rule"),
+        }
+    }
+
+    #[test]
+    fn test_forbidden_code_common_patterns() {
+        let result = create_questionnaire_result(
+            DataModel::Common,
+            vec![ManifestSpecificRuleConfig::HasForbiddenCode {
+                forbidden_patterns: vec![],
+                case_sensitive: false,
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+
+        let config = InitConfig::from_questionnaire(&result);
+        match &config.manifest_rules[0] {
+            ManifestSpecificRuleConfig::HasForbiddenCode {
+                forbidden_patterns, ..
+            } => {
+                assert!(forbidden_patterns.contains(&"SELECT *".to_string()));
+                assert!(forbidden_patterns.contains(&"staging.".to_string()));
+                assert!(forbidden_patterns.contains(&"intermediate.".to_string()));
+                assert!(forbidden_patterns.contains(&"marts.".to_string()));
+                assert_eq!(forbidden_patterns.len(), 4);
+            }
+            _ => panic!("Expected HasForbiddenCode rule"),
+        }
+    }
+
+    #[test]
+    fn test_forbidden_code_none_no_schema_patterns() {
+        let result = create_questionnaire_result(
+            DataModel::None,
+            vec![ManifestSpecificRuleConfig::HasForbiddenCode {
+                forbidden_patterns: vec![],
+                case_sensitive: false,
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+
+        let config = InitConfig::from_questionnaire(&result);
+        match &config.manifest_rules[0] {
+            ManifestSpecificRuleConfig::HasForbiddenCode {
+                forbidden_patterns, ..
+            } => {
+                assert!(forbidden_patterns.contains(&"SELECT *".to_string()));
+                assert_eq!(forbidden_patterns.len(), 1);
+            }
+            _ => panic!("Expected HasForbiddenCode rule"),
+        }
+    }
+
+    #[test]
+    fn test_forbidden_code_medallion_yaml_output() {
+        let result = create_questionnaire_result(
+            DataModel::Medallion,
+            vec![ManifestSpecificRuleConfig::HasForbiddenCode {
+                forbidden_patterns: vec![],
+                case_sensitive: false,
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+
+        assert!(yaml.contains(r#"type: "has_forbidden_code""#));
+        assert!(yaml.contains(r#""bronze.""#));
+        assert!(yaml.contains(r#""silver.""#));
+        assert!(yaml.contains(r#""gold.""#));
+    }
+
+    #[test]
+    fn test_forbidden_code_common_toml_output() {
+        let result = create_questionnaire_result(
+            DataModel::Common,
+            vec![ManifestSpecificRuleConfig::HasForbiddenCode {
+                forbidden_patterns: vec![],
+                case_sensitive: false,
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+
+        let config = InitConfig::from_questionnaire(&result);
+        let toml = config.to_toml();
+
+        assert!(toml.contains(r#"type = "has_forbidden_code""#));
+        assert!(toml.contains(r#""staging.""#));
+        assert!(toml.contains(r#""intermediate.""#));
+        assert!(toml.contains(r#""marts.""#));
+    }
+
+    // ========================================================================
     // Naming Convention Tests
     // ========================================================================
 
@@ -2109,6 +2308,6 @@ mod tests {
         );
 
         let config = InitConfig::from_questionnaire(&result);
-        assert_eq!(config.catalog_rules.len(), 4); // All 4 catalog rules
+        assert_eq!(config.catalog_rules.len(), 5); // All 5 catalog rules
     }
 }

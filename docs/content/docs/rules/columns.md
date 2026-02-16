@@ -1,5 +1,5 @@
 ---
-title: columns (4)
+title: columns (5)
 type: docs
 prev: docs/rules
 sidebar:
@@ -16,7 +16,7 @@ When running with `--only-manifest`, eligible catalog rules (containing the badg
 
 <span class="rule-category-badge badge-catalog">Catalog Rule</span> {{< include-markdown "content/snippets/catalog_info.md" >}}
 
-<details closed>
+<details open>
 <summary>columns_all_documented details</summary>
 <br>
 This rule ensures that every database object  (model, seed, source, macro, etc.) has documented all their columns (e.g. mentioned them in a `.yaml` file). It cannot use `manifest-fallback`, since it is used to compare the database state with the state of the metadata in the dbt configuration.
@@ -112,7 +112,7 @@ For object naming conventions, see the [`name_convention`](../naming_conventions
 <span class="rule-category-badge badge-catalog">Catalog Rule</span> <span class="rule-category-badge badge-manifest-fallback">Fallback</span> {{< include-markdown "content/snippets/catalog_info.md" >}}
 
 <br>
-<details closed>
+<details open>
 <summary>columns_name_convention details</summary>
 <br>
 This rule ensures that column names follow naming conventions based on a specified pattern.
@@ -256,7 +256,7 @@ FROM users
 
 <span class="rule-category-badge badge-catalog">Catalog Rule</span> <span class="rule-category-badge badge-manifest-fallback">Fallback</span> {{< include-markdown "content/snippets/catalog_info.md" >}}
 
-<details closed>
+<details open>
 <summary>columns_have_description details</summary>
 <br>
 This rule ensures that every documented column has a non-empty description. Unlike `columns_all_documented` which checks that columns are mentioned in YAML files, this rule verifies that those columns actually have meaningful descriptions.
@@ -445,6 +445,104 @@ SELECT
     zip_code_legacy,     -- PASS: matches exception
     other_column         -- PASS: not in invalid_names
 FROM source_table
+```
+
+</details>
+
+</details>
+
+<hr style="border: 2px solid #444; margin: 2em 0;">
+
+### Rule: `columns_have_data_type`
+
+<span class="rule-category-badge badge-catalog">Catalog Rule</span> <span class="rule-category-badge badge-manifest-fallback">Fallback</span> {{< include-markdown "content/snippets/catalog_info.md" >}}
+
+<details open>
+<summary>columns_have_data_type details</summary>
+<br>
+This rule checks that columns have data types defined in your schema (YAML) files. You can require all columns to have data types (default), or set a minimum coverage percentage <bold>per dbt resource</bold> (e.g., 90% of a models columns must have data types).
+
+---
+
+**Configuration**
+
+- **type**: Must be `columns_have_data_type`.
+- **min_coverage**: _(optional)_ Minimum percentage of columns that must have data types defined **per dbt-object**.
+  - Default: `100` (all columns must have data types)
+  - Example: `90` means at least 90% of columns must have data types
+- **applies_to**: _(optional)_ List of dbt object types to include.
+  - Default: `["models", "seeds", "snapshots", "sources"]`
+  - Options: `models`, `seeds`, `snapshots`, `sources`
+
+{{< include-markdown "content/snippets/common_rule_config.md" >}}
+
+**Example Config**
+
+{{< tabs items="dbtective.yml,dbtective.toml,pyproject.toml" >}}
+
+{{< tab >}}
+
+```yaml
+catalog_tests:
+  - name: "columns_have_data_type"
+    type: "columns_have_data_type"
+    description: "All columns must have data types defined."
+    # min_coverage: 100  (default: all columns, use e.g. 90 for 90%)
+    # severity: "warning"  (optional)
+    # applies_to: ['models', 'seeds']  (optional)
+    # includes: ["path/to/include/*"]
+    # excludes: ["path/to/exclude/*"]
+```
+
+{{< /tab >}}
+
+{{< tab >}}
+
+```toml
+[[catalog_tests]]
+name = "columns_have_data_type"
+type = "columns_have_data_type"
+description = "All columns must have data types defined."
+# min_coverage = 100  # (default: all columns, use e.g. 90 for 90%)
+# severity = "warning"  # (optional)
+# applies_to = ["models", "seeds"]  # (optional)
+# includes = ["path/to/include/*"]
+# excludes = ["path/to/exclude/*"]
+```
+
+{{< /tab >}}
+
+{{< tab >}}
+
+```toml
+[[tool.dbtective.catalog_tests]]
+name = "columns_have_data_type"
+type = "columns_have_data_type"
+description = "All columns must have data types defined."
+# min_coverage = 100  # (default: all columns, use e.g. 90 for 90%)
+# severity = "warning"  # (optional)
+# applies_to = ["models", "seeds"]  # (optional)
+# includes = ["path/to/include/*"]
+# excludes = ["path/to/exclude/*"]
+```
+
+{{< /tab >}}
+
+{{< /tabs >}}
+
+<details closed>
+<summary>Relevant dbt code</summary>
+
+```yaml
+models:
+  - name: customers
+    columns:
+      - name: id
+        data_type: integer # PASS: has data type
+      - name: name
+        data_type: varchar # PASS: has data type
+      - name: email
+        # FAIL: no data_type field
 ```
 
 </details>
