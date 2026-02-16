@@ -1,7 +1,8 @@
 use crate::core::config::applies_to::RuleTargetable;
 use crate::core::rules::rule_config::{
-    check_allowed_subfolders, check_name_convention, has_description, has_freshness, has_loader,
-    has_metadata_keys, has_refs, has_tags, has_unique_test, is_not_orphaned, max_code_lines,
+    check_allowed_subfolders, check_name_convention, has_description, has_forbidden_code,
+    has_freshness, has_loader, has_metadata_keys, has_refs, has_tags, has_unique_test,
+    is_not_orphaned, max_code_lines,
 };
 use crate::{
     cli::table::RuleResult,
@@ -108,6 +109,7 @@ fn apply_source_rules<'a>(
                     // These can't be implemented for sources
                     ManifestSpecificRuleConfig::HasRefs {}
                     | ManifestSpecificRuleConfig::MaxCodeLines { .. }
+                    | ManifestSpecificRuleConfig::HasForbiddenCode { .. }
                     | ManifestSpecificRuleConfig::HasContractEnforced { .. } => return Ok(acc),
                 };
 
@@ -174,6 +176,12 @@ fn apply_macro_rules<'a>(
                         ),
                         ManifestSpecificRuleConfig::MaxCodeLines { max_lines } => {
                             max_code_lines(macro_obj, rule, *max_lines)
+                        }
+                        ManifestSpecificRuleConfig::HasForbiddenCode {
+                            forbidden_patterns,
+                            case_sensitive,
+                        } => {
+                            has_forbidden_code(macro_obj, rule, forbidden_patterns, *case_sensitive)
                         }
                         ManifestSpecificRuleConfig::AllowedSubfolders {
                             allowed_subfolders,
@@ -277,6 +285,7 @@ fn apply_exposure_rules<'a>(
                         // These can't be implemented for exposures
                         ManifestSpecificRuleConfig::IsNotOrphaned { .. }
                         | ManifestSpecificRuleConfig::MaxCodeLines { .. }
+                        | ManifestSpecificRuleConfig::HasForbiddenCode { .. }
                         | ManifestSpecificRuleConfig::HasUniqueTest { .. }
                         | ManifestSpecificRuleConfig::HasContractEnforced { .. }
                         | ManifestSpecificRuleConfig::SourcesHaveLoader {}
@@ -349,6 +358,7 @@ fn apply_semantic_model_rules<'a>(
                     // These can't be implemented for semantic models
                     ManifestSpecificRuleConfig::HasTags { .. }
                     | ManifestSpecificRuleConfig::MaxCodeLines { .. }
+                    | ManifestSpecificRuleConfig::HasForbiddenCode { .. }
                     | ManifestSpecificRuleConfig::IsNotOrphaned { .. }
                     | ManifestSpecificRuleConfig::HasUniqueTest { .. }
                     | ManifestSpecificRuleConfig::HasContractEnforced { .. }
@@ -415,6 +425,7 @@ fn apply_unit_test_rules<'a>(
 
                     // Unit Tests do not implement the following rules
                     ManifestSpecificRuleConfig::MaxCodeLines { .. }
+                    | ManifestSpecificRuleConfig::HasForbiddenCode { .. }
                     | ManifestSpecificRuleConfig::HasTags { .. }
                     | ManifestSpecificRuleConfig::HasRefs {}
                     | ManifestSpecificRuleConfig::IsNotOrphaned { .. }

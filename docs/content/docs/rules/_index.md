@@ -75,6 +75,12 @@ Here you can find an overview of all possible rules. Use the filter below to fin
       <td>Enforce a maximum line count for code. </td>
       <td style="font-size: 12px; color: #666;">code, lines, length, size, complexity</td>
     </tr>
+    <tr class="rule-item" data-keywords="forbidden code patterns jinja macros sql banned prohibited disallowed raw_code" data-category="manifest">
+      <td><a href="has_forbidden_code" class="rule-name">has_forbidden_code</a></td>
+      <td><span class="rule-category-badge badge-manifest">Manifest</span></td>
+      <td>Check if code contains forbidden patterns, such direct selects <code>SELECT *</code></td>
+      <td style="font-size: 12px; color: #666;">forbidden, code, patterns, jinja, macros</td>
+    </tr>
     <tr class="rule-item" data-keywords="folder structure organization path subfolders hierarchy medallion bronze silver gold source" data-category="manifest">
       <td><a href="allowed_subfolders" class="rule-name">allowed_subfolders</a></td>
       <td><span class="rule-category-badge badge-manifest">Manifest</span></td>

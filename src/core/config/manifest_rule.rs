@@ -63,6 +63,11 @@ pub enum ManifestSpecificRuleConfig {
         #[serde(default)]
         path_postfix: Option<String>,
     },
+    HasForbiddenCode {
+        forbidden_patterns: Vec<String>,
+        #[serde(default)]
+        case_sensitive: bool,
+    },
     SourcesHaveLoader {},
     SourcesHaveFreshness {},
 }
@@ -270,7 +275,8 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             semantic_model_objects: vec![],
             custom_objects: vec![],
         },
-        ManifestSpecificRuleConfig::MaxCodeLines { .. } => AppliesTo {
+        ManifestSpecificRuleConfig::MaxCodeLines { .. }
+        | ManifestSpecificRuleConfig::HasForbiddenCode { .. } => AppliesTo {
             node_objects: vec![RuleTarget::Models, RuleTarget::Snapshots],
             source_objects: vec![],
             unit_test_objects: vec![],
@@ -397,7 +403,8 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
             semantic_model_objects: vec![RuleTarget::SemanticModels],
             custom_objects: vec![],
         },
-        ManifestSpecificRuleConfig::MaxCodeLines { .. } => AppliesTo {
+        ManifestSpecificRuleConfig::MaxCodeLines { .. }
+        | ManifestSpecificRuleConfig::HasForbiddenCode { .. } => AppliesTo {
             node_objects: vec![RuleTarget::Models, RuleTarget::Snapshots],
             source_objects: vec![],
             unit_test_objects: vec![],

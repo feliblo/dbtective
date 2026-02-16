@@ -105,6 +105,12 @@ impl InitConfig {
                     path_postfix: None,
                 }
             }
+            ManifestSpecificRuleConfig::HasForbiddenCode { .. } => {
+                ManifestSpecificRuleConfig::HasForbiddenCode {
+                    forbidden_patterns: vec!["SELECT *".to_string()],
+                    case_sensitive: false,
+                }
+            }
             ManifestSpecificRuleConfig::SourcesHaveLoader { .. } => {
                 ManifestSpecificRuleConfig::SourcesHaveLoader {}
             }
@@ -360,6 +366,25 @@ impl InitConfig {
     allowed_subfolders: [{folders_str}]"#
                 )
             }
+            ManifestSpecificRuleConfig::HasForbiddenCode {
+                forbidden_patterns,
+                case_sensitive,
+            } => {
+                let patterns_str = forbidden_patterns
+                    .iter()
+                    .map(|p| format!("\"{p}\""))
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                let mut s = format!(
+                    r#"  - name: "has_forbidden_code"
+    type: "has_forbidden_code"
+    forbidden_patterns: [{patterns_str}]"#
+                );
+                if *case_sensitive {
+                    s.push_str("\n    case_sensitive: true");
+                }
+                s
+            }
             ManifestSpecificRuleConfig::SourcesHaveLoader {} => r#"  - name: "sources_have_loader"
     type: "sources_have_loader"
 "#
@@ -604,6 +629,26 @@ name = "allowed_subfolders"
 type = "allowed_subfolders"
 allowed_subfolders = [{folders_str}]"#
                 )
+            }
+            ManifestSpecificRuleConfig::HasForbiddenCode {
+                forbidden_patterns,
+                case_sensitive,
+            } => {
+                let patterns_str = forbidden_patterns
+                    .iter()
+                    .map(|p| format!("\"{p}\""))
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                let mut s = format!(
+                    r#"[[{section}]]
+name = "has_forbidden_code"
+type = "has_forbidden_code"
+forbidden_patterns = [{patterns_str}]"#
+                );
+                if *case_sensitive {
+                    s.push_str("\ncase_sensitive = true");
+                }
+                s
             }
             ManifestSpecificRuleConfig::SourcesHaveLoader {} => {
                 format!(
@@ -1257,6 +1302,10 @@ mod tests {
                     allowed_test_names: vec![],
                 },
                 ManifestSpecificRuleConfig::HasContractEnforced { access_level: None },
+                ManifestSpecificRuleConfig::HasForbiddenCode {
+                    forbidden_patterns: vec![],
+                    case_sensitive: false,
+                },
                 ManifestSpecificRuleConfig::SourcesHaveLoader {},
                 ManifestSpecificRuleConfig::SourcesHaveFreshness {},
             ],
@@ -1265,7 +1314,7 @@ mod tests {
         );
 
         let config = InitConfig::from_questionnaire(&result);
-        assert_eq!(config.manifest_rules.len(), 9);
+        assert_eq!(config.manifest_rules.len(), 10);
     }
 
     #[test]
@@ -2044,7 +2093,7 @@ mod tests {
         );
 
         let config = InitConfig::from_questionnaire(&result);
-        assert_eq!(config.manifest_rules.len(), 12); // All 12 manifest rules
+        assert_eq!(config.manifest_rules.len(), 13); // All 13 manifest rules
     }
 
     #[test]
