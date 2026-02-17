@@ -4,7 +4,7 @@ use crate::{
         catalog::Catalog,
         config::{
             applies_to::RuleTargetable, catalog_rule::CatalogSpecificRuleConfig,
-            severity::Severity, Config,
+            includes_excludes::should_run_test, severity::Severity, Config,
         },
         manifest::Manifest,
         rules::catalog::{
@@ -53,6 +53,11 @@ pub fn apply_catalog_node_rules<'a>(
                 );
                 return Ok(acc);
             };
+
+            // `includes`/`excludes` filtering
+            if !should_run_test(manifest_node, rule.includes.as_ref(), rule.excludes.as_ref()) {
+                return Ok(acc);
+            }
 
             // `applies_to` filtering
             if let Some(applies) = &rule.applies_to {

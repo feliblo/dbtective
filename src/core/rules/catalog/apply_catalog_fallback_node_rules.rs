@@ -3,7 +3,7 @@ use crate::{
     core::{
         config::{
             applies_to::RuleTargetable, catalog_rule::CatalogSpecificRuleConfig,
-            severity::Severity, Config,
+            includes_excludes::should_run_test, severity::Severity, Config,
         },
         manifest::Manifest,
         rules::catalog::{
@@ -38,6 +38,11 @@ pub fn apply_catalog_fallback_node_rules<'a>(
         .try_fold(Vec::new(), |mut acc, (node, rule)| -> anyhow::Result<_> {
             // Skip rules that cannot fall back to manifest-only mode
             if !rule.rule.supports_manifest_fallback() {
+                return Ok(acc);
+            }
+
+            // `includes`/`excludes` filtering
+            if !should_run_test(node, rule.includes.as_ref(), rule.excludes.as_ref()) {
                 return Ok(acc);
             }
 

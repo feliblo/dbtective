@@ -3,7 +3,7 @@ use crate::{
     core::{
         config::{
             applies_to::RuleTargetable, catalog_rule::CatalogSpecificRuleConfig,
-            severity::Severity, Config,
+            includes_excludes::should_run_test, severity::Severity, Config,
         },
         manifest::Manifest,
         rules::catalog::{
@@ -37,6 +37,11 @@ pub fn apply_catalog_fallback_source_rules<'a>(
         .flat_map(|source| catalog_tests.iter().map(move |rule| (source, rule)))
         .try_fold(Vec::new(), |mut acc, (source, rule)| -> anyhow::Result<_> {
             if !rule.rule.supports_manifest_fallback() {
+                return Ok(acc);
+            }
+
+            // `includes`/`excludes` filtering
+            if !should_run_test(source, rule.includes.as_ref(), rule.excludes.as_ref()) {
                 return Ok(acc);
             }
 

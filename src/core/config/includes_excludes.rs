@@ -703,4 +703,371 @@ mod tests {
             "Exact exclude should work with normalized backslash paths"
         );
     }
+
+    // =========================================================================
+    // Windows manifest paths with dbt/ prefix
+    // These simulate real Windows dbt manifests where original_file_path has
+    // a prefix like "dbt/" and backslash separators
+    // =========================================================================
+
+    #[test]
+    fn test_windows_dbt_prefix_include_directory() {
+        // Real Windows manifest: "dbt/models\\marts\\mart_orders.sql"
+        let obj = TestObject {
+            path: r"dbt/models\marts\mart_orders.sql".to_string(),
+        };
+        let includes = Some(vec!["models/marts".to_string()]);
+        assert!(
+            should_run_test(&obj, includes.as_ref(), None),
+            "Include 'models/marts' should match path with dbt/ prefix via contains"
+        );
+    }
+
+    #[test]
+    fn test_windows_dbt_prefix_exclude_specific_file() {
+        let obj = TestObject {
+            path: r"dbt/models\marts\mart_orders.sql".to_string(),
+        };
+        let includes = Some(vec!["models/marts".to_string()]);
+        let excludes = Some(vec!["models/marts/mart_orders.sql".to_string()]);
+        assert!(
+            !should_run_test(&obj, includes.as_ref(), excludes.as_ref()),
+            "Exclude specific file should work with dbt/ prefix path"
+        );
+    }
+
+    #[test]
+    fn test_windows_dbt_prefix_exclude_by_filename_only() {
+        let obj = TestObject {
+            path: r"dbt/models\marts\mart_orders.sql".to_string(),
+        };
+        let includes = Some(vec!["models/marts".to_string()]);
+        let excludes = Some(vec!["mart_orders".to_string()]);
+        assert!(
+            !should_run_test(&obj, includes.as_ref(), excludes.as_ref()),
+            "Exclude by filename-only should work via contains matching"
+        );
+    }
+
+    #[test]
+    fn test_windows_dbt_prefix_exclude_by_filename_with_extension() {
+        let obj = TestObject {
+            path: r"dbt/models\marts\mart_orders.sql".to_string(),
+        };
+        let includes = Some(vec!["models/marts".to_string()]);
+        let excludes = Some(vec!["mart_orders.sql".to_string()]);
+        assert!(
+            !should_run_test(&obj, includes.as_ref(), excludes.as_ref()),
+            "Exclude by filename.sql should work via contains matching"
+        );
+    }
+
+    #[test]
+    fn test_windows_dbt_prefix_exclude_directory() {
+        // Exclude entire directory
+        let obj = TestObject {
+            path: r"dbt/models\raw\subsystem\subsystem_case_info.sql".to_string(),
+        };
+        let excludes = Some(vec!["models/raw".to_string()]);
+        assert!(
+            !should_run_test(&obj, None, excludes.as_ref()),
+            "Exclude 'models/raw' should exclude all files under that directory"
+        );
+    }
+
+    #[test]
+    fn test_windows_dbt_prefix_exclude_directory_with_glob() {
+        let obj = TestObject {
+            path: r"dbt/models\raw\subsystem\subsystem_case_info.sql".to_string(),
+        };
+        let excludes = Some(vec!["models/raw/**/*".to_string()]);
+        assert!(
+            !should_run_test(&obj, None, excludes.as_ref()),
+            "Exclude 'models/raw/**/*' should exclude nested files"
+        );
+    }
+
+    #[test]
+    fn test_windows_dbt_prefix_include_and_exclude_combined() {
+        let included_object = TestObject {
+            path: r"dbt/models\marts\mart_customers.sql".to_string(),
+        };
+        let excluded_object = TestObject {
+            path: r"dbt/models\marts\mart_orders.sql".to_string(),
+        };
+        let not_in_scope = TestObject {
+            path: r"dbt/models\staging\stg_customers.sql".to_string(),
+        };
+
+        let includes = Some(vec!["models/marts".to_string()]);
+        let excludes = Some(vec!["models/marts/mart_orders.sql".to_string()]);
+
+        assert!(
+            should_run_test(&included_object, includes.as_ref(), excludes.as_ref()),
+            "mart_customers should be included"
+        );
+        assert!(
+            !should_run_test(&excluded_object, includes.as_ref(), excludes.as_ref()),
+            "mart_orders should be excluded"
+        );
+        assert!(
+            !should_run_test(&not_in_scope, includes.as_ref(), excludes.as_ref()),
+            "staging model should not be in scope (not in includes)"
+        );
+    }
+
+    #[test]
+    fn test_windows_dbt_prefix_deep_backslash_path() {
+        let obj = TestObject {
+            path: r"dbt/models\raw\subsystem\subsystem_case_info.sql".to_string(),
+        };
+        let includes = Some(vec!["models/raw".to_string()]);
+        assert!(
+            should_run_test(&obj, includes.as_ref(), None),
+            "Include 'models/raw' should match deeply nested Windows path"
+        );
+    }
+
+    #[test]
+    fn test_windows_dbt_prefix_mixed_slashes() {
+        // Some Windows manifests have mixed forward/backslashes
+        let obj = TestObject {
+            path: r"dbt/models\marts\mart_orders.sql".to_string(),
+        };
+        let includes = Some(vec!["models/marts".to_string()]);
+        assert!(
+            should_run_test(&obj, includes.as_ref(), None),
+            "Mixed slashes in path should be normalized and match"
+        );
+    }
+
+    #[test]
+    fn test_windows_dbt_prefix_exclude_does_not_affect_others() {
+        // Excluding one file should not affect other files in the same directory
+        let mart_a = TestObject {
+            path: r"dbt/models\marts\mart_a.sql".to_string(),
+        };
+        let mart_b = TestObject {
+            path: r"dbt/models\marts\mart_b.sql".to_string(),
+        };
+        let mart_c = TestObject {
+            path: r"dbt/models\marts\mart_c.sql".to_string(),
+        };
+
+        let includes = Some(vec!["models/marts".to_string()]);
+        let excludes = Some(vec!["mart_b".to_string()]);
+
+        assert!(
+            should_run_test(&mart_a, includes.as_ref(), excludes.as_ref()),
+            "mart_a should be included"
+        );
+        assert!(
+            !should_run_test(&mart_b, includes.as_ref(), excludes.as_ref()),
+            "mart_b should be excluded"
+        );
+        assert!(
+            should_run_test(&mart_c, includes.as_ref(), excludes.as_ref()),
+            "mart_c should be included"
+        );
+    }
+
+    // =========================================================================
+    // Unix manifest paths (no prefix or with prefix)
+    // =========================================================================
+
+    #[test]
+    fn test_unix_path_include_directory_no_prefix() {
+        let obj = TestObject {
+            path: "models/marts/mart_model.sql".to_string(),
+        };
+        let includes = Some(vec!["models/marts".to_string()]);
+        assert!(
+            should_run_test(&obj, includes.as_ref(), None),
+            "Include should match Unix path without prefix"
+        );
+    }
+
+    #[test]
+    fn test_unix_path_exclude_specific_file_no_prefix() {
+        let obj = TestObject {
+            path: "models/marts/mart_orders.sql".to_string(),
+        };
+        let includes = Some(vec!["models/marts".to_string()]);
+        let excludes = Some(vec!["models/marts/mart_orders.sql".to_string()]);
+        assert!(
+            !should_run_test(&obj, includes.as_ref(), excludes.as_ref()),
+            "Exclude should work with exact path on Unix"
+        );
+    }
+
+    #[test]
+    fn test_unix_path_with_prefix_include() {
+        let obj = TestObject {
+            path: "dbt/models/marts/mart_model.sql".to_string(),
+        };
+        let includes = Some(vec!["models/marts".to_string()]);
+        assert!(
+            should_run_test(&obj, includes.as_ref(), None),
+            "Include should match Unix path with dbt/ prefix via contains"
+        );
+    }
+
+    #[test]
+    fn test_unix_path_with_prefix_exclude() {
+        let obj = TestObject {
+            path: "dbt/models/marts/mart_orders.sql".to_string(),
+        };
+        let includes = Some(vec!["models/marts".to_string()]);
+        let excludes = Some(vec!["models/marts/mart_orders.sql".to_string()]);
+        assert!(
+            !should_run_test(&obj, includes.as_ref(), excludes.as_ref()),
+            "Exclude should work with Unix path with dbt/ prefix"
+        );
+    }
+
+    #[test]
+    fn test_unix_exclude_directory_with_prefix() {
+        let obj = TestObject {
+            path: "dbt/models/raw/subsystem/file.sql".to_string(),
+        };
+        let excludes = Some(vec!["models/raw".to_string()]);
+        assert!(
+            !should_run_test(&obj, None, excludes.as_ref()),
+            "Directory exclude should work with prefix path"
+        );
+    }
+
+    #[test]
+    fn test_unix_exclude_glob_with_prefix() {
+        let obj = TestObject {
+            path: "dbt/models/raw/subsystem/file.sql".to_string(),
+        };
+        let excludes = Some(vec!["models/raw/**/*".to_string()]);
+        assert!(
+            !should_run_test(&obj, None, excludes.as_ref()),
+            "Glob exclude should work with prefix path"
+        );
+    }
+
+    // =========================================================================
+    // Edge cases: various exclude pattern formats
+    // =========================================================================
+
+    #[test]
+    fn test_exclude_all_pattern_formats_work() {
+        // All these patterns should exclude mart_orders.sql
+        let obj = TestObject {
+            path: r"dbt/models\marts\mart_orders.sql".to_string(),
+        };
+
+        // Pattern 1: full relative path
+        let ex1 = Some(vec!["models/marts/mart_orders.sql".to_string()]);
+        assert!(
+            !should_run_test(&obj, None, ex1.as_ref()),
+            "Full relative path exclude should work"
+        );
+
+        // Pattern 2: filename only (no extension)
+        let ex2 = Some(vec!["mart_orders".to_string()]);
+        assert!(
+            !should_run_test(&obj, None, ex2.as_ref()),
+            "Filename-only exclude should work"
+        );
+
+        // Pattern 3: filename with extension
+        let ex3 = Some(vec!["mart_orders.sql".to_string()]);
+        assert!(
+            !should_run_test(&obj, None, ex3.as_ref()),
+            "Filename with extension exclude should work"
+        );
+
+        // Pattern 4: directory path
+        let ex4 = Some(vec!["models/marts".to_string()]);
+        assert!(
+            !should_run_test(&obj, None, ex4.as_ref()),
+            "Directory path exclude should work"
+        );
+
+        // Pattern 5: glob pattern
+        let ex5 = Some(vec!["models/marts/*.sql".to_string()]);
+        assert!(
+            !should_run_test(&obj, None, ex5.as_ref()),
+            "Glob pattern exclude should work"
+        );
+
+        // Pattern 6: full path with dbt/ prefix
+        let ex6 = Some(vec!["dbt/models/marts/mart_orders.sql".to_string()]);
+        assert!(
+            !should_run_test(&obj, None, ex6.as_ref()),
+            "Full path with dbt/ prefix exclude should work (exact match after normalization)"
+        );
+    }
+
+    #[test]
+    fn test_include_all_pattern_formats_work() {
+        let obj = TestObject {
+            path: r"dbt/models\marts\mart_orders.sql".to_string(),
+        };
+
+        // Pattern 1: directory contains
+        let inc1 = Some(vec!["models/marts".to_string()]);
+        assert!(
+            should_run_test(&obj, inc1.as_ref(), None),
+            "Directory contains include should work"
+        );
+
+        // Pattern 2: filename contains
+        let inc2 = Some(vec!["mart_orders".to_string()]);
+        assert!(
+            should_run_test(&obj, inc2.as_ref(), None),
+            "Filename contains include should work"
+        );
+
+        // Pattern 3: glob
+        let inc3 = Some(vec!["models/marts/*.sql".to_string()]);
+        assert!(
+            should_run_test(&obj, inc3.as_ref(), None),
+            "Glob include should work"
+        );
+
+        // Pattern 4: full path with dbt/ prefix (exact match after normalization)
+        let inc4 = Some(vec!["dbt/models/marts/mart_orders.sql".to_string()]);
+        assert!(
+            should_run_test(&obj, inc4.as_ref(), None),
+            "Full path with prefix include should work"
+        );
+    }
+
+    // =========================================================================
+    // Path normalization consistency tests
+    // =========================================================================
+
+    #[test]
+    fn test_all_path_formats_resolve_same_way() {
+        // These should all be treated as the same model for matching purposes
+        let paths = vec![
+            r"dbt/models\marts\mart_orders.sql", // Windows with dbt prefix
+            r"dbt\models\marts\mart_orders.sql", // Pure Windows with dbt prefix
+            "dbt/models/marts/mart_orders.sql",  // Unix with dbt prefix
+            r"models\marts\mart_orders.sql",     // Windows without prefix
+            "models/marts/mart_orders.sql",      // Unix without prefix
+        ];
+
+        let includes = Some(vec!["models/marts".to_string()]);
+        let excludes_filename = Some(vec!["mart_orders".to_string()]);
+
+        for path_str in &paths {
+            let obj = TestObject {
+                path: (*path_str).to_string(),
+            };
+            assert!(
+                should_run_test(&obj, includes.as_ref(), None),
+                "Include 'models/marts' should match path: {path_str}"
+            );
+            assert!(
+                !should_run_test(&obj, None, excludes_filename.as_ref()),
+                "Exclude 'mart_orders' should match path: {path_str}"
+            );
+        }
+    }
 }

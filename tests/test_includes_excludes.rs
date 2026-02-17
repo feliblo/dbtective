@@ -637,6 +637,339 @@ mod windows_tests {
     }
 }
 
+// =========================================================================
+// Tests for Windows-generated manifests with dbt/ prefix and backslashes
+// These run on ALL platforms since dbtective can process Windows manifests anywhere
+// =========================================================================
+
+/// Helper that creates manifests with explicit `original_file_path` (to simulate dbt/ prefix)
+#[allow(clippy::too_many_lines)]
+fn manifest_with_explicit_paths(models: &[(&str, &str, &str)]) -> String {
+    let mut nodes_json = String::new();
+    for (i, (name, path, original_file_path)) in models.iter().enumerate() {
+        if i > 0 {
+            nodes_json.push_str(",\n");
+        }
+        // original_file_path may contain backslashes - must escape for JSON
+        let escaped_ofp = original_file_path.replace('\\', "\\\\");
+        let escaped_path = path.replace('\\', "\\\\");
+        #[allow(clippy::format_push_string)]
+        nodes_json.push_str(&format!(
+            r#"    "model.test_project.{name}": {{
+      "database": "analytics",
+      "schema": "public",
+      "name": "{name}",
+      "resource_type": "model",
+      "package_name": "test_project",
+      "path": "{escaped_path}",
+      "original_file_path": "{escaped_ofp}",
+      "unique_id": "model.test_project.{name}",
+      "fqn": ["test_project", "{name}"],
+      "alias": "{name}",
+      "checksum": {{"name": "sha256", "checksum": "abc123"}},
+      "config": {{
+        "enabled": true,
+        "materialized": "view",
+        "tags": []
+      }},
+      "tags": [],
+      "description": "",
+      "columns": {{}},
+      "meta": {{}},
+      "group": null,
+      "docs": {{"show": true}},
+      "patch_path": null,
+      "build_path": null,
+      "unrendered_config": {{}},
+      "created_at": 1704067200.0,
+      "config_call_dict": {{}},
+      "relation_name": "\"analytics\".\"public\".\"{name}\"",
+      "raw_code": "SELECT 1",
+      "language": "sql",
+      "refs": [],
+      "sources": [],
+      "metrics": [],
+      "depends_on": {{"macros": [], "nodes": []}},
+      "compiled_code": null,
+      "extra_ctes_injected": false,
+      "extra_ctes": [],
+      "contract": {{"enforced": false, "checksum": null}}
+    }}"#
+        ));
+    }
+
+    format!(
+        r#"{{
+  "metadata": {{
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "invocation_id": "test-invocation",
+    "env": {{}},
+    "project_name": "test_project",
+    "adapter_type": "postgres",
+    "quoting": {{
+      "database": true,
+      "schema": true,
+      "identifier": true,
+      "column": null
+    }}
+  }},
+  "nodes": {{
+{nodes_json}
+  }},
+  "sources": {{}},
+  "macros": {{}},
+  "exposures": {{}},
+  "metrics": {{}},
+  "groups": {{}},
+  "selectors": {{}},
+  "disabled": {{}},
+  "parent_map": {{}},
+  "child_map": {{}},
+  "group_map": {{}},
+  "semantic_models": {{}},
+  "unit_tests": {{}},
+  "saved_queries": {{}}
+}}"#
+    )
+}
+
+#[test]
+fn test_dbt_prefix_include_directory() {
+    let manifest = manifest_with_explicit_paths(&[
+        (
+            "mart_orders",
+            r"marts\mart_orders.sql",
+            r"PREFIXES_SHOULDTNMATTER/models\marts\mart_orders.sql",
+        ),
+        (
+            "mart_customers",
+            r"marts\mart_customers.sql",
+            r"PREFIXES_SHOULDTNMATTER/models\marts\mart_customers.sql",
+        ),
+        (
+            "stg_orders",
+            r"staging\stg_orders.sql",
+            r"PREFIXES_SHOULDTNMATTER/models\staging\stg_orders.sql",
+        ),
+    ]);
+
+    let config = config_with_includes(&["models/marts"]);
+    let env = TestEnvironment::new(&manifest, &config);
+    let findings = env.run_maniest_rules(false);
+
+    assert_eq!(
+        findings.len(),
+        2,
+        "Include 'models/marts' should match 2 mart models with PREFIXES_SHOULDTNMATTER/ prefix"
+    );
+}
+
+#[test]
+fn test_dbt_prefix_exclude_specific_file() {
+    let manifest = manifest_with_explicit_paths(&[
+        (
+            "mart_orders",
+            r"marts\mart_orders.sql",
+            r"dbt/models\marts\mart_orders.sql",
+        ),
+        (
+            "mart_customers",
+            r"marts\mart_customers.sql",
+            r"dbt/models\marts\mart_customers.sql",
+        ),
+    ]);
+
+    let config =
+        config_with_includes_and_excludes(&["models/marts"], &["models/marts/mart_orders.sql"]);
+    let env = TestEnvironment::new(&manifest, &config);
+    let findings = env.run_maniest_rules(false);
+
+    assert_eq!(
+        findings.len(),
+        1,
+        "Should exclude mart_orders, leaving mart_customers"
+    );
+}
+
+#[test]
+fn test_dbt_prefix_exclude_by_filename() {
+    let manifest = manifest_with_explicit_paths(&[
+        (
+            "mart_orders",
+            r"marts\mart_orders.sql",
+            r"dbt/models\marts\mart_orders.sql",
+        ),
+        (
+            "mart_customers",
+            r"marts\mart_customers.sql",
+            r"dbt/models\marts\mart_customers.sql",
+        ),
+    ]);
+
+    let config = config_with_includes_and_excludes(&["models/marts"], &["mart_orders"]);
+    let env = TestEnvironment::new(&manifest, &config);
+    let findings = env.run_maniest_rules(false);
+
+    assert_eq!(
+        findings.len(),
+        1,
+        "Filename-only exclude should work with dbt/ prefix path"
+    );
+}
+
+#[test]
+fn test_dbt_prefix_exclude_directory() {
+    let manifest = manifest_with_explicit_paths(&[
+        (
+            "raw_file",
+            r"raw\subsystem\raw_file.sql",
+            r"dbt/models\raw\subsystem\raw_file.sql",
+        ),
+        (
+            "mart_orders",
+            r"marts\mart_orders.sql",
+            r"dbt/models\marts\mart_orders.sql",
+        ),
+    ]);
+
+    let config = config_with_excludes(&["models/raw"]);
+    let env = TestEnvironment::new(&manifest, &config);
+    let findings = env.run_maniest_rules(false);
+
+    assert_eq!(
+        findings.len(),
+        1,
+        "Directory exclude should work with dbt/ prefix"
+    );
+}
+
+#[test]
+fn test_dbt_prefix_exclude_directory_with_glob() {
+    let manifest = manifest_with_explicit_paths(&[
+        (
+            "raw_file",
+            r"raw\subsystem\raw_file.sql",
+            r"dbt/models\raw\subsystem\raw_file.sql",
+        ),
+        (
+            "mart_orders",
+            r"marts\mart_orders.sql",
+            r"dbt/models\marts\mart_orders.sql",
+        ),
+    ]);
+
+    let config = config_with_excludes(&["models/raw/**/*"]);
+    let env = TestEnvironment::new(&manifest, &config);
+    let findings = env.run_maniest_rules(false);
+
+    assert_eq!(
+        findings.len(),
+        1,
+        "Glob directory exclude should work with dbt/ prefix"
+    );
+}
+
+#[test]
+fn test_dbt_prefix_multiple_exclude_formats() {
+    // All these patterns should exclude mart_orders from Windows manifest
+    let manifest = manifest_with_explicit_paths(&[
+        (
+            "mart_orders",
+            r"marts\mart_orders.sql",
+            r"dbt/models\marts\mart_orders.sql",
+        ),
+        (
+            "mart_customers",
+            r"marts\mart_customers.sql",
+            r"dbt/models\marts\mart_customers.sql",
+        ),
+    ]);
+
+    // Test each exclude format independently
+    let patterns = vec![
+        "models/marts/mart_orders.sql", // relative path
+        "mart_orders",                  // filename only
+        "mart_orders.sql",              // filename with extension
+    ];
+
+    for pattern in &patterns {
+        let config = config_with_excludes(&[pattern]);
+        let env = TestEnvironment::new(&manifest, &config);
+        let findings = env.run_maniest_rules(false);
+        assert_eq!(
+            findings.len(),
+            1,
+            "Exclude pattern '{pattern}' should exclude mart_orders from dbt/ prefix path"
+        );
+    }
+}
+
+#[test]
+fn test_dbt_prefix_unix_paths_same_behavior() {
+    // Same test but with Unix-style paths (no backslashes)
+    let manifest = manifest_with_explicit_paths(&[
+        (
+            "mart_orders",
+            "marts/mart_orders.sql",
+            "dbt/models/marts/mart_orders.sql",
+        ),
+        (
+            "mart_customers",
+            "marts/mart_customers.sql",
+            "dbt/models/marts/mart_customers.sql",
+        ),
+        (
+            "stg_orders",
+            "staging/stg_orders.sql",
+            "dbt/models/staging/stg_orders.sql",
+        ),
+    ]);
+
+    let config = config_with_includes_and_excludes(&["models/marts"], &["mart_orders"]);
+    let env = TestEnvironment::new(&manifest, &config);
+    let findings = env.run_maniest_rules(false);
+
+    assert_eq!(
+        findings.len(),
+        1,
+        "Unix dbt/ prefix paths should behave same as Windows"
+    );
+}
+
+#[test]
+fn test_no_prefix_paths_still_work() {
+    // Models without dbt/ prefix (standard dbt layout)
+    let manifest = manifest_with_explicit_paths(&[
+        (
+            "mart_orders",
+            "marts/mart_orders.sql",
+            "models/marts/mart_orders.sql",
+        ),
+        (
+            "mart_customers",
+            "marts/mart_customers.sql",
+            "models/marts/mart_customers.sql",
+        ),
+        (
+            "stg_orders",
+            "staging/stg_orders.sql",
+            "models/staging/stg_orders.sql",
+        ),
+    ]);
+
+    let config = config_with_includes_and_excludes(&["models/marts"], &["mart_orders"]);
+    let env = TestEnvironment::new(&manifest, &config);
+    let findings = env.run_maniest_rules(false);
+
+    assert_eq!(
+        findings.len(),
+        1,
+        "Standard paths without prefix should still work"
+    );
+}
+
 /// Comprehensive test that validates all pattern matching capabilities in one test
 /// This test creates a diverse set of models and validates pattern matching behavior
 #[test]
