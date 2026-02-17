@@ -39,7 +39,9 @@ pub fn max_code_lines<T: HasCode>(
         object_with_code.get_object_type(),
         rule.get_name(),
         message,
-        object_with_code.get_relative_path().map(str::to_owned),
+        object_with_code
+            .get_problematic_path(false)
+            .map(str::to_owned),
     ))
 }
 
@@ -61,7 +63,7 @@ mod tests {
         fn get_object_string(&self) -> &str {
             &self.name
         }
-        fn get_relative_path(&self) -> Option<&str> {
+        fn get_problematic_path(&self, __prefer_sql: bool) -> Option<&str> {
             self.relative_path.as_deref()
         }
     }

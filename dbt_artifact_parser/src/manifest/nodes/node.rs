@@ -70,7 +70,7 @@ impl Node {
         self.as_str()
     }
 
-    pub const fn get_relative_path(&self) -> &String {
+    pub const fn get_original_file_path(&self) -> &String {
         &self.get_base().original_file_path
     }
 

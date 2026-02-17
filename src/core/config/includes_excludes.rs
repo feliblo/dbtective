@@ -1,7 +1,7 @@
 use regex::Regex;
 
 pub trait IncludeExcludable {
-    fn get_relative_path(&self) -> &String;
+    fn get_original_file_path(&self) -> &String;
 }
 
 pub fn should_run_test<T: IncludeExcludable>(
@@ -10,7 +10,7 @@ pub fn should_run_test<T: IncludeExcludable>(
     excludes: Option<&Vec<String>>,
 ) -> bool {
     // Normalize path separators to forward slashes for cross-platform compatibility
-    let raw_path = object.get_relative_path();
+    let raw_path = object.get_original_file_path();
     let path = &raw_path.replace('\\', "/");
 
     // 1. Exact exclude -> always exclude
@@ -110,7 +110,7 @@ mod tests {
         path: String,
     }
     impl IncludeExcludable for TestObject {
-        fn get_relative_path(&self) -> &String {
+        fn get_original_file_path(&self) -> &String {
             &self.path
         }
     }

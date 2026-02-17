@@ -14,7 +14,7 @@ pub fn has_loader<T: SourcesHaveLoader>(loadable: &T, rule: &ManifestRule) -> Op
             loadable.get_object_type(),
             rule.get_name(),
             format!("{} is missing a loader.", loadable.get_object_string()),
-            loadable.get_relative_path().map(str::to_owned),
+            loadable.get_problematic_path(false).map(str::to_owned),
         )),
     }
 }
@@ -34,7 +34,7 @@ mod tests {
         fn get_object_type(&self) -> &str {
             "Source"
         }
-        fn get_relative_path(&self) -> Option<&str> {
+        fn get_problematic_path(&self, __prefer_sql: bool) -> Option<&str> {
             None
         }
         fn get_object_string(&self) -> &str {

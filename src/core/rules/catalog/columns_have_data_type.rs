@@ -25,7 +25,9 @@ pub fn columns_have_data_type<C: Columnable, M: Columnable>(
                 "No columns available for '{}'",
                 C::get_object_string(catalog_object)
             ),
-            catalog_object.get_relative_path().map(str::to_owned),
+            catalog_object
+                .get_problematic_path(false)
+                .map(str::to_owned),
         ));
     };
 
@@ -69,7 +71,7 @@ pub fn columns_have_data_type<C: Columnable, M: Columnable>(
                 threshold,
                 missing_columns
             ),
-            manifest_object.get_relative_path().map(str::to_owned),
+            manifest_object.get_problematic_path(false).map(str::to_owned),
         ));
     }
 
@@ -83,7 +85,9 @@ pub fn columns_have_data_type<C: Columnable, M: Columnable>(
             M::get_object_string(manifest_object),
             missing_columns
         ),
-        manifest_object.get_relative_path().map(str::to_owned),
+        manifest_object
+            .get_problematic_path(false)
+            .map(str::to_owned),
     ))
 }
 
@@ -110,7 +114,7 @@ mod tests {
         fn get_object_string(&self) -> &str {
             &self.object_string
         }
-        fn get_relative_path(&self) -> Option<&str> {
+        fn get_problematic_path(&self, __prefer_sql: bool) -> Option<&str> {
             self.relative_path.as_deref()
         }
     }

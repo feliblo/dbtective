@@ -21,7 +21,7 @@ pub fn has_freshness<T: SourcesHaveFreshness>(
                 "{} is missing freshness configuration.",
                 source.get_object_string()
             ),
-            source.get_relative_path().map(str::to_owned),
+            source.get_problematic_path(false).map(str::to_owned),
         ))
     }
 }
@@ -41,7 +41,7 @@ mod tests {
         fn get_object_type(&self) -> &str {
             "Source"
         }
-        fn get_relative_path(&self) -> Option<&str> {
+        fn get_problematic_path(&self, _prefer_sql: bool) -> Option<&str> {
             None
         }
         fn get_object_string(&self) -> &str {

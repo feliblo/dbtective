@@ -28,7 +28,7 @@ pub fn check_name_convention<T: NameAble>(
                 item.get_object_string(),
                 convention.name()
             ),
-            item.get_relative_path().map(str::to_owned),
+            item.get_problematic_path(false).map(str::to_owned),
         ))
     }
 }
@@ -46,7 +46,7 @@ mod tests {
             "TestItem"
         }
 
-        fn get_relative_path(&self) -> Option<&str> {
+        fn get_problematic_path(&self, __prefer_sql: bool) -> Option<&str> {
             None
         }
 
@@ -83,7 +83,7 @@ mod tests {
                 item_invalid.get_object_type(),
                 rule.rule.as_str(),
                 "TestItem does not follow the snake_case naming convention.".to_string(),
-                item_invalid.get_relative_path().map(str::to_owned),
+                item_invalid.get_problematic_path(false).map(str::to_owned),
             ))
         );
     }
@@ -111,7 +111,7 @@ mod tests {
                 item_invalid.get_object_type(),
                 rule.rule.as_str(),
                 "test_item does not follow the PascalCase naming convention.".to_string(),
-                item_invalid.get_relative_path().map(str::to_owned),
+                item_invalid.get_problematic_path(false).map(str::to_owned),
             ))
         );
     }
@@ -139,7 +139,7 @@ mod tests {
                 item_invalid.get_object_type(),
                 rule.rule.as_str(),
                 "TestItem does not follow the kebab-case naming convention.".to_string(),
-                item_invalid.get_relative_path().map(str::to_owned),
+                item_invalid.get_problematic_path(false).map(str::to_owned),
             ))
         );
     }
@@ -167,7 +167,7 @@ mod tests {
                 item_invalid.get_object_type(),
                 rule.rule.as_str(),
                 "Test_Item does not follow the camelCase naming convention.".to_string(),
-                item_invalid.get_relative_path().map(str::to_owned),
+                item_invalid.get_problematic_path(false).map(str::to_owned),
             ))
         );
     }
@@ -195,7 +195,7 @@ mod tests {
                 item_invalid.get_object_type(),
                 rule.rule.as_str(),
                 "AB-123 does not follow the ^[A-Z]{3}-[0-9]{4}$ naming convention.".to_string(),
-                item_invalid.get_relative_path().map(str::to_owned),
+                item_invalid.get_problematic_path(false).map(str::to_owned),
             ))
         );
     }

@@ -27,7 +27,7 @@ impl Macro {
         "Macro"
     }
 
-    pub const fn get_relative_path(&self) -> &String {
+    pub const fn get_original_file_path(&self) -> &String {
         &self.original_file_path
     }
 
