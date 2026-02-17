@@ -22,9 +22,9 @@ This may indicate that you're using hardcoded SQL to reference data directly fro
 **Configuration**
 
 - **type**: Must be `has_refs`.
-- **applies_to**: *(optional)* List of dbt object types to include.
-  - Default: `["models", "snapshots", "analyses", "exposures"]`
-  - Options: `models`, `seeds`, `snapshots` , `analyses`, `exposures`, `semantics_models`
+- **applies_to**: _(optional)_ List of dbt object types to include.
+  - Default: `["models", "snapshots", "analyses"]`
+  - Options: `models`, `seeds`, `snapshots` , `analyses`, `semantics_models`
 
 {{< include-markdown "content/snippets/common_rule_config.md" >}}
 
