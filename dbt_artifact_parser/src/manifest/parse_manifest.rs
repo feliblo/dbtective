@@ -87,14 +87,22 @@ impl Manifest {
         self.sources.get(unique_id)
     }
 
-    // Get tests attached to a specific parent node
+    // Get tests attached to a specific parent node or source
+    // For nodes (models, seeds, etc.), the parent is in `attached_node`.
+    // For sources, `attached_node` is null and the parent is in `depends_on.nodes`.
     pub fn get_tests_by_parent(&self, parent_unique_id: &str) -> Vec<&Test> {
         self.nodes
             .iter()
             .filter_map(|(_, node)| {
                 if let Node::Test(test) = node {
+                    // Check attached_node first (set for tests on nodes like models)
                     if let Some(attached_node) = &test.attached_node {
                         if attached_node == parent_unique_id {
+                            return Some(test);
+                        }
+                    } else if let Some(dep_nodes) = &test.base.depends_on.nodes {
+                        // Fallback to depends_on.nodes (used for tests on sources)
+                        if dep_nodes.iter().any(|n| n == parent_unique_id) {
                             return Some(test);
                         }
                     }
@@ -197,7 +205,151 @@ pub struct Quoting {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::manifest::nodes::node::DependsOn;
+    use crate::manifest::nodes::test::TestMetadata;
     use std::path::PathBuf;
+
+    fn create_test_with_attached_node(unique_id: &str, name: &str, attached_node: &str) -> Test {
+        let mut test = Test::default();
+        test.base.unique_id = unique_id.to_string();
+        test.base.name = name.to_string();
+        test.attached_node = Some(attached_node.to_string());
+        test.test_metadata = Some(TestMetadata {
+            name: name.to_string(),
+            kwargs: None,
+            namespace: None,
+        });
+        test
+    }
+
+    fn create_test_with_depends_on(
+        unique_id: &str,
+        name: &str,
+        depends_on_nodes: Vec<String>,
+    ) -> Test {
+        let mut test = Test::default();
+        test.base.unique_id = unique_id.to_string();
+        test.base.name = name.to_string();
+        test.attached_node = None;
+        test.base.depends_on = DependsOn {
+            nodes: Some(depends_on_nodes),
+            macros: None,
+        };
+        test.test_metadata = Some(TestMetadata {
+            name: name.to_string(),
+            kwargs: None,
+            namespace: None,
+        });
+        test
+    }
+
+    fn manifest_with_tests(tests: Vec<Test>) -> Manifest {
+        let mut manifest = Manifest::default();
+        for test in tests {
+            manifest
+                .nodes
+                .insert(test.base.unique_id.clone(), Node::Test(test));
+        }
+        manifest
+    }
+
+    #[test]
+    fn test_get_tests_by_parent_via_attached_node() {
+        let manifest = manifest_with_tests(vec![create_test_with_attached_node(
+            "test.unique_id",
+            "unique",
+            "model.my_model",
+        )]);
+        let tests = manifest.get_tests_by_parent("model.my_model");
+        assert_eq!(tests.len(), 1);
+        assert_eq!(tests[0].base.name, "unique");
+    }
+
+    #[test]
+    fn test_get_tests_by_parent_via_depends_on_for_sources() {
+        let manifest = manifest_with_tests(vec![create_test_with_depends_on(
+            "test.source_unique",
+            "unique",
+            vec!["source.my_project.raw.my_table".to_string()],
+        )]);
+        let tests = manifest.get_tests_by_parent("source.my_project.raw.my_table");
+        assert_eq!(tests.len(), 1);
+        assert_eq!(tests[0].base.name, "unique");
+    }
+
+    #[test]
+    fn test_get_tests_by_parent_no_match() {
+        let manifest = manifest_with_tests(vec![create_test_with_attached_node(
+            "test.unique_id",
+            "unique",
+            "model.other_model",
+        )]);
+        let tests = manifest.get_tests_by_parent("model.my_model");
+        assert!(tests.is_empty());
+    }
+
+    #[test]
+    fn test_get_tests_by_parent_no_match_depends_on() {
+        let manifest = manifest_with_tests(vec![create_test_with_depends_on(
+            "test.source_unique",
+            "unique",
+            vec!["source.my_project.raw.other_table".to_string()],
+        )]);
+        let tests = manifest.get_tests_by_parent("source.my_project.raw.my_table");
+        assert!(tests.is_empty());
+    }
+
+    #[test]
+    fn test_get_tests_by_parent_mixed_attached_and_depends_on() {
+        let manifest = manifest_with_tests(vec![
+            create_test_with_attached_node("test.node_unique", "unique", "model.my_model"),
+            create_test_with_depends_on(
+                "test.source_unique",
+                "unique",
+                vec!["source.my_project.raw.my_table".to_string()],
+            ),
+        ]);
+        // Node test should match
+        let node_tests = manifest.get_tests_by_parent("model.my_model");
+        assert_eq!(node_tests.len(), 1);
+        assert_eq!(node_tests[0].base.unique_id, "test.node_unique");
+
+        // Source test should match
+        let source_tests = manifest.get_tests_by_parent("source.my_project.raw.my_table");
+        assert_eq!(source_tests.len(), 1);
+        assert_eq!(source_tests[0].base.unique_id, "test.source_unique");
+    }
+
+    #[test]
+    fn test_get_tests_by_parent_prefers_attached_node_over_depends_on() {
+        // When attached_node is set, it should match on that and not fall through to depends_on
+        let mut test = create_test_with_attached_node("test.t1", "unique", "model.my_model");
+        // Also set depends_on to a different parent
+        test.base.depends_on = DependsOn {
+            nodes: Some(vec!["source.some_source".to_string()]),
+            macros: None,
+        };
+        let manifest = manifest_with_tests(vec![test]);
+
+        // Should match via attached_node
+        let tests = manifest.get_tests_by_parent("model.my_model");
+        assert_eq!(tests.len(), 1);
+
+        // Should NOT match via depends_on since attached_node is set
+        let tests = manifest.get_tests_by_parent("source.some_source");
+        assert!(tests.is_empty());
+    }
+
+    #[test]
+    fn test_get_tests_by_parent_depends_on_empty_nodes() {
+        let manifest = manifest_with_tests(vec![create_test_with_depends_on(
+            "test.empty",
+            "unique",
+            vec![],
+        )]);
+        let tests = manifest.get_tests_by_parent("source.my_project.raw.my_table");
+        assert!(tests.is_empty());
+    }
 
     #[test]
     fn test_load_manifest_invalid_path() {
