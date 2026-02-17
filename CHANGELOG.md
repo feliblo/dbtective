@@ -1,3 +1,13 @@
+## v0.2.6 (2026-02-17)
+
+### Fix
+
+- **rules**: fallback on depends_on.nodes for deciding rule parent - ([4037b41](https://github.com/feliblo/dbtective/commit/4037b41925613a2a1cd1a090b850ff074558119b)) - feliblo
+
+### Contributors
+
+[@feliblo](https://github.com/feliblo)
+
 ## v0.2.5 (2026-02-17)
 
 ### Fix
