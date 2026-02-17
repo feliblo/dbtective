@@ -20,7 +20,15 @@ pub fn is_not_orphaned<T: ChildMappable>(
 ) -> Option<RuleResult> {
     let children = tagable.get_childs(manifest);
 
-    if children.is_empty() {
+    // Filter out schema tests (test.*) since they are not meaningful downstream
+    // references and are not a selectable OrphanedReferenceType
+    let meaningful_children: Vec<&str> = children
+        .iter()
+        .filter(|c| c.split('.').next().unwrap_or("unknown_object") != "test")
+        .copied()
+        .collect();
+
+    if meaningful_children.is_empty() {
         let error_msg = format!(
             "{} is orphaned (not referenced by any other object)",
             tagable.get_object_string()
@@ -36,7 +44,7 @@ pub fn is_not_orphaned<T: ChildMappable>(
     }
 
     // Check if it has at least one allowed reference (given in config)
-    let has_allowed_reference = children.iter().any(|c| {
+    let has_allowed_reference = meaningful_children.iter().any(|c| {
         let object_type = c.split('.').next().unwrap_or("unknown_object");
         allowed_references
             .iter()
@@ -47,9 +55,17 @@ pub fn is_not_orphaned<T: ChildMappable>(
         return None;
     }
 
+    let non_allowed_types: Vec<&str> = meaningful_children
+        .iter()
+        .filter_map(|c| c.split('.').next())
+        .collect::<std::collections::HashSet<_>>()
+        .into_iter()
+        .collect();
+
     let error_msg = format!(
-        "{} is orphaned (only referenced by non-allowed objects)",
-        tagable.get_object_string()
+        "{} is orphaned (only referenced by: {})",
+        tagable.get_object_string(),
+        non_allowed_types.join(", ")
     );
 
     Some(RuleResult::new(
@@ -160,9 +176,33 @@ mod tests {
 
         let result = is_not_orphaned(&taggable, &rule, &allowed_references, &manifest);
         assert!(result.is_some());
+        assert!(result.unwrap().message.contains("only referenced by: seed"));
+    }
+
+    #[test]
+    fn test_orphaned_only_test_children_treated_as_no_references() {
+        let taggable = MockTaggable {
+            object_type: "model".to_string(),
+            object_string: "test_model".to_string(),
+            childs: vec!["test.project.not_null_test_model_id"],
+        };
+
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::IsNotOrphaned {
+                allowed_references: default_allowed_references(),
+            },
+            Severity::Warning,
+        );
+
+        let manifest = Manifest::default();
+        let allowed_references = vec![OrphanedReferenceType::Exposures];
+
+        let result = is_not_orphaned(&taggable, &rule, &allowed_references, &manifest);
+        assert!(result.is_some());
+        let result = result.unwrap();
         assert!(result
-            .unwrap()
             .message
-            .contains("only referenced by non-allowed objects"));
+            .contains("not referenced by any other object"));
+        assert_eq!(result.severity, "WARN");
     }
 }

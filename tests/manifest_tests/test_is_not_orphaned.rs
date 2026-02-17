@@ -572,10 +572,12 @@ manifest_tests:
     assert_eq!(findings[0].0.severity, "FAIL");
     assert_eq!(findings[0].0.object_type, "Model");
     assert!(findings[0].0.message.contains("test_helper"));
+    // Schema tests (test.*) are filtered out as non-meaningful references,
+    // so this model is treated as having no references at all
     assert!(findings[0]
         .0
         .message
-        .contains("is orphaned (only referenced by non-allowed objects)"));
+        .contains("is orphaned (not referenced by any other object)"));
 }
 
 #[test]
@@ -780,4 +782,676 @@ manifest_tests:
     assert_eq!(orphaned_names.len(), 2);
     assert!(orphaned_names.contains(&"orphaned_model"));
     assert!(orphaned_names.contains(&"downstream_model"));
+}
+
+#[test]
+#[allow(clippy::too_many_lines)]
+fn test_is_not_orphaned_model_with_only_schema_tests_is_orphaned() {
+    let manifest = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "invocation_id": "test-invocation",
+    "env": {},
+    "project_name": "test_project",
+    "adapter_type": "postgres",
+    "quoting": {
+      "database": true,
+      "schema": true,
+      "identifier": true,
+      "column": null
+    }
+  },
+  "nodes": {
+    "model.test_project.mart_model": {
+      "database": "analytics",
+      "schema": "marts",
+      "name": "mart_model",
+      "resource_type": "model",
+      "package_name": "test_project",
+      "path": "marts/mart_model.sql",
+      "original_file_path": "models/marts/mart_model.sql",
+      "unique_id": "model.test_project.mart_model",
+      "fqn": ["test_project", "marts", "mart_model"],
+      "alias": "mart_model",
+      "checksum": {"name": "sha256", "checksum": "abc123"},
+      "config": {
+        "enabled": true,
+        "materialized": "table",
+        "tags": []
+      },
+      "tags": [],
+      "description": "Mart model with only test children",
+      "columns": {},
+      "meta": {},
+      "group": null,
+      "docs": {"show": true},
+      "patch_path": null,
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {},
+      "created_at": 1704067200.0,
+      "config_call_dict": {},
+      "relation_name": "analytics.marts.mart_model",
+      "raw_code": "select 1 as id",
+      "language": "sql",
+      "refs": [],
+      "sources": [],
+      "metrics": [],
+      "depends_on": {"macros": [], "nodes": []},
+      "compiled_code": null,
+      "extra_ctes_injected": false,
+      "extra_ctes": [],
+      "contract": {"enforced": false, "checksum": null}
+    },
+    "test.test_project.not_null_mart_model_id.abc123": {
+      "database": "analytics",
+      "schema": "dbt_test__audit",
+      "name": "not_null_mart_model_id",
+      "resource_type": "test",
+      "package_name": "test_project",
+      "path": "not_null_mart_model_id.sql",
+      "original_file_path": "tests/not_null_mart_model_id.sql",
+      "unique_id": "test.test_project.not_null_mart_model_id.abc123",
+      "fqn": ["test_project", "not_null_mart_model_id"],
+      "alias": "not_null_mart_model_id",
+      "checksum": {"name": "sha256", "checksum": "def456"},
+      "config": {"enabled": true},
+      "tags": [],
+      "description": "",
+      "columns": {},
+      "meta": {},
+      "group": null,
+      "docs": {"show": true},
+      "patch_path": null,
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {},
+      "created_at": 1704067200.0,
+      "config_call_dict": {},
+      "relation_name": null,
+      "raw_code": "select * from {{ ref('mart_model') }} where id is null",
+      "language": "sql",
+      "refs": [["mart_model"]],
+      "sources": [],
+      "metrics": [],
+      "depends_on": {"macros": [], "nodes": ["model.test_project.mart_model"]},
+      "compiled_code": null,
+      "extra_ctes_injected": false,
+      "extra_ctes": [],
+      "contract": {"enforced": false, "checksum": null}
+    },
+    "test.test_project.unique_mart_model_id.def456": {
+      "database": "analytics",
+      "schema": "dbt_test__audit",
+      "name": "unique_mart_model_id",
+      "resource_type": "test",
+      "package_name": "test_project",
+      "path": "unique_mart_model_id.sql",
+      "original_file_path": "tests/unique_mart_model_id.sql",
+      "unique_id": "test.test_project.unique_mart_model_id.def456",
+      "fqn": ["test_project", "unique_mart_model_id"],
+      "alias": "unique_mart_model_id",
+      "checksum": {"name": "sha256", "checksum": "ghi789"},
+      "config": {"enabled": true},
+      "tags": [],
+      "description": "",
+      "columns": {},
+      "meta": {},
+      "group": null,
+      "docs": {"show": true},
+      "patch_path": null,
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {},
+      "created_at": 1704067200.0,
+      "config_call_dict": {},
+      "relation_name": null,
+      "raw_code": "select * from {{ ref('mart_model') }} group by id having count(*) > 1",
+      "language": "sql",
+      "refs": [["mart_model"]],
+      "sources": [],
+      "metrics": [],
+      "depends_on": {"macros": [], "nodes": ["model.test_project.mart_model"]},
+      "compiled_code": null,
+      "extra_ctes_injected": false,
+      "extra_ctes": [],
+      "contract": {"enforced": false, "checksum": null}
+    }
+  },
+  "sources": {},
+  "macros": {},
+  "exposures": {},
+  "metrics": {},
+  "groups": {},
+  "selectors": {},
+  "disabled": {},
+  "parent_map": {
+    "test.test_project.not_null_mart_model_id.abc123": ["model.test_project.mart_model"],
+    "test.test_project.unique_mart_model_id.def456": ["model.test_project.mart_model"]
+  },
+  "child_map": {
+    "model.test_project.mart_model": [
+      "test.test_project.not_null_mart_model_id.abc123",
+      "test.test_project.unique_mart_model_id.def456"
+    ]
+  },
+  "group_map": {},
+  "saved_queries": {},
+  "semantic_models": {},
+  "unit_tests": {}
+}"#;
+
+    let config = r#"
+manifest_tests:
+  - name: "all_marts_are_exposed"
+    type: "is_not_orphaned"
+    applies_to:
+      - "models"
+    includes:
+      - "models/marts"
+    allowed_references:
+      - "exposures"
+    severity: "warning"
+"#;
+
+    let env = TestEnvironment::new(manifest, config);
+    let findings = env.run_maniest_rules(false);
+
+    // Model has only schema test children, which are filtered out.
+    // Should be treated as orphaned with "not referenced by any other object" message.
+    assert_eq!(findings.len(), 1);
+    assert_eq!(findings[0].0.severity, "WARN");
+    assert_eq!(findings[0].0.object_type, "Model");
+    assert!(findings[0].0.message.contains("mart_model"));
+    assert!(findings[0]
+        .0
+        .message
+        .contains("is orphaned (not referenced by any other object)"));
+}
+
+#[test]
+#[allow(clippy::too_many_lines)]
+fn test_is_not_orphaned_model_with_tests_and_exposure_passes() {
+    let manifest = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "invocation_id": "test-invocation",
+    "env": {},
+    "project_name": "test_project",
+    "adapter_type": "postgres",
+    "quoting": {
+      "database": true,
+      "schema": true,
+      "identifier": true,
+      "column": null
+    }
+  },
+  "nodes": {
+    "model.test_project.mart_model": {
+      "database": "analytics",
+      "schema": "marts",
+      "name": "mart_model",
+      "resource_type": "model",
+      "package_name": "test_project",
+      "path": "marts/mart_model.sql",
+      "original_file_path": "models/marts/mart_model.sql",
+      "unique_id": "model.test_project.mart_model",
+      "fqn": ["test_project", "marts", "mart_model"],
+      "alias": "mart_model",
+      "checksum": {"name": "sha256", "checksum": "abc123"},
+      "config": {
+        "enabled": true,
+        "materialized": "table",
+        "tags": []
+      },
+      "tags": [],
+      "description": "Mart model with tests and exposure",
+      "columns": {},
+      "meta": {},
+      "group": null,
+      "docs": {"show": true},
+      "patch_path": null,
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {},
+      "created_at": 1704067200.0,
+      "config_call_dict": {},
+      "relation_name": "analytics.marts.mart_model",
+      "raw_code": "select 1 as id",
+      "language": "sql",
+      "refs": [],
+      "sources": [],
+      "metrics": [],
+      "depends_on": {"macros": [], "nodes": []},
+      "compiled_code": null,
+      "extra_ctes_injected": false,
+      "extra_ctes": [],
+      "contract": {"enforced": false, "checksum": null}
+    },
+    "test.test_project.not_null_mart_model_id.abc123": {
+      "database": "analytics",
+      "schema": "dbt_test__audit",
+      "name": "not_null_mart_model_id",
+      "resource_type": "test",
+      "package_name": "test_project",
+      "path": "not_null_mart_model_id.sql",
+      "original_file_path": "tests/not_null_mart_model_id.sql",
+      "unique_id": "test.test_project.not_null_mart_model_id.abc123",
+      "fqn": ["test_project", "not_null_mart_model_id"],
+      "alias": "not_null_mart_model_id",
+      "checksum": {"name": "sha256", "checksum": "def456"},
+      "config": {"enabled": true},
+      "tags": [],
+      "description": "",
+      "columns": {},
+      "meta": {},
+      "group": null,
+      "docs": {"show": true},
+      "patch_path": null,
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {},
+      "created_at": 1704067200.0,
+      "config_call_dict": {},
+      "relation_name": null,
+      "raw_code": "select * from {{ ref('mart_model') }} where id is null",
+      "language": "sql",
+      "refs": [["mart_model"]],
+      "sources": [],
+      "metrics": [],
+      "depends_on": {"macros": [], "nodes": ["model.test_project.mart_model"]},
+      "compiled_code": null,
+      "extra_ctes_injected": false,
+      "extra_ctes": [],
+      "contract": {"enforced": false, "checksum": null}
+    }
+  },
+  "sources": {},
+  "macros": {},
+  "exposures": {
+    "exposure.test_project.dashboard": {
+      "name": "dashboard",
+      "type": "dashboard",
+      "owner": {"name": "Analytics Team", "email": "analytics@example.com"},
+      "resource_type": "exposure",
+      "package_name": "test_project",
+      "path": "exposures.yml",
+      "original_file_path": "models/exposures.yml",
+      "unique_id": "exposure.test_project.dashboard",
+      "fqn": ["test_project", "dashboard"],
+      "description": "Dashboard",
+      "label": null,
+      "maturity": null,
+      "meta": {},
+      "tags": [],
+      "config": {"enabled": true},
+      "unrendered_config": {},
+      "url": null,
+      "depends_on": {"macros": [], "nodes": ["model.test_project.mart_model"]},
+      "refs": [["mart_model"]],
+      "sources": [],
+      "metrics": [],
+      "created_at": 1704067200.0
+    }
+  },
+  "metrics": {},
+  "groups": {},
+  "selectors": {},
+  "disabled": {},
+  "parent_map": {
+    "test.test_project.not_null_mart_model_id.abc123": ["model.test_project.mart_model"],
+    "exposure.test_project.dashboard": ["model.test_project.mart_model"]
+  },
+  "child_map": {
+    "model.test_project.mart_model": [
+      "test.test_project.not_null_mart_model_id.abc123",
+      "exposure.test_project.dashboard"
+    ]
+  },
+  "group_map": {},
+  "saved_queries": {},
+  "semantic_models": {},
+  "unit_tests": {}
+}"#;
+
+    let config = r#"
+manifest_tests:
+  - name: "all_marts_are_exposed"
+    type: "is_not_orphaned"
+    applies_to:
+      - "models"
+    includes:
+      - "models/marts"
+    allowed_references:
+      - "exposures"
+    severity: "warning"
+"#;
+
+    let env = TestEnvironment::new(manifest, config);
+    let findings = env.run_maniest_rules(false);
+
+    // Model has an exposure child (allowed) plus schema tests (filtered out).
+    // Should pass.
+    assert_eq!(findings.len(), 0);
+}
+
+#[test]
+#[allow(clippy::too_many_lines)]
+fn test_is_not_orphaned_model_with_tests_and_non_allowed_model_ref() {
+    let manifest = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "invocation_id": "test-invocation",
+    "env": {},
+    "project_name": "test_project",
+    "adapter_type": "postgres",
+    "quoting": {
+      "database": true,
+      "schema": true,
+      "identifier": true,
+      "column": null
+    }
+  },
+  "nodes": {
+    "model.test_project.mart_model": {
+      "database": "analytics",
+      "schema": "marts",
+      "name": "mart_model",
+      "resource_type": "model",
+      "package_name": "test_project",
+      "path": "marts/mart_model.sql",
+      "original_file_path": "models/marts/mart_model.sql",
+      "unique_id": "model.test_project.mart_model",
+      "fqn": ["test_project", "marts", "mart_model"],
+      "alias": "mart_model",
+      "checksum": {"name": "sha256", "checksum": "abc123"},
+      "config": {
+        "enabled": true,
+        "materialized": "table",
+        "tags": []
+      },
+      "tags": [],
+      "description": "Mart model referenced by another model but not exposure",
+      "columns": {},
+      "meta": {},
+      "group": null,
+      "docs": {"show": true},
+      "patch_path": null,
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {},
+      "created_at": 1704067200.0,
+      "config_call_dict": {},
+      "relation_name": "analytics.marts.mart_model",
+      "raw_code": "select 1 as id",
+      "language": "sql",
+      "refs": [],
+      "sources": [],
+      "metrics": [],
+      "depends_on": {"macros": [], "nodes": []},
+      "compiled_code": null,
+      "extra_ctes_injected": false,
+      "extra_ctes": [],
+      "contract": {"enforced": false, "checksum": null}
+    },
+    "model.test_project.downstream": {
+      "database": "analytics",
+      "schema": "marts",
+      "name": "downstream",
+      "resource_type": "model",
+      "package_name": "test_project",
+      "path": "marts/downstream.sql",
+      "original_file_path": "models/marts/downstream.sql",
+      "unique_id": "model.test_project.downstream",
+      "fqn": ["test_project", "marts", "downstream"],
+      "alias": "downstream",
+      "checksum": {"name": "sha256", "checksum": "def456"},
+      "config": {
+        "enabled": true,
+        "materialized": "table",
+        "tags": []
+      },
+      "tags": [],
+      "description": "Downstream model",
+      "columns": {},
+      "meta": {},
+      "group": null,
+      "docs": {"show": true},
+      "patch_path": null,
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {},
+      "created_at": 1704067200.0,
+      "config_call_dict": {},
+      "relation_name": "analytics.marts.downstream",
+      "raw_code": "select * from {{ ref('mart_model') }}",
+      "language": "sql",
+      "refs": [["mart_model"]],
+      "sources": [],
+      "metrics": [],
+      "depends_on": {"macros": [], "nodes": ["model.test_project.mart_model"]},
+      "compiled_code": null,
+      "extra_ctes_injected": false,
+      "extra_ctes": [],
+      "contract": {"enforced": false, "checksum": null}
+    },
+    "test.test_project.not_null_mart_model_id.abc123": {
+      "database": "analytics",
+      "schema": "dbt_test__audit",
+      "name": "not_null_mart_model_id",
+      "resource_type": "test",
+      "package_name": "test_project",
+      "path": "not_null_mart_model_id.sql",
+      "original_file_path": "tests/not_null_mart_model_id.sql",
+      "unique_id": "test.test_project.not_null_mart_model_id.abc123",
+      "fqn": ["test_project", "not_null_mart_model_id"],
+      "alias": "not_null_mart_model_id",
+      "checksum": {"name": "sha256", "checksum": "ghi789"},
+      "config": {"enabled": true},
+      "tags": [],
+      "description": "",
+      "columns": {},
+      "meta": {},
+      "group": null,
+      "docs": {"show": true},
+      "patch_path": null,
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {},
+      "created_at": 1704067200.0,
+      "config_call_dict": {},
+      "relation_name": null,
+      "raw_code": "select * from {{ ref('mart_model') }} where id is null",
+      "language": "sql",
+      "refs": [["mart_model"]],
+      "sources": [],
+      "metrics": [],
+      "depends_on": {"macros": [], "nodes": ["model.test_project.mart_model"]},
+      "compiled_code": null,
+      "extra_ctes_injected": false,
+      "extra_ctes": [],
+      "contract": {"enforced": false, "checksum": null}
+    }
+  },
+  "sources": {},
+  "macros": {},
+  "exposures": {},
+  "metrics": {},
+  "groups": {},
+  "selectors": {},
+  "disabled": {},
+  "parent_map": {
+    "model.test_project.downstream": ["model.test_project.mart_model"],
+    "test.test_project.not_null_mart_model_id.abc123": ["model.test_project.mart_model"]
+  },
+  "child_map": {
+    "model.test_project.mart_model": [
+      "model.test_project.downstream",
+      "test.test_project.not_null_mart_model_id.abc123"
+    ],
+    "model.test_project.downstream": []
+  },
+  "group_map": {},
+  "saved_queries": {},
+  "semantic_models": {},
+  "unit_tests": {}
+}"#;
+
+    let config = r#"
+manifest_tests:
+  - name: "all_marts_are_exposed"
+    type: "is_not_orphaned"
+    applies_to:
+      - "models"
+    includes:
+      - "models/marts"
+    allowed_references:
+      - "exposures"
+    severity: "warning"
+"#;
+
+    let env = TestEnvironment::new(manifest, config);
+    let findings = env.run_maniest_rules(false);
+
+    // mart_model is referenced by a model (not in allowed_references which is exposures only)
+    // and by tests (filtered out). Should show warning with "only referenced by: model".
+    // downstream has no children at all, should show "not referenced by any other object".
+    assert_eq!(findings.len(), 2);
+
+    let mart_finding = findings
+        .iter()
+        .find(|f| f.0.message.contains("mart_model"))
+        .expect("Should find mart_model finding");
+    assert_eq!(mart_finding.0.severity, "WARN");
+    assert!(mart_finding
+        .0
+        .message
+        .contains("is orphaned (only referenced by: model)"));
+
+    let downstream_finding = findings
+        .iter()
+        .find(|f| f.0.message.contains("downstream"))
+        .expect("Should find downstream finding");
+    assert_eq!(downstream_finding.0.severity, "WARN");
+    assert!(downstream_finding
+        .0
+        .message
+        .contains("is orphaned (not referenced by any other object)"));
+}
+
+#[test]
+#[allow(clippy::too_many_lines)]
+fn test_is_not_orphaned_warning_severity_respected() {
+    let manifest = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "invocation_id": "test-invocation",
+    "env": {},
+    "project_name": "test_project",
+    "adapter_type": "postgres",
+    "quoting": {
+      "database": true,
+      "schema": true,
+      "identifier": true,
+      "column": null
+    }
+  },
+  "nodes": {
+    "model.test_project.orphaned": {
+      "database": "analytics",
+      "schema": "marts",
+      "name": "orphaned",
+      "resource_type": "model",
+      "package_name": "test_project",
+      "path": "marts/orphaned.sql",
+      "original_file_path": "models/marts/orphaned.sql",
+      "unique_id": "model.test_project.orphaned",
+      "fqn": ["test_project", "marts", "orphaned"],
+      "alias": "orphaned",
+      "checksum": {"name": "sha256", "checksum": "abc123"},
+      "config": {
+        "enabled": true,
+        "materialized": "table",
+        "tags": []
+      },
+      "tags": [],
+      "description": "Orphaned model",
+      "columns": {},
+      "meta": {},
+      "group": null,
+      "docs": {"show": true},
+      "patch_path": null,
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {},
+      "created_at": 1704067200.0,
+      "config_call_dict": {},
+      "relation_name": "analytics.marts.orphaned",
+      "raw_code": "select 1 as id",
+      "language": "sql",
+      "refs": [],
+      "sources": [],
+      "metrics": [],
+      "depends_on": {"macros": [], "nodes": []},
+      "compiled_code": null,
+      "extra_ctes_injected": false,
+      "extra_ctes": [],
+      "contract": {"enforced": false, "checksum": null}
+    }
+  },
+  "sources": {},
+  "macros": {},
+  "exposures": {},
+  "metrics": {},
+  "groups": {},
+  "selectors": {},
+  "disabled": {},
+  "parent_map": {},
+  "child_map": {
+    "model.test_project.orphaned": []
+  },
+  "group_map": {},
+  "saved_queries": {},
+  "semantic_models": {},
+  "unit_tests": {}
+}"#;
+
+    // Test with warning severity
+    let warning_config = r#"
+manifest_tests:
+  - name: "all_marts_are_exposed"
+    type: "is_not_orphaned"
+    applies_to:
+      - "models"
+    allowed_references:
+      - "exposures"
+    severity: "warning"
+"#;
+
+    let env = TestEnvironment::new(manifest, warning_config);
+    let findings = env.run_maniest_rules(false);
+
+    assert_eq!(findings.len(), 1);
+    assert_eq!(findings[0].0.severity, "WARN");
+    assert_eq!(
+        findings[0].1,
+        dbtective::core::config::severity::Severity::Warning
+    );
 }
