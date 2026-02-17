@@ -169,7 +169,7 @@ dbtective automatically detects and loads your configuration file. If you have m
 | `severity` | No | `error` (fails rule, default) or `warning` (reports but doesn't fail) |
 | `description` | No | Human-readable description of the rule |
 | `applies_to` | No | List of dbt object types to include (e.g., `["models", "sources"]`). See [individual rule documentation](/docs/rules) for valid targets |
-| `includes` | No | File path patterns to include. Supports glob syntax (e.g., `models/staging/**`) |
-| `excludes` | No | File path patterns to exclude. Supports glob syntax (e.g., `models/deprecated/**`) |
+| `includes` | No | File path patterns to include. See [Includes & Excludes](../includes_excludes) for full pattern syntax and examples |
+| `excludes` | No | File path patterns to exclude. See [Includes & Excludes](../includes_excludes) for full pattern syntax and examples |
 | `model_materializations` | No | Filter models by materialization type (e.g., `["table", "incremental"]`). Only applies when `applies_to` includes `models`. Built-in types: `table`, `view`, `incremental`, `ephemeral`, `materialized_view`. Custom materializations are also supported. |
 | `custom_fields` | Sometimes | Custom fields for rules. See [individual rule documentation](/docs/rules) |
