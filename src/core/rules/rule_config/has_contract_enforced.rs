@@ -34,7 +34,7 @@ pub fn has_contract_enforced<T: ContractAble>(
             "{} does not have a contract enforced.",
             model.get_object_string()
         ),
-        model.get_relative_path().map(str::to_owned),
+        model.get_problematic_path(false).map(str::to_owned),
     ))
 }
 
@@ -57,7 +57,7 @@ mod tests {
         fn get_object_string(&self) -> &str {
             &self.name
         }
-        fn get_relative_path(&self) -> Option<&str> {
+        fn get_problematic_path(&self, __prefer_sql: bool) -> Option<&str> {
             self.relative_path.as_deref()
         }
     }

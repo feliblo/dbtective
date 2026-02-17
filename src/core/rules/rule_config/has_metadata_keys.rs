@@ -27,7 +27,7 @@ pub fn has_metadata_keys<T: HasMetadata>(
                     "{} is missing metadata entirely.",
                     has_metadata.get_object_string()
                 ),
-                has_metadata.get_relative_path().map(str::to_owned),
+                has_metadata.get_problematic_path(false).map(str::to_owned),
             ))
         },
         // Metadata present, check for missing keys
@@ -55,7 +55,7 @@ pub fn has_metadata_keys<T: HasMetadata>(
                         },
                         |msg| format!("{} {}", has_metadata.get_object_string(), msg),
                     ),
-                    has_metadata.get_relative_path().map(str::to_owned),
+                    has_metadata.get_problematic_path(false).map(str::to_owned),
                 ))
             }
         },
@@ -93,7 +93,7 @@ mod tests {
             &self.object_string
         }
 
-        fn get_relative_path(&self) -> Option<&str> {
+        fn get_problematic_path(&self, __prefer_sql: bool) -> Option<&str> {
             self.relative_path.as_deref()
         }
     }

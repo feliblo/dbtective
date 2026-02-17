@@ -115,7 +115,9 @@ pub fn column_name_convention<C: Columnable>(
             convention.name(),
             invalid_column_list
         ),
-        catalog_object.get_relative_path().map(str::to_owned),
+        catalog_object
+            .get_problematic_path(false)
+            .map(str::to_owned),
     ))
 }
 
@@ -138,7 +140,7 @@ mod tests {
         fn get_object_string(&self) -> &str {
             &self.name
         }
-        fn get_relative_path(&self) -> Option<&str> {
+        fn get_problematic_path(&self, __prefer_sql: bool) -> Option<&str> {
             None
         }
     }
@@ -197,7 +199,7 @@ mod tests {
                 "TestItem",
                 rule.get_name(),
                 "test_item has columns that do not follow the snake_case naming convention: FirstColumn.".to_string(),
-                item.get_relative_path().map(str::to_owned),
+                item.get_problematic_path(false).map(str::to_owned),
             ))
         );
     }
@@ -304,7 +306,7 @@ mod tests {
                 "TestItem",
                 rule.get_name(),
                 "test_item has columns that do not follow the ^[a-z]{3}[0-9]{2}$ naming convention: ab12, defg34.".to_string(),
-                item.get_relative_path().map(str::to_owned),
+                item.get_problematic_path(false).map(str::to_owned),
             ))
         );
     }

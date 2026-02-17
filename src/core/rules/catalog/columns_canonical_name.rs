@@ -25,7 +25,9 @@ pub fn columns_canonical_name<C: Columnable>(
             C::get_object_type(catalog_object),
             rule.get_name(),
             error_msg,
-            catalog_object.get_relative_path().map(str::to_owned),
+            catalog_object
+                .get_problematic_path(false)
+                .map(str::to_owned),
         ));
     };
 
@@ -59,7 +61,9 @@ pub fn columns_canonical_name<C: Columnable>(
         C::get_object_type(catalog_object),
         rule.get_name(),
         format!("The following columns should be named '{canonical}': {invalid_columns:?}"),
-        catalog_object.get_relative_path().map(str::to_owned),
+        catalog_object
+            .get_problematic_path(false)
+            .map(str::to_owned),
     ))
 }
 
@@ -85,7 +89,7 @@ mod tests {
         fn get_object_string(&self) -> &str {
             &self.object_string
         }
-        fn get_relative_path(&self) -> Option<&str> {
+        fn get_problematic_path(&self, __prefer_sql: bool) -> Option<&str> {
             self.relative_path.as_deref()
         }
     }

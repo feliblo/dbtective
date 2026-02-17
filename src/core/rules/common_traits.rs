@@ -9,7 +9,7 @@ pub trait Identifiable {
     fn get_object_string(&self) -> &str;
     /// Returns the path to the file where the object is defined.
     /// Should prefer `patch_path` (YAML file) over `original_file_path` (SQL file) when available.
-    fn get_relative_path(&self) -> Option<&str>;
+    fn get_problematic_path(&self, _prefer_sql: bool) -> Option<&str>;
 }
 
 #[allow(dead_code)]

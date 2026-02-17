@@ -17,8 +17,8 @@ impl RuleTargetable for Macro {
 }
 
 impl IncludeExcludable for Macro {
-    fn get_relative_path(&self) -> &String {
-        self.get_relative_path()
+    fn get_original_file_path(&self) -> &String {
+        self.get_original_file_path()
     }
 }
 
@@ -31,9 +31,12 @@ impl Identifiable for Macro {
         self.get_name()
     }
 
-    fn get_relative_path(&self) -> Option<&str> {
+    fn get_problematic_path(&self, prefer_sql: bool) -> Option<&str> {
+        if prefer_sql {
+            return Some(self.get_original_file_path());
+        }
         self.get_patch_path()
-            .or_else(|| Some(self.get_relative_path()))
+            .or_else(|| Some(self.get_original_file_path()))
     }
 }
 

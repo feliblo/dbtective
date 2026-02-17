@@ -23,7 +23,7 @@ pub fn has_description<T: Descriptable>(
                     "{} is missing a description.",
                     descriptable.get_object_string()
                 ),
-                descriptable.get_relative_path().map(str::to_owned),
+                descriptable.get_problematic_path(false).map(str::to_owned),
             ));
         }
     };
@@ -40,7 +40,7 @@ pub fn has_description<T: Descriptable>(
                     desc.trim().len(),
                     min
                 ),
-                descriptable.get_relative_path().map(str::to_owned),
+                descriptable.get_problematic_path(false).map(str::to_owned),
             ));
         }
     }
@@ -59,7 +59,7 @@ pub fn has_description<T: Descriptable>(
                         descriptable.get_object_string(),
                         pattern
                     ),
-                    descriptable.get_relative_path().map(str::to_owned),
+                    descriptable.get_problematic_path(false).map(str::to_owned),
                 )
             })
     })
@@ -76,11 +76,10 @@ mod tests {
         description: Option<String>,
     }
     impl Identifiable for TestNode {
-        #[allow(clippy::unnecessary_literal_bound)]
-        fn get_object_type(&self) -> &str {
+        fn get_object_type(&self) -> &'static str {
             "TestNode"
         }
-        fn get_relative_path(&self) -> Option<&str> {
+        fn get_problematic_path(&self, __prefer_sql: bool) -> Option<&str> {
             None
         }
         fn get_object_string(&self) -> &str {
@@ -122,7 +121,9 @@ mod tests {
                 "TestNode",
                 "has_description",
                 "TestNode2 is missing a description.",
-                node_without_desc.get_relative_path().map(str::to_owned),
+                node_without_desc
+                    .get_problematic_path(false)
+                    .map(str::to_owned),
             ))
         );
     }
@@ -146,7 +147,9 @@ mod tests {
                 "TestNode",
                 "has_description",
                 "TestNode4 is missing a description.",
-                node_without_desc.get_relative_path().map(str::to_owned),
+                node_without_desc
+                    .get_problematic_path(false)
+                    .map(str::to_owned),
             ))
         );
     }

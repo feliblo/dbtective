@@ -40,7 +40,7 @@ pub fn has_unique_test<T: TestAble>(
                 "{} does should have a unique test",
                 testable.get_object_string(),
             ),
-            testable.get_relative_path().map(str::to_owned),
+            testable.get_problematic_path(false).map(str::to_owned),
         ))
     } else {
         None
@@ -74,7 +74,7 @@ mod tests {
             &self.object_string
         }
 
-        fn get_relative_path(&self) -> Option<&str> {
+        fn get_problematic_path(&self, __prefer_sql: bool) -> Option<&str> {
             self.relative_path.as_deref()
         }
     }

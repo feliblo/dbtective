@@ -12,7 +12,7 @@ impl Identifiable for CatalogSource {
     }
 
     // Paths are only available in manifest objects
-    fn get_relative_path(&self) -> Option<&str> {
+    fn get_problematic_path(&self, __prefer_sql: bool) -> Option<&str> {
         None
     }
 }

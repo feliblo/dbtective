@@ -91,13 +91,13 @@ Check `src/core/rules/rule_config/` for an existing trait that matches your rule
 
 **If a trait exists**, add your function to it. **If not**, create a new file in `src/core/rules/rule_config/`.
 
-All traits need to extend the `Identifiable` supertrait (defined in `src/core/rules/common_traits.rs`), which provides the following methods needed for RuleResult (table reporting):
+All traits need to extend the `Identifiable` supertrait (defined in `src/core/rules/common_traits.rs`), which provides the following methods needed for RuleResult (table reporting). Make sure you choose wether you want to return hyperlinks for `sql` or `yaml` using the `prefer_sql` argument.
 
 ```rust
 pub trait Identifiable {
     fn get_object_type(&self) -> &str;      // Returns the dbt object type (e.g., "model", "source")
     fn get_object_string(&self) -> &str;    // Returns a string representation
-    fn get_relative_path(&self) -> Option<&String> { None }  // Returns the object's relative file path
+    fn get_problematic_path(&self, prefer_sql: bool) -> Option<&String> { None }  // Returns the object's relative file path (sql or yaml)
 }
 ```
 
@@ -132,7 +132,7 @@ pub fn has_your_rule<T: YourRule>(
     your_field_name_for_the_rule: &str,
 ) -> Option<RuleResult> {
     // Your rule logic here
-    // Use obj.get_object_type(), obj.get_object_string(), obj.get_relative_path()
+    // Use obj.get_object_type(), obj.get_object_string(), obj.get_problematic_path(false)
     // from the Identifiable supertrait
 }
 ```
@@ -205,7 +205,7 @@ mod tests {
     impl Identifiable for TestObject {
         fn get_object_type(&self) -> &str { "model" }
         fn get_object_string(&self) -> &str { "test_model" }
-        fn get_relative_path(&self) -> Option<&String> { None }
+        fn get_problematic_path(&self, prefer_sql: bool) -> Option<&String> { None }
     }
 
     // Then implement your trait (which extends Identifiable)

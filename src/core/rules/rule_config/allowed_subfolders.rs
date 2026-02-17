@@ -17,7 +17,7 @@ pub fn check_allowed_subfolders<T: PathCheckable>(
     path_postfix: Option<&String>,
 ) -> Option<RuleResult> {
     // Get the relative path from the object
-    let Some(raw_path) = item.get_relative_path() else {
+    let Some(raw_path) = item.get_problematic_path(false) else {
         return Some(RuleResult::new(
             &rule.severity,
             item.get_object_type(),
@@ -56,7 +56,7 @@ pub fn check_allowed_subfolders<T: PathCheckable>(
                 base_path,
                 allowed_subfolders.join(", ")
             ),
-            item.get_relative_path().map(str::to_owned),
+            item.get_problematic_path(false).map(str::to_owned),
         ));
     }
 
@@ -77,7 +77,7 @@ pub fn check_allowed_subfolders<T: PathCheckable>(
                 immediate_subfolder,
                 allowed_subfolders.join(", ")
             ),
-            item.get_relative_path().map(str::to_owned),
+            item.get_problematic_path(false).map(str::to_owned),
         ))
     }
 }
@@ -144,7 +144,7 @@ mod tests {
             &self.name
         }
 
-        fn get_relative_path(&self) -> Option<&str> {
+        fn get_problematic_path(&self, __prefer_sql: bool) -> Option<&str> {
             Some(&self.path)
         }
     }

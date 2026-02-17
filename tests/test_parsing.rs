@@ -37,7 +37,7 @@ fn test_parse_example_catalog() {
 }
 
 #[test]
-fn test_patch_path_parsed_from_manifest() {
+fn test_patch_path_parsed_from_manifest_sql() {
     let manifest_path = PathBuf::from("dbt_project/target/manifest.json");
     let manifest = Manifest::from_file(&manifest_path).expect("Failed to parse manifest");
 
@@ -57,8 +57,34 @@ fn test_patch_path_parsed_from_manifest() {
 
     // Verify original_file_path is still accessible
     assert_eq!(
-        node.get_relative_path(),
-        "models/staging/crm/stg_customers.sql"
+        node.get_problematic_path(true),
+        Some("models/staging/crm/stg_customers.sql")
+    );
+}
+
+#[test]
+fn test_patch_path_parsed_from_manifest_yml() {
+    let manifest_path = PathBuf::from("dbt_project/target/manifest.json");
+    let manifest = Manifest::from_file(&manifest_path).expect("Failed to parse manifest");
+
+    // stg_customers has a patch_path defined in the manifest
+    let node = manifest
+        .nodes
+        .get("model.dbtective_test_project.stg_customers")
+        .expect("Node not found");
+
+    // Verify patch_path is parsed and stripped correctly
+    let patch_path = node.get_patch_path();
+    assert!(patch_path.is_some());
+    assert_eq!(
+        patch_path.unwrap(),
+        "models/staging/crm/_stg_crm__models.yml"
+    );
+
+    // Verify original_file_path is still accessible
+    assert_eq!(
+        node.get_problematic_path(false),
+        Some("models/staging/crm/_stg_crm__models.yml")
     );
 }
 
@@ -73,7 +99,7 @@ fn test_identifiable_prefers_patch_path() {
         .get("model.dbtective_test_project.stg_customers")
         .expect("Node not found");
 
-    let identifiable_path = Identifiable::get_relative_path(node);
+    let identifiable_path = node.get_problematic_path(false);
     assert!(identifiable_path.is_some());
     // Should return the YAML path, not the SQL path
     assert_eq!(
@@ -97,7 +123,7 @@ fn test_identifiable_falls_back_to_original_path() {
     assert!(seed.get_patch_path().is_none());
 
     // Identifiable should fall back to original_file_path
-    let identifiable_path = Identifiable::get_relative_path(seed);
+    let identifiable_path = seed.get_problematic_path(false);
     assert!(identifiable_path.is_some());
     assert_eq!(identifiable_path.unwrap(), "seeds/raw_customers.csv");
 }
