@@ -1,3 +1,13 @@
+## v0.2.5 (2026-02-17)
+
+### Fix
+
+- **bug**: fix namespace issue in test metadata - ([86f21fd](https://github.com/feliblo/dbtective/commit/86f21fdd24a55b86ef5f6c446c6c548916ec0a57)) - feliblo
+
+### Contributors
+
+[@feliblo](https://github.com/feliblo)
+
 ## v0.2.4 (2026-02-17)
 
 ### Feat

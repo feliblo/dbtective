@@ -16,7 +16,7 @@ We recommend running with `--only-manifest` and `--hide-warnings` for pre-commit
 # .pre-commit-config.yaml
 repos:
   - repo: https://github.com/feliblo/dbtective
-    rev: v0.2.4
+    rev: v0.2.5
     hooks:
       - id: dbtective-run
         entry: dbtective run
