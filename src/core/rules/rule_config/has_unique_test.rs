@@ -57,6 +57,7 @@ mod tests {
         },
         manifest::{Manifest, Node},
     };
+    use dbt_artifact_parser::manifest::nodes::node::DependsOn;
     use dbt_artifact_parser::manifest::nodes::TestMetadata;
 
     struct MockTestable {
@@ -104,6 +105,23 @@ mod tests {
         });
         test.attached_node = Some(attached_node.to_string());
         test.base.unique_id = format!("test.{name}");
+        test
+    }
+
+    fn create_mock_source_test(name: &str, depends_on_parent: &str) -> Test {
+        let mut test = Test::default();
+        test.base.name = name.to_string();
+        test.test_metadata = Some(TestMetadata {
+            name: name.to_string(),
+            kwargs: None,
+            namespace: None,
+        });
+        test.attached_node = None;
+        test.base.depends_on = DependsOn {
+            nodes: Some(vec![depends_on_parent.to_string()]),
+            macros: None,
+        };
+        test.base.unique_id = format!("test.source_{name}");
         test
     }
 
@@ -211,5 +229,104 @@ mod tests {
         let allowed = default_allowed_test_names();
         assert!(allowed.contains(&"unique".to_string()));
         assert!(allowed.contains(&"dbt_utils.unique_combination_of_columns".to_string()));
+    }
+
+    #[test]
+    fn test_has_unique_test_found_via_depends_on_for_source() {
+        let manifest = create_test_manifest(vec![create_mock_source_test(
+            "unique",
+            "source.my_project.raw.my_table",
+        )]);
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::HasUniqueTest {
+                allowed_test_names: default_allowed_test_names(),
+            },
+            Severity::Error,
+        );
+        let allowed = vec!["unique".to_string()];
+        let testable = MockTestable {
+            unique_id: "source.my_project.raw.my_table".to_string(),
+            object_type: "source".to_string(),
+            object_string: "my_table".to_string(),
+            relative_path: Some("models/sources.yml".to_string()),
+        };
+        let result = has_unique_test(&testable, &rule, &manifest, &allowed);
+        assert!(result.is_none(), "source with unique test should pass");
+    }
+
+    #[test]
+    fn test_has_unique_test_not_found_for_source() {
+        let manifest = create_test_manifest(vec![]);
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::HasUniqueTest {
+                allowed_test_names: default_allowed_test_names(),
+            },
+            Severity::Error,
+        );
+        let allowed = vec!["unique".to_string()];
+        let testable = MockTestable {
+            unique_id: "source.my_project.raw.my_table".to_string(),
+            object_type: "source".to_string(),
+            object_string: "my_table".to_string(),
+            relative_path: Some("models/sources.yml".to_string()),
+        };
+        let result = has_unique_test(&testable, &rule, &manifest, &allowed);
+        assert!(result.is_some(), "source without unique test should fail");
+        let rule_result = result.unwrap();
+        assert_eq!(rule_result.object_type, "source");
+        assert_eq!(rule_result.rule_name, "has_unique_test");
+    }
+
+    #[test]
+    fn test_source_test_with_wrong_name_not_counted() {
+        let manifest = create_test_manifest(vec![create_mock_source_test(
+            "not_null",
+            "source.my_project.raw.my_table",
+        )]);
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::HasUniqueTest {
+                allowed_test_names: default_allowed_test_names(),
+            },
+            Severity::Error,
+        );
+        let allowed = vec!["unique".to_string()];
+        let testable = MockTestable {
+            unique_id: "source.my_project.raw.my_table".to_string(),
+            object_type: "source".to_string(),
+            object_string: "my_table".to_string(),
+            relative_path: Some("models/sources.yml".to_string()),
+        };
+        let result = has_unique_test(&testable, &rule, &manifest, &allowed);
+        assert!(
+            result.is_some(),
+            "source with non-unique test should still fail"
+        );
+    }
+
+    #[test]
+    fn test_source_test_not_matched_to_wrong_parent() {
+        // A source test for table_a should not match when checking table_b
+        let manifest = create_test_manifest(vec![create_mock_source_test(
+            "unique",
+            "source.my_project.raw.table_a",
+        )]);
+        let rule = ManifestRule::from_specific_rule(
+            ManifestSpecificRuleConfig::HasUniqueTest {
+                allowed_test_names: default_allowed_test_names(),
+            },
+            Severity::Error,
+        );
+        let allowed = vec!["unique".to_string()];
+        let testable = MockTestable {
+            unique_id: "source.my_project.raw.table_b".to_string(),
+            object_type: "source".to_string(),
+            object_string: "table_b".to_string(),
+            relative_path: Some("models/sources.yml".to_string()),
+        };
+        let result = has_unique_test(&testable, &rule, &manifest, &allowed);
+        assert!(
+            result.is_some(),
+            "source test for different parent should not match"
+        );
     }
 }
