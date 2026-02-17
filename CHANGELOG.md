@@ -1,3 +1,19 @@
+## v0.2.4 (2026-02-17)
+
+### Feat
+
+- **table**: add hyperlink prefer_sql argument - ([c442058](https://github.com/feliblo/dbtective/commit/c44205812a7e99f8067d73388f4278c36becc2bb)) - feliblo
+
+### Fix
+
+- **rules**: remove exposure from has_refs rule - ([159f6b5](https://github.com/feliblo/dbtective/commit/159f6b5334d387406bb8c48ee3ca955dd5fa5b6a)) - feliblo
+- **bug**: fix bug where includes/excludes didn't get picked up - ([042e4fb](https://github.com/feliblo/dbtective/commit/042e4fb6290352bc021c202fb5999a621faaddc1)) - feliblo
+- **bug**: fix message in is_not_orphaned - ([ad98d19](https://github.com/feliblo/dbtective/commit/ad98d19be720bb62b11080f1fd0a56b8baf5115e)) - feliblo
+
+### Contributors
+
+[@feliblo](https://github.com/feliblo)
+
 ## v0.2.3 (2026-02-16)
 
 ### Feat

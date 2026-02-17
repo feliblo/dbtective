@@ -12,7 +12,7 @@ Add `dbtective` to your workflow file (e.g., `.github/workflows/ci.yml`).If you 
 
 ```yaml
 - name: Run dbtective
-  uses: feliblo/dbtective@v0.2.3
+  uses: feliblo/dbtective@v0.2.4
   with:
     config-file: "dbtective.yml"
     entry-point: "."
@@ -43,7 +43,7 @@ jobs:
           dbt docs generate # to generate catalog.json
 
       - name: Run dbtective
-        uses: feliblo/dbtective@v0.2.3
+        uses: feliblo/dbtective@v0.2.4
         with:
           config-file: "dbtective.yml"
           entry-point: "."
@@ -68,7 +68,7 @@ You can capture dbtective results as JSON for downstream processing (dashboards,
 
 ```yaml
 - name: Run dbtective (JSON output)
-  uses: feliblo/dbtective@v0.2.3
+  uses: feliblo/dbtective@v0.2.4
   with:
     output-format: "json"
     output-file: "dbtective-results.json"
