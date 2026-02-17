@@ -35,7 +35,44 @@ impl Test {
 
         Some(metadata.namespace.as_ref().map_or_else(
             || Cow::Borrowed(metadata.name.as_str()), // Borrowed if no namespace
-            |ns| Cow::Owned(format!("{}::{}", ns, metadata.name)), // Owned if namespaced
+            |ns| Cow::Owned(format!("{}.{}", ns, metadata.name)), // Owned if namespaced
         ))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn test_with_metadata(name: &str, namespace: Option<&str>) -> Test {
+        Test {
+            test_metadata: Some(TestMetadata {
+                name: name.to_string(),
+                namespace: namespace.map(String::from),
+                ..Default::default()
+            }),
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn get_metadata_name_no_metadata() {
+        let test = Test::default();
+        assert_eq!(test.get_metadata_name(), None);
+    }
+
+    #[test]
+    fn get_metadata_name_no_namespace() {
+        let test = test_with_metadata("unique", None);
+        assert_eq!(test.get_metadata_name().unwrap(), "unique");
+    }
+
+    #[test]
+    fn get_metadata_name_with_namespace() {
+        let test = test_with_metadata("unique_combination_of_columns", Some("dbt_utils"));
+        assert_eq!(
+            test.get_metadata_name().unwrap(),
+            "dbt_utils.unique_combination_of_columns"
+        );
     }
 }
