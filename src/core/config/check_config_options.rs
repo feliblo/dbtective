@@ -67,6 +67,10 @@ pub const fn default_max_code_lines() -> usize {
     150
 }
 
+pub const fn default_max_joins() -> usize {
+    5
+}
+
 /// `ColumnNamePattern` for `columns_canonical_name` rule
 /// Parse regex if the string looks like a regex pattern
 /// Otherwise, treat it as a literal string

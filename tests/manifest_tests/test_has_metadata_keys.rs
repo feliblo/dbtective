@@ -152,7 +152,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(
         findings.len(),

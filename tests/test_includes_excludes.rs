@@ -198,7 +198,7 @@ fn test_include_with_start_anchor_filters_correctly() {
 
     let config = config_with_includes(&["^models/staging/"]);
     let env = TestEnvironment::new(&manifest, &config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     // Should only find violations for staging models (2), not marts
     assert_eq!(
@@ -219,7 +219,7 @@ fn test_exclude_with_start_anchor_filters_correctly() {
 
     let config = config_with_excludes(&["^tests/"]);
     let env = TestEnvironment::new(&manifest, &config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     // Should only find violations for the model (1), not the tests
     assert_eq!(findings.len(), 1, "Should only run rule on 1 model");
@@ -235,7 +235,7 @@ fn test_exclude_with_end_anchor_filters_by_extension() {
 
     let config = config_with_excludes(&[".yml$"]);
     let env = TestEnvironment::new(&manifest, &config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     // Should only find violations for SQL files
     assert_eq!(findings.len(), 1, "Should exclude .yml files");
@@ -252,7 +252,7 @@ fn test_include_with_contains_pattern() {
 
     let config = config_with_includes(&["orders"]);
     let env = TestEnvironment::new(&manifest, &config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     // Should match both stg_orders and dim_orders (2 models)
     assert_eq!(
@@ -273,7 +273,7 @@ fn test_exclude_with_contains_pattern() {
 
     let config = config_with_excludes(&["orders"]);
     let env = TestEnvironment::new(&manifest, &config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     // Should exclude stg_orders, leaving 2 models
     assert_eq!(
@@ -293,7 +293,7 @@ fn test_wildcard_star_does_not_cross_directories() {
 
     let config = config_with_includes(&["^models/*.sql$"]);
     let env = TestEnvironment::new(&manifest, &config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     // Should only match models/model.sql (single * doesn't cross /)
     assert_eq!(
@@ -315,7 +315,7 @@ fn test_double_star_crosses_directories() {
 
     let config = config_with_includes(&["^models/**/*.sql$"]);
     let env = TestEnvironment::new(&manifest, &config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     // Should match only models in subdirectories (2), not models/model.sql
     assert_eq!(findings.len(), 2, "** should match across subdirectories");
@@ -332,7 +332,7 @@ fn test_double_star_matches_any_depth() {
 
     let config = config_with_includes(&["^models/**"]);
     let env = TestEnvironment::new(&manifest, &config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     // Should match all 3 models
     assert_eq!(findings.len(), 3, "** should match any depth");
@@ -348,7 +348,7 @@ fn test_exact_path_matching() {
 
     let config = config_with_includes(&["models/staging/stg_orders.sql"]);
     let env = TestEnvironment::new(&manifest, &config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     // Should only match the exact path
     assert_eq!(findings.len(), 1, "Should match only the exact path");
@@ -366,7 +366,7 @@ fn test_combined_include_and_exclude() {
 
     let config = config_with_includes_and_excludes(&["^models/staging/"], &["orders"]);
     let env = TestEnvironment::new(&manifest, &config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     // Should include staging (3) but exclude orders (1), leaving 2
     assert_eq!(
@@ -387,7 +387,7 @@ fn test_both_anchors_for_exact_match() {
 
     let config = config_with_includes(&["^models/staging/stg_orders.sql$"]);
     let env = TestEnvironment::new(&manifest, &config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     // Should only match the exact path (no prefix, no suffix)
     assert_eq!(findings.len(), 1, "^pattern$ should match only exact path");
@@ -400,7 +400,7 @@ fn test_forward_slash_patterns_work() {
 
     let config = config_with_includes(&["models/staging/*.sql"]);
     let env = TestEnvironment::new(&manifest, &config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(findings.len(), 1, "Forward slash patterns should work");
 }
@@ -536,7 +536,7 @@ mod windows_tests {
         // Pattern uses forward slashes (always)
         let config = config_with_includes(&["models/staging/*.sql"]);
         let env = TestEnvironment::new(&manifest, &config);
-        let findings = env.run_maniest_rules(false);
+        let findings = env.run_manifest_rules(false);
 
         assert_eq!(
             findings.len(),
@@ -554,7 +554,7 @@ mod windows_tests {
 
         let config = config_with_includes(&["^models/staging/"]);
         let env = TestEnvironment::new(&manifest, &config);
-        let findings = env.run_maniest_rules(false);
+        let findings = env.run_manifest_rules(false);
 
         assert_eq!(
             findings.len(),
@@ -572,7 +572,7 @@ mod windows_tests {
 
         let config = config_with_includes(&["^models/**"]);
         let env = TestEnvironment::new(&manifest, &config);
-        let findings = env.run_maniest_rules(false);
+        let findings = env.run_manifest_rules(false);
 
         assert_eq!(
             findings.len(),
@@ -590,7 +590,7 @@ mod windows_tests {
 
         let config = config_with_includes(&[".sql$"]);
         let env = TestEnvironment::new(&manifest, &config);
-        let findings = env.run_maniest_rules(false);
+        let findings = env.run_manifest_rules(false);
 
         assert_eq!(
             findings.len(),
@@ -609,7 +609,7 @@ mod windows_tests {
 
         let config = config_with_includes(&["orders"]);
         let env = TestEnvironment::new(&manifest, &config);
-        let findings = env.run_maniest_rules(false);
+        let findings = env.run_manifest_rules(false);
 
         assert_eq!(
             findings.len(),
@@ -627,7 +627,7 @@ mod windows_tests {
 
         let config = config_with_excludes(&["orders"]);
         let env = TestEnvironment::new(&manifest, &config);
-        let findings = env.run_maniest_rules(false);
+        let findings = env.run_manifest_rules(false);
 
         assert_eq!(
             findings.len(),
@@ -757,7 +757,7 @@ fn test_dbt_prefix_include_directory() {
 
     let config = config_with_includes(&["models/marts"]);
     let env = TestEnvironment::new(&manifest, &config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(
         findings.len(),
@@ -784,7 +784,7 @@ fn test_dbt_prefix_exclude_specific_file() {
     let config =
         config_with_includes_and_excludes(&["models/marts"], &["models/marts/mart_orders.sql"]);
     let env = TestEnvironment::new(&manifest, &config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(
         findings.len(),
@@ -810,7 +810,7 @@ fn test_dbt_prefix_exclude_by_filename() {
 
     let config = config_with_includes_and_excludes(&["models/marts"], &["mart_orders"]);
     let env = TestEnvironment::new(&manifest, &config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(
         findings.len(),
@@ -836,7 +836,7 @@ fn test_dbt_prefix_exclude_directory() {
 
     let config = config_with_excludes(&["models/raw"]);
     let env = TestEnvironment::new(&manifest, &config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(
         findings.len(),
@@ -862,7 +862,7 @@ fn test_dbt_prefix_exclude_directory_with_glob() {
 
     let config = config_with_excludes(&["models/raw/**/*"]);
     let env = TestEnvironment::new(&manifest, &config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(
         findings.len(),
@@ -897,7 +897,7 @@ fn test_dbt_prefix_multiple_exclude_formats() {
     for pattern in &patterns {
         let config = config_with_excludes(&[pattern]);
         let env = TestEnvironment::new(&manifest, &config);
-        let findings = env.run_maniest_rules(false);
+        let findings = env.run_manifest_rules(false);
         assert_eq!(
             findings.len(),
             1,
@@ -929,7 +929,7 @@ fn test_dbt_prefix_unix_paths_same_behavior() {
 
     let config = config_with_includes_and_excludes(&["models/marts"], &["mart_orders"]);
     let env = TestEnvironment::new(&manifest, &config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(
         findings.len(),
@@ -961,7 +961,7 @@ fn test_no_prefix_paths_still_work() {
 
     let config = config_with_includes_and_excludes(&["models/marts"], &["mart_orders"]);
     let env = TestEnvironment::new(&manifest, &config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(
         findings.len(),
@@ -1001,7 +1001,7 @@ fn test_comprehensive_pattern_matching() {
     {
         let config = config_with_includes(&["^models/staging/"]);
         let env = TestEnvironment::new(&manifest, &config);
-        let findings = env.run_maniest_rules(false);
+        let findings = env.run_manifest_rules(false);
         assert_eq!(
             findings.len(),
             4, // stg_orders, stg_customers, stg_products, stg_payments
@@ -1013,7 +1013,7 @@ fn test_comprehensive_pattern_matching() {
     {
         let config = config_with_includes(&["orders"]);
         let env = TestEnvironment::new(&manifest, &config);
-        let findings = env.run_maniest_rules(false);
+        let findings = env.run_manifest_rules(false);
         assert_eq!(
             findings.len(),
             2, // stg_orders, fct_orders
@@ -1025,7 +1025,7 @@ fn test_comprehensive_pattern_matching() {
     {
         let config = config_with_includes(&["^models/staging/*.sql$"]);
         let env = TestEnvironment::new(&manifest, &config);
-        let findings = env.run_maniest_rules(false);
+        let findings = env.run_manifest_rules(false);
         assert_eq!(
             findings.len(),
             3, // stg_orders, stg_customers, stg_products (not stg_payments which is in subdir)
@@ -1037,7 +1037,7 @@ fn test_comprehensive_pattern_matching() {
     {
         let config = config_with_includes(&["^models/marts/**"]);
         let env = TestEnvironment::new(&manifest, &config);
-        let findings = env.run_maniest_rules(false);
+        let findings = env.run_manifest_rules(false);
         assert_eq!(
             findings.len(),
             4, // dim_customers, fct_orders, fct_revenue, deep_model
@@ -1049,7 +1049,7 @@ fn test_comprehensive_pattern_matching() {
     {
         let config = config_with_includes(&["^models/staging/stg_orders.sql$"]);
         let env = TestEnvironment::new(&manifest, &config);
-        let findings = env.run_maniest_rules(false);
+        let findings = env.run_manifest_rules(false);
         assert_eq!(
             findings.len(),
             1, // Only stg_orders
@@ -1061,7 +1061,7 @@ fn test_comprehensive_pattern_matching() {
     {
         let config = config_with_excludes(&["^models/legacy/"]);
         let env = TestEnvironment::new(&manifest, &config);
-        let findings = env.run_maniest_rules(false);
+        let findings = env.run_manifest_rules(false);
         assert_eq!(
             findings.len(),
             9, // 10 total - 1 legacy_model = 9
@@ -1076,7 +1076,7 @@ fn test_comprehensive_pattern_matching() {
             &["stg_products"],     // But exclude products
         );
         let env = TestEnvironment::new(&manifest, &config);
-        let findings = env.run_maniest_rules(false);
+        let findings = env.run_manifest_rules(false);
         assert_eq!(
             findings.len(),
             3, // stg_orders, stg_customers, stg_payments (not stg_products)
@@ -1088,7 +1088,7 @@ fn test_comprehensive_pattern_matching() {
     {
         let config = config_with_excludes(&["_deprecated"]);
         let env = TestEnvironment::new(&manifest, &config);
-        let findings = env.run_maniest_rules(false);
+        let findings = env.run_manifest_rules(false);
         assert_eq!(
             findings.len(),
             10, // None contain _deprecated, so all 10 remain
@@ -1100,7 +1100,7 @@ fn test_comprehensive_pattern_matching() {
     {
         let config = config_with_includes(&["quarterly"]);
         let env = TestEnvironment::new(&manifest, &config);
-        let findings = env.run_maniest_rules(false);
+        let findings = env.run_manifest_rules(false);
         assert_eq!(
             findings.len(),
             1, // Only deep_model
@@ -1112,7 +1112,7 @@ fn test_comprehensive_pattern_matching() {
     {
         let config = config_with_excludes(&["^models/staging/", "^models/legacy/"]);
         let env = TestEnvironment::new(&manifest, &config);
-        let findings = env.run_maniest_rules(false);
+        let findings = env.run_manifest_rules(false);
         assert_eq!(
             findings.len(),
             5, // 10 - 4 staging - 1 legacy = 5 (marts + root)

@@ -2,7 +2,7 @@ use crate::core::config::applies_to::RuleTargetable;
 use crate::core::rules::rule_config::{
     check_allowed_subfolders, check_name_convention, code_contains_refs, has_description,
     has_forbidden_code, has_freshness, has_loader, has_metadata_keys, has_refs, has_tags,
-    has_unique_test, is_not_orphaned, max_code_lines,
+    has_unique_test, is_not_orphaned, max_code_lines, max_joins,
 };
 use crate::{
     cli::table::RuleResult,
@@ -111,7 +111,8 @@ fn apply_source_rules<'a>(
                     | ManifestSpecificRuleConfig::MaxCodeLines { .. }
                     | ManifestSpecificRuleConfig::HasForbiddenCode { .. }
                     | ManifestSpecificRuleConfig::HasContractEnforced { .. }
-                    | ManifestSpecificRuleConfig::CodeContainsRefs {} => return Ok(acc),
+                    | ManifestSpecificRuleConfig::CodeContainsRefs {}
+                    | ManifestSpecificRuleConfig::MaxJoins { .. } => return Ok(acc),
                 };
 
                 if let Some(rule_row) = rule_row_result {
@@ -187,6 +188,9 @@ fn apply_macro_rules<'a>(
                         ManifestSpecificRuleConfig::CodeContainsRefs {} => {
                             code_contains_refs(macro_obj, rule)
                         }
+                        ManifestSpecificRuleConfig::MaxJoins {
+                            max_joins: max_joins_allowed,
+                        } => max_joins(macro_obj, rule, *max_joins_allowed),
                         ManifestSpecificRuleConfig::AllowedSubfolders {
                             allowed_subfolders,
                             path_prefix,
@@ -293,6 +297,7 @@ fn apply_exposure_rules<'a>(
                         | ManifestSpecificRuleConfig::HasUniqueTest { .. }
                         | ManifestSpecificRuleConfig::HasContractEnforced { .. }
                         | ManifestSpecificRuleConfig::CodeContainsRefs {}
+                        | ManifestSpecificRuleConfig::MaxJoins { .. }
                         | ManifestSpecificRuleConfig::SourcesHaveLoader {}
                         | ManifestSpecificRuleConfig::SourcesHaveFreshness {} => return Ok(acc),
                     };
@@ -368,6 +373,7 @@ fn apply_semantic_model_rules<'a>(
                     | ManifestSpecificRuleConfig::HasUniqueTest { .. }
                     | ManifestSpecificRuleConfig::HasContractEnforced { .. }
                     | ManifestSpecificRuleConfig::CodeContainsRefs {}
+                    | ManifestSpecificRuleConfig::MaxJoins { .. }
                     | ManifestSpecificRuleConfig::SourcesHaveLoader {}
                     | ManifestSpecificRuleConfig::SourcesHaveFreshness {} => return Ok(acc),
                 };
@@ -439,6 +445,7 @@ fn apply_unit_test_rules<'a>(
                     | ManifestSpecificRuleConfig::HasContractEnforced { .. }
                     | ManifestSpecificRuleConfig::HasMetadataKeys { .. }
                     | ManifestSpecificRuleConfig::CodeContainsRefs {}
+                    | ManifestSpecificRuleConfig::MaxJoins { .. }
                     | ManifestSpecificRuleConfig::SourcesHaveLoader {}
                     | ManifestSpecificRuleConfig::SourcesHaveFreshness {} => return Ok(acc),
                 };

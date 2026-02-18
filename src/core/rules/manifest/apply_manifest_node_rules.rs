@@ -4,7 +4,7 @@ use crate::core::config::manifest_rule::ManifestSpecificRuleConfig;
 use crate::core::rules::rule_config::{
     check_allowed_subfolders, check_name_convention, child_map::is_not_orphaned,
     code_contains_refs, has_contract_enforced, has_description, has_forbidden_code,
-    has_metadata_keys, has_refs, has_tags, has_unique_test, max_code_lines,
+    has_metadata_keys, has_refs, has_tags, has_unique_test, max_code_lines, max_joins,
 };
 
 use crate::core::config::severity::Severity;
@@ -82,6 +82,9 @@ pub fn apply_manifest_node_rules<'a>(
                     ManifestSpecificRuleConfig::CodeContainsRefs {} => {
                         code_contains_refs(node, rule)
                     }
+                    ManifestSpecificRuleConfig::MaxJoins {
+                        max_joins: max_joins_allowed,
+                    } => max_joins(node, rule, *max_joins_allowed),
                     ManifestSpecificRuleConfig::AllowedSubfolders {
                         allowed_subfolders,
                         path_prefix,

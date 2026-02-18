@@ -10,7 +10,7 @@ pub fn has_forbidden_code<T: HasCode>(
     forbidden_patterns: &[String],
     case_sensitive: bool,
 ) -> Option<RuleResult> {
-    let raw_code = object_with_code.get_code()?;
+    let raw_code = object_with_code.get_raw_code()?;
     let code: Cow<'_, str> = if case_sensitive {
         Cow::Borrowed(raw_code)
     } else {
@@ -81,7 +81,7 @@ mod tests {
     }
 
     impl HasCode for TestNode {
-        fn get_code(&self) -> Option<&str> {
+        fn get_raw_code(&self) -> Option<&str> {
             self.code.as_deref()
         }
     }

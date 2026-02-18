@@ -44,7 +44,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(
         findings.len(),
@@ -95,7 +95,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(findings.len(), 1, "Should fail - source3 is not allowed");
     let finding = &findings[0].0;
@@ -147,7 +147,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(findings.len(), 0, "Should pass with path_prefix");
 }
@@ -194,7 +194,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(findings.len(), 0, "Should pass - bronze is allowed");
 }
@@ -241,7 +241,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(
         findings.len(),
@@ -296,7 +296,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(
         findings.len(),
@@ -347,7 +347,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(
         findings.len(),
@@ -420,7 +420,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(
         findings.len(),
@@ -483,7 +483,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(
         findings.len(),
@@ -546,7 +546,7 @@ manifest_tests:
 "#;
 
         let env = TestEnvironment::new(manifest, config);
-        let findings = env.run_maniest_rules(false);
+        let findings = env.run_manifest_rules(false);
 
         assert_eq!(
             findings.len(),
@@ -596,7 +596,7 @@ manifest_tests:
 "#;
 
         let env = TestEnvironment::new(manifest, config);
-        let findings = env.run_maniest_rules(false);
+        let findings = env.run_manifest_rules(false);
 
         assert_eq!(
             findings.len(),
@@ -647,7 +647,7 @@ manifest_tests:
 "#;
 
         let env = TestEnvironment::new(manifest, config);
-        let findings = env.run_maniest_rules(false);
+        let findings = env.run_manifest_rules(false);
 
         assert_eq!(
             findings.len(),

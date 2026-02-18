@@ -87,6 +87,12 @@ Here you can find an overview of all possible rules. Use the filter below to fin
       <td>Check if code contains forbidden patterns, such direct selects <code>SELECT *</code></td>
       <td style="font-size: 12px; color: #666;">forbidden, code, patterns, jinja, macros</td>
     </tr>
+    <tr class="rule-item" data-keywords="joins code complexity sql join count limit threshold raw_code" data-category="manifest">
+      <td><a href="code" class="rule-name">max_joins</a></td>
+      <td><span class="rule-category-badge badge-manifest">Manifest</span></td>
+      <td>Enforce a maximum number of JOINs in SQL code. Strips comments before counting. Helps reduce code complexity.</td>
+      <td style="font-size: 12px; color: #666;">joins, code, complexity, sql, limit</td>
+    </tr>
     <tr class="rule-item" data-keywords="folder structure organization path subfolders hierarchy medallion bronze silver gold source" data-category="manifest">
       <td><a href="allowed_subfolders" class="rule-name">allowed_subfolders</a></td>
       <td><span class="rule-category-badge badge-manifest">Manifest</span></td>

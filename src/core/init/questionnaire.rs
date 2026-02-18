@@ -99,6 +99,7 @@ impl Init for ManifestSpecificRuleConfig {
             Self::CodeContainsRefs { .. } => {
                 "code_contains_refs - Require ref()/source() calls in SQL code"
             }
+            Self::MaxJoins { .. } => "max_joins - Limit JOIN count to reduce code complexity",
             Self::SourcesHaveFreshness { .. } => {
                 "sources_have_freshness - Require freshness for sources"
             }
@@ -278,6 +279,7 @@ pub fn run_questionnaire() -> Result<QuestionnaireResult, String> {
                     case_sensitive: false,
                 },
                 ManifestSpecificRuleConfig::CodeContainsRefs {},
+                ManifestSpecificRuleConfig::MaxJoins { max_joins: 0 },
                 ManifestSpecificRuleConfig::SourcesHaveLoader {},
                 ManifestSpecificRuleConfig::SourcesHaveFreshness {},
             ],
@@ -467,7 +469,7 @@ mod tests {
 
     #[test]
     fn test_manifest_rule_iter_count() {
-        assert_eq!(ManifestSpecificRuleConfig::iter().count(), 14);
+        assert_eq!(ManifestSpecificRuleConfig::iter().count(), 15);
     }
 
     #[test]

@@ -80,7 +80,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     // Only jinja_model should have violations
     assert_eq!(findings.len(), 1);
@@ -151,7 +151,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(findings.len(), 0);
 }
@@ -212,7 +212,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].0.severity, "WARN");
@@ -283,7 +283,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     // "select *" should match "SELECT *" case-insensitively
     assert_eq!(findings.len(), 1);
@@ -353,7 +353,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(findings.len(), 0);
 }
@@ -420,7 +420,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].0.rule_name, "no_select_star_exact");
