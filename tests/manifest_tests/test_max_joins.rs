@@ -1,7 +1,7 @@
 use crate::common::TestEnvironment;
 
 #[test]
-fn test_code_contains_refs_with_ref_passes() {
+fn test_max_joins_within_limit_passes() {
     let manifest = r#"{
   "metadata": {
     "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
@@ -14,24 +14,24 @@ fn test_code_contains_refs_with_ref_passes() {
     "quoting": {}
   },
   "nodes": {
-    "model.test.good_model": {
+    "model.test.simple_model": {
       "database": "db",
       "schema": "public",
-      "name": "good_model",
+      "name": "simple_model",
       "resource_type": "model",
       "package_name": "test_project",
-      "path": "good_model.sql",
-      "original_file_path": "models/good_model.sql",
-      "unique_id": "model.test.good_model",
-      "fqn": ["test", "good_model"],
-      "alias": "good_model",
-      "depends_on": { "nodes": ["model.test.stg_users"] },
+      "path": "simple_model.sql",
+      "original_file_path": "models/simple_model.sql",
+      "unique_id": "model.test.simple_model",
+      "fqn": ["test", "simple_model"],
+      "alias": "simple_model",
+      "depends_on": { "nodes": [] },
       "checksum": {"name": "sha256", "checksum": "abc"},
       "tags": [],
-      "description": "Model with ref",
+      "description": "Simple model",
       "columns": {},
       "meta": {},
-      "raw_code": "SELECT id, name FROM {{ ref('stg_users') }}"
+      "raw_code": "SELECT a.id, b.name FROM {{ ref('users') }} a JOIN {{ ref('orders') }} b ON a.id = b.user_id"
     }
   },
   "sources": {},
@@ -51,9 +51,10 @@ fn test_code_contains_refs_with_ref_passes() {
 
     let config = r#"
 manifest_tests:
-  - name: "code_must_use_refs"
-    type: code_contains_refs
+  - name: "max_joins_check"
+    type: max_joins
     severity: "error"
+    max_joins: 2
     applies_to:
       - "models"
 "#;
@@ -64,7 +65,7 @@ manifest_tests:
 }
 
 #[test]
-fn test_code_contains_refs_with_source_passes() {
+fn test_max_joins_exceeds_limit_fails() {
     let manifest = r#"{
   "metadata": {
     "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
@@ -77,24 +78,24 @@ fn test_code_contains_refs_with_source_passes() {
     "quoting": {}
   },
   "nodes": {
-    "model.test.source_model": {
+    "model.test.complex_model": {
       "database": "db",
       "schema": "public",
-      "name": "source_model",
+      "name": "complex_model",
       "resource_type": "model",
       "package_name": "test_project",
-      "path": "source_model.sql",
-      "original_file_path": "models/source_model.sql",
-      "unique_id": "model.test.source_model",
-      "fqn": ["test", "source_model"],
-      "alias": "source_model",
+      "path": "complex_model.sql",
+      "original_file_path": "models/complex_model.sql",
+      "unique_id": "model.test.complex_model",
+      "fqn": ["test", "complex_model"],
+      "alias": "complex_model",
       "depends_on": { "nodes": [] },
       "checksum": {"name": "sha256", "checksum": "abc"},
       "tags": [],
-      "description": "Model with source",
+      "description": "Complex model with many joins",
       "columns": {},
       "meta": {},
-      "raw_code": "SELECT * FROM {{ source('raw', 'users') }}"
+      "raw_code": "SELECT a.id FROM {{ ref('users') }} a JOIN {{ ref('orders') }} b ON a.id = b.user_id JOIN {{ ref('products') }} c ON b.product_id = c.id JOIN {{ ref('categories') }} d ON c.cat_id = d.id"
     }
   },
   "sources": {},
@@ -114,72 +115,10 @@ fn test_code_contains_refs_with_source_passes() {
 
     let config = r#"
 manifest_tests:
-  - name: "code_must_use_refs"
-    type: code_contains_refs
+  - name: "max_joins_check"
+    type: max_joins
     severity: "error"
-    applies_to:
-      - "models"
-"#;
-
-    let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_manifest_rules(false);
-    assert_eq!(findings.len(), 0);
-}
-
-#[test]
-fn test_code_contains_refs_hardcoded_sql_fails() {
-    let manifest = r#"{
-  "metadata": {
-    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
-    "dbt_version": "1.10.0",
-    "generated_at": "2025-01-01T00:00:00.000000Z",
-    "invocation_id": "test-invocation",
-    "env": {},
-    "project_name": "test_project",
-    "adapter_type": "postgres",
-    "quoting": {}
-  },
-  "nodes": {
-    "model.test.hardcoded_model": {
-      "database": "db",
-      "schema": "public",
-      "name": "hardcoded_model",
-      "resource_type": "model",
-      "package_name": "test_project",
-      "path": "hardcoded_model.sql",
-      "original_file_path": "models/hardcoded_model.sql",
-      "unique_id": "model.test.hardcoded_model",
-      "fqn": ["test", "hardcoded_model"],
-      "alias": "hardcoded_model",
-      "depends_on": { "nodes": [] },
-      "checksum": {"name": "sha256", "checksum": "abc"},
-      "tags": [],
-      "description": "Model with hardcoded SQL",
-      "columns": {},
-      "meta": {},
-      "raw_code": "SELECT id, name FROM raw_schema.users WHERE active = true"
-    }
-  },
-  "sources": {},
-  "macros": {},
-  "exposures": {},
-  "metrics": {},
-  "groups": {},
-  "selectors": {},
-  "disabled": {},
-  "parent_map": {},
-  "child_map": {},
-  "group_map": {},
-  "saved_queries": {},
-  "semantic_models": {},
-  "unit_tests": {}
-}"#;
-
-    let config = r#"
-manifest_tests:
-  - name: "code_must_use_refs"
-    type: code_contains_refs
-    severity: "error"
+    max_joins: 2
     applies_to:
       - "models"
 "#;
@@ -190,16 +129,14 @@ manifest_tests:
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].0.severity, "FAIL");
     assert_eq!(findings[0].0.object_type, "Model");
-    assert_eq!(findings[0].0.rule_name, "code_must_use_refs");
-    assert!(findings[0].0.message.contains("hardcoded_model"));
-    assert!(findings[0]
-        .0
-        .message
-        .contains("does not contain any ref() or source()"));
+    assert_eq!(findings[0].0.rule_name, "max_joins_check");
+    assert!(findings[0].0.message.contains("complex_model"));
+    assert!(findings[0].0.message.contains("3 JOIN(s)"));
+    assert!(findings[0].0.message.contains("maximum allowed of 2"));
 }
 
 #[test]
-fn test_code_contains_refs_commented_ref_fails() {
+fn test_max_joins_commented_joins_not_counted() {
     let manifest = r#"{
   "metadata": {
     "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
@@ -226,10 +163,10 @@ fn test_code_contains_refs_commented_ref_fails() {
       "depends_on": { "nodes": [] },
       "checksum": {"name": "sha256", "checksum": "abc"},
       "tags": [],
-      "description": "Model with commented-out ref",
+      "description": "Model with commented out joins",
       "columns": {},
       "meta": {},
-      "raw_code": "-- SELECT * FROM {{ ref('stg_users') }}\nSELECT id FROM raw_schema.users"
+      "raw_code": "-- JOIN old_table ON ...\n/* LEFT JOIN another_table ON ... */\nSELECT a.id FROM {{ ref('users') }} a JOIN {{ ref('orders') }} b ON a.id = b.user_id"
     }
   },
   "sources": {},
@@ -249,9 +186,10 @@ fn test_code_contains_refs_commented_ref_fails() {
 
     let config = r#"
 manifest_tests:
-  - name: "code_must_use_refs"
-    type: code_contains_refs
-    severity: "warning"
+  - name: "max_joins_check"
+    type: max_joins
+    severity: "error"
+    max_joins: 1
     applies_to:
       - "models"
 "#;
@@ -259,14 +197,12 @@ manifest_tests:
     let env = TestEnvironment::new(manifest, config);
     let findings = env.run_manifest_rules(false);
 
-    // Should fail because the ref is commented out
-    assert_eq!(findings.len(), 1);
-    assert_eq!(findings[0].0.severity, "WARN");
-    assert!(findings[0].0.message.contains("commented_model"));
+    // Only 1 real JOIN (the commented ones should not count)
+    assert_eq!(findings.len(), 0);
 }
 
 #[test]
-fn test_code_contains_refs_multiline_comment_fails() {
+fn test_max_joins_case_insensitive() {
     let manifest = r#"{
   "metadata": {
     "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
@@ -279,24 +215,24 @@ fn test_code_contains_refs_multiline_comment_fails() {
     "quoting": {}
   },
   "nodes": {
-    "model.test.block_commented_model": {
+    "model.test.mixed_case_model": {
       "database": "db",
       "schema": "public",
-      "name": "block_commented_model",
+      "name": "mixed_case_model",
       "resource_type": "model",
       "package_name": "test_project",
-      "path": "block_commented_model.sql",
-      "original_file_path": "models/block_commented_model.sql",
-      "unique_id": "model.test.block_commented_model",
-      "fqn": ["test", "block_commented_model"],
-      "alias": "block_commented_model",
+      "path": "mixed_case_model.sql",
+      "original_file_path": "models/mixed_case_model.sql",
+      "unique_id": "model.test.mixed_case_model",
+      "fqn": ["test", "mixed_case_model"],
+      "alias": "mixed_case_model",
       "depends_on": { "nodes": [] },
       "checksum": {"name": "sha256", "checksum": "abc"},
       "tags": [],
-      "description": "Model with block-commented ref",
+      "description": "Model with mixed case joins",
       "columns": {},
       "meta": {},
-      "raw_code": "/* {{ ref('old_model') }} */\nSELECT id FROM raw_schema.users"
+      "raw_code": "SELECT a.id FROM {{ ref('users') }} a join {{ ref('orders') }} b ON a.id = b.user_id LEFT JOIN {{ ref('products') }} c ON b.product_id = c.id"
     }
   },
   "sources": {},
@@ -316,9 +252,10 @@ fn test_code_contains_refs_multiline_comment_fails() {
 
     let config = r#"
 manifest_tests:
-  - name: "code_must_use_refs"
-    type: code_contains_refs
-    severity: "error"
+  - name: "max_joins_check"
+    type: max_joins
+    severity: "warning"
+    max_joins: 1
     applies_to:
       - "models"
 "#;
@@ -327,11 +264,12 @@ manifest_tests:
     let findings = env.run_manifest_rules(false);
 
     assert_eq!(findings.len(), 1);
-    assert!(findings[0].0.message.contains("block_commented_model"));
+    assert_eq!(findings[0].0.severity, "WARN");
+    assert!(findings[0].0.message.contains("2 JOIN(s)"));
 }
 
 #[test]
-fn test_code_contains_refs_mixed_models() {
+fn test_max_joins_mixed_models() {
     let manifest = r#"{
   "metadata": {
     "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
@@ -355,13 +293,13 @@ fn test_code_contains_refs_mixed_models() {
       "unique_id": "model.test.good_model",
       "fqn": ["test", "good_model"],
       "alias": "good_model",
-      "depends_on": { "nodes": ["model.test.stg_users"] },
+      "depends_on": { "nodes": [] },
       "checksum": {"name": "sha256", "checksum": "abc"},
       "tags": [],
-      "description": "Good model with ref",
+      "description": "Good model",
       "columns": {},
       "meta": {},
-      "raw_code": "SELECT * FROM {{ ref('stg_users') }}"
+      "raw_code": "SELECT a.id FROM {{ ref('users') }} a JOIN {{ ref('orders') }} b ON a.id = b.user_id"
     },
     "model.test.bad_model": {
       "database": "db",
@@ -377,10 +315,10 @@ fn test_code_contains_refs_mixed_models() {
       "depends_on": { "nodes": [] },
       "checksum": {"name": "sha256", "checksum": "def"},
       "tags": [],
-      "description": "Bad model without ref",
+      "description": "Bad model with too many joins",
       "columns": {},
       "meta": {},
-      "raw_code": "SELECT id FROM raw_schema.users"
+      "raw_code": "SELECT a.id FROM users a JOIN orders b ON a.id = b.user_id JOIN products c ON b.product_id = c.id JOIN categories d ON c.cat_id = d.id JOIN suppliers e ON d.sup_id = e.id"
     }
   },
   "sources": {},
@@ -400,9 +338,10 @@ fn test_code_contains_refs_mixed_models() {
 
     let config = r#"
 manifest_tests:
-  - name: "code_must_use_refs"
-    type: code_contains_refs
+  - name: "max_joins_check"
+    type: max_joins
     severity: "error"
+    max_joins: 2
     applies_to:
       - "models"
 "#;
@@ -410,13 +349,13 @@ manifest_tests:
     let env = TestEnvironment::new(manifest, config);
     let findings = env.run_manifest_rules(false);
 
-    // Only bad_model should fail
+    // Only bad_model should fail (4 joins > 2 limit)
     assert_eq!(findings.len(), 1);
     assert!(findings[0].0.message.contains("bad_model"));
 }
 
 #[test]
-fn test_code_contains_refs_case_insensitive() {
+fn test_max_joins_default_threshold() {
     let manifest = r#"{
   "metadata": {
     "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
@@ -429,24 +368,90 @@ fn test_code_contains_refs_case_insensitive() {
     "quoting": {}
   },
   "nodes": {
-    "model.test.uppercase_ref_model": {
+    "model.test.ok_model": {
       "database": "db",
       "schema": "public",
-      "name": "uppercase_ref_model",
+      "name": "ok_model",
       "resource_type": "model",
       "package_name": "test_project",
-      "path": "uppercase_ref_model.sql",
-      "original_file_path": "models/uppercase_ref_model.sql",
-      "unique_id": "model.test.uppercase_ref_model",
-      "fqn": ["test", "uppercase_ref_model"],
-      "alias": "uppercase_ref_model",
+      "path": "ok_model.sql",
+      "original_file_path": "models/ok_model.sql",
+      "unique_id": "model.test.ok_model",
+      "fqn": ["test", "ok_model"],
+      "alias": "ok_model",
       "depends_on": { "nodes": [] },
       "checksum": {"name": "sha256", "checksum": "abc"},
       "tags": [],
-      "description": "Model with uppercase REF",
+      "description": "Model with 6 joins (should fail with default of 5)",
       "columns": {},
       "meta": {},
-      "raw_code": "SELECT * FROM {{ REF('stg_users') }}"
+      "raw_code": "SELECT a.id FROM t1 a JOIN t2 b ON a.id=b.id JOIN t3 c ON b.id=c.id JOIN t4 d ON c.id=d.id JOIN t5 e ON d.id=e.id JOIN t6 f ON e.id=f.id JOIN t7 g ON f.id=g.id"
+    }
+  },
+  "sources": {},
+  "macros": {},
+  "exposures": {},
+  "metrics": {},
+  "groups": {},
+  "selectors": {},
+  "disabled": {},
+  "parent_map": {},
+  "child_map": {},
+  "group_map": {},
+  "saved_queries": {},
+  "semantic_models": {},
+  "unit_tests": {}
+}"#;
+
+    // No max_joins specified — should use default of 5
+    let config = r#"
+manifest_tests:
+  - name: "max_joins_default"
+    type: max_joins
+    severity: "error"
+    applies_to:
+      - "models"
+"#;
+
+    let env = TestEnvironment::new(manifest, config);
+    let findings = env.run_manifest_rules(false);
+
+    // 6 joins > default 5, should fail
+    assert_eq!(findings.len(), 1);
+    assert!(findings[0].0.message.contains("ok_model"));
+}
+
+#[test]
+fn test_max_joins_no_code_skips() {
+    let manifest = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "invocation_id": "test-invocation",
+    "env": {},
+    "project_name": "test_project",
+    "adapter_type": "postgres",
+    "quoting": {}
+  },
+  "nodes": {
+    "model.test.no_code_model": {
+      "database": "db",
+      "schema": "public",
+      "name": "no_code_model",
+      "resource_type": "model",
+      "package_name": "test_project",
+      "path": "no_code_model.sql",
+      "original_file_path": "models/no_code_model.sql",
+      "unique_id": "model.test.no_code_model",
+      "fqn": ["test", "no_code_model"],
+      "alias": "no_code_model",
+      "depends_on": { "nodes": [] },
+      "checksum": {"name": "sha256", "checksum": "abc"},
+      "tags": [],
+      "description": "Model without code",
+      "columns": {},
+      "meta": {}
     }
   },
   "sources": {},
@@ -466,9 +471,10 @@ fn test_code_contains_refs_case_insensitive() {
 
     let config = r#"
 manifest_tests:
-  - name: "code_must_use_refs"
-    type: code_contains_refs
+  - name: "max_joins_check"
+    type: max_joins
     severity: "error"
+    max_joins: 1
     applies_to:
       - "models"
 "#;
@@ -476,84 +482,6 @@ manifest_tests:
     let env = TestEnvironment::new(manifest, config);
     let findings = env.run_manifest_rules(false);
 
-    // Should pass — case-insensitive detection
+    // No code = skip gracefully
     assert_eq!(findings.len(), 0);
-}
-
-#[test]
-fn test_code_contains_refs_macros() {
-    let manifest = r#"{
-  "metadata": {
-    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
-    "dbt_version": "1.10.0",
-    "generated_at": "2025-01-01T00:00:00.000000Z",
-    "invocation_id": "test-invocation",
-    "env": {},
-    "project_name": "test_project",
-    "adapter_type": "postgres",
-    "quoting": {}
-  },
-  "nodes": {},
-  "sources": {},
-  "macros": {
-    "macro.test.good_macro": {
-      "name": "good_macro",
-      "resource_type": "macro",
-      "package_name": "test_project",
-      "path": "macros/good_macro.sql",
-      "original_file_path": "macros/good_macro.sql",
-      "unique_id": "macro.test.good_macro",
-      "macro_sql": "{% macro good_macro() %}\n  SELECT * FROM {{ ref('users') }}\n{% endmacro %}",
-      "depends_on": { "macros": [] },
-      "description": "Good macro with ref",
-      "meta": {},
-      "docs": { "show": true },
-      "patch_path": null,
-      "arguments": []
-    },
-    "macro.test.bad_macro": {
-      "name": "bad_macro",
-      "resource_type": "macro",
-      "package_name": "test_project",
-      "path": "macros/bad_macro.sql",
-      "original_file_path": "macros/bad_macro.sql",
-      "unique_id": "macro.test.bad_macro",
-      "macro_sql": "{% macro bad_macro() %}\n  SELECT * FROM raw_schema.users\n{% endmacro %}",
-      "depends_on": { "macros": [] },
-      "description": "Bad macro without ref",
-      "meta": {},
-      "docs": { "show": true },
-      "patch_path": null,
-      "arguments": []
-    }
-  },
-  "exposures": {},
-  "metrics": {},
-  "groups": {},
-  "selectors": {},
-  "disabled": {},
-  "parent_map": {},
-  "child_map": {},
-  "group_map": {},
-  "saved_queries": {},
-  "semantic_models": {},
-  "unit_tests": {}
-}"#;
-
-    let config = r#"
-manifest_tests:
-  - name: "code_must_use_refs"
-    type: code_contains_refs
-    severity: "warning"
-    applies_to:
-      - "macros"
-"#;
-
-    let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_manifest_rules(false);
-
-    // Only bad_macro should fail
-    assert_eq!(findings.len(), 1);
-    assert_eq!(findings[0].0.object_type, "Macro");
-    assert!(findings[0].0.message.contains("bad_macro"));
 }

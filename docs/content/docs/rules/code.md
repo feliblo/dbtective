@@ -1,5 +1,5 @@
 ---
-title: code (3)
+title: code (4)
 type: docs
 prev: docs/rules
 sidebar:
@@ -353,6 +353,114 @@ FROM users
 - Encourage breaking down large models into smaller, reusable CTEs or models
 - Maintain consistent code readability across the project
 - Catch accidentally empty SQL files
+
+</details>
+
+</details>
+
+<hr style="border: 2px solid #444; margin: 2em 0;">
+
+### Rule: `max_joins`
+
+<span class="rule-category-badge badge-manifest">Manifest Rule</span>
+
+<details open>
+<summary>max_joins details</summary>
+<br>
+This rule enforces a maximum number of JOINs in raw SQL code, helping to reduce code complexity and encourage modular design. SQL comments (single-line `--` and multi-line `/* */`) are stripped before counting, so commented-out JOINs are not counted. Detection is case-insensitive.
+
+---
+
+**Configuration**
+
+- **type**: Must be `max_joins`.
+- **max_joins**: _(optional)_ The maximum number of JOINs allowed. Defaults to `5`.
+- **applies_to**: _(optional)_ List of dbt object types to include.
+  - Default: `["models", "snapshots"]`
+  - Options: `models`, `snapshots`, `macros`
+
+{{< include-markdown "content/snippets/common_rule_config.md" >}}
+
+**Example Config**
+
+{{< tabs items="dbtective.yml,dbtective.toml,pyproject.toml" >}}
+
+{{< tab >}}
+
+```yaml
+manifest_tests:
+  - name: "limit_joins"
+    type: "max_joins"
+    max_joins: 3
+    description: "Models should not exceed 3 JOINs."
+    # severity: "warning"  (optional)
+    # applies_to: ['models', 'snapshots'] (optional)
+    # includes: ["path/to/include/*"]
+    # excludes: ["path/to/exclude/*"]
+```
+
+{{< /tab >}}
+
+{{< tab >}}
+
+```toml
+[[manifest_tests]]
+name = "limit_joins"
+type = "max_joins"
+max_joins = 3
+description = "Models should not exceed 3 JOINs."
+# severity = "warning"  # (optional)
+# applies_to = ["models", "snapshots"]  # (optional)
+# includes = ["path/to/include/*"]
+# excludes = ["path/to/exclude/*"]
+```
+
+{{< /tab >}}
+
+{{< tab >}}
+
+```toml
+[[tool.dbtective.manifest_tests]]
+name = "limit_joins"
+type = "max_joins"
+max_joins = 3
+description = "Models should not exceed 3 JOINs."
+# severity = "warning"  # (optional)
+# applies_to = ["models", "snapshots"]  # (optional)
+# includes = ["path/to/include/*"]
+# excludes = ["path/to/exclude/*"]
+```
+
+{{< /tab >}}
+
+{{< /tabs >}}
+
+<details closed>
+<summary>Relevant dbt code</summary>
+
+```sql
+-- models/simple_model.sql (PASS - 1 JOIN, within limit of 3)
+SELECT
+    a.id,
+    b.name
+FROM {{ ref('users') }} a
+JOIN {{ ref('orders') }} b ON a.id = b.user_id
+
+-- models/complex_model.sql (FAIL - 4 JOINs, exceeds limit of 3)
+SELECT a.id
+FROM {{ ref('users') }} a
+JOIN {{ ref('orders') }} b ON a.id = b.user_id
+JOIN {{ ref('products') }} c ON b.product_id = c.id
+JOIN {{ ref('categories') }} d ON c.cat_id = d.id
+JOIN {{ ref('suppliers') }} e ON d.sup_id = e.id
+
+-- models/commented_model.sql (PASS - commented JOINs are not counted)
+-- JOIN old_table ON ...
+/* LEFT JOIN another_table ON ... */
+SELECT a.id
+FROM {{ ref('users') }} a
+JOIN {{ ref('orders') }} b ON a.id = b.user_id
+```
 
 </details>
 

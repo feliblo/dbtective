@@ -202,7 +202,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(findings.len(), 2);
     assert!(findings
@@ -347,7 +347,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     // Only public_without_contract should fail; protected and no-access models are skipped
     assert_eq!(findings.len(), 1);
@@ -482,7 +482,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     // marts_no_contract and intermediate_no_contract should fail
     // staging_no_contract should be skipped (not in includes)
@@ -625,7 +625,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     // silver_no_contract and gold_no_contract should fail
     // bronze_no_contract should be skipped (not in includes)

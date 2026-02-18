@@ -88,7 +88,7 @@ impl TestEnvironment {
         }
     }
 
-    pub fn run_maniest_rules(&self, verbose: bool) -> Vec<(RuleResult, Severity)> {
+    pub fn run_manifest_rules(&self, verbose: bool) -> Vec<(RuleResult, Severity)> {
         let manifest = Manifest::from_file(&self.manifest_path).expect("Failed to load manifest");
         let config = Config::from_file(&self.config_path).expect("Failed to load config");
 
@@ -154,7 +154,7 @@ impl TestEnvironment {
     }
 
     pub fn run_structured_output(&self, verbose: bool) -> StructuredOutput {
-        let findings = self.run_maniest_rules(verbose);
+        let findings = self.run_manifest_rules(verbose);
         let refs: Vec<(RuleResult, &Severity)> =
             findings.iter().map(|(r, s)| (r.clone(), s)).collect();
         StructuredOutput::from_results(

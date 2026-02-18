@@ -3,80 +3,88 @@
 # Rules: https://feliblo.github.io/dbtective/docs/rules/
 
 manifest_tests:
-  # - name: "has_description"
-  #   type: "has_description"
+  - name: "has_description"
+    type: "has_description"
 
-  # - name: "naming_convention"
-  #   type: "name_convention"
-  #   pattern: "snake_case"
 
-  # - name: "require_execution_tags"
-  #   type: "has_tags"
-  #   required_tags: ["daily", "monthly", "yearly", "inactive"]
-  #   criteria: "one_of"
-  #   description: "Resources need to have at least one of the required tags. To decide when a resource should be run."
+  - name: "naming_convention"
+    type: "name_convention"
+    pattern: "snake_case"
 
-  # - name: "all_marts_are_exposed"
-  #   type: "is_not_orphaned"
-  #   description: "All mart models should be referenced by at least one exposure."
-  #   applies_to: ["models"]
-  #   includes: ["models/marts"]
-  #   allowed_references: ["exposures"]
+  - name: "require_execution_tags"
+    type: "has_tags"
+    required_tags: ["daily", "monthly", "yearly", "inactive"]
+    criteria: "one_of"
+    description: "Resources need to have at least one of the required tags. To decide when a resource should be run."
 
-  # - name: "has_unique_test"
-  #   type: "has_unique_test"
+  - name: "all_marts_are_exposed"
+    type: "is_not_orphaned"
+    description: "All mart models should be referenced by at least one exposure."
+    applies_to: ["models"]
+    includes: ["models/marts"]
+    allowed_references: ["exposures"]
 
-  # - name: "has_contract_enforced"
-  #   type: "has_contract_enforced"
-  #   includes: ["models/marts", "models/intermediate"]
+  - name: "has_unique_test"
+    type: "has_unique_test"
 
-  # - name: "has_owner"
-  #   type: "has_metadata_keys"
-  #   required_keys: ["owner"]
+  - name: "has_contract_enforced"
+    type: "has_contract_enforced"
+    includes: ["models/marts", "models/intermediate"]
 
-  # - name: "refs_must_be_used"
-  #   type: "has_refs"
+  - name: "has_owner"
+    type: "has_metadata_keys"
+    required_keys: ["owner"]
 
-  # - name: "allowed_subfolders"
-  #   type: "allowed_subfolders"
-  #   allowed_subfolders: ["staging", "marts", "intermediate"]
+  - name: "refs_must_be_used"
+    type: "has_refs"
 
-  # - name: "has_forbidden_code"
-  #   type: "has_forbidden_code"
-  #   forbidden_patterns: ["SELECT *", "staging.", "intermediate.", "marts."]
+  - name: "allowed_subfolders"
+    type: "allowed_subfolders"
+    allowed_subfolders: ["staging", "marts", "intermediate"]
+
+  - name: "has_forbidden_code"
+    type: "has_forbidden_code"
+    forbidden_patterns: ["SELECT *", "staging.", "intermediate.", "marts."]
 
   - name: "code_contains_refs"
     type: "code_contains_refs"
 
-#   - name: "sources_have_loader"
-#     type: "sources_have_loader"
+  - name: "max_joins"
+    description: "Reduce model complexity"
+    type: "max_joins"
+    max_joins: 5
 
-#   - name: "sources_have_freshness"
-#     type: "sources_have_freshness"
+  - name: "sources_have_loader"
+    type: "sources_have_loader"
 
-#   - name: "all_marts_are_exposed"
-#     type: "is_not_orphaned"
-#     applies_to: ["models"]
-#     includes: ["models/marts"]
-#     allowed_references: ["exposures"]
-#     severity: "warning"
 
-# catalog_tests:
-#   - name: "all_columns_documented"
-#     type: "columns_all_documented"
-#     description: "All columns must exist in the documentation."
-#     severity: "warning"
+  - name: "sources_have_freshness"
+    type: "sources_have_freshness"
 
-#   - name: "all_columns_described"
-#     type: "columns_have_description"
-#     description: "All columns must have a description."
 
-#   - name: "column_names_snake_case"
-#     type: "columns_name_convention"
-#     description: "All column names must be snake_case."
-#     pattern: "snake_case"
+  - name: "all_marts_are_exposed"
+    type: "is_not_orphaned"
+    applies_to: ["models"]
+    includes: ["models/marts"]
+    allowed_references: ["exposures"]
+    severity: "warning"
 
-#   - name: "columns_have_data_type"
-#     type: "columns_have_data_type"
-#     description: "All columns must have data types defined."
-#     includes: ["models/marts", "models/intermediate"]
+catalog_tests:
+  - name: "all_columns_documented"
+    type: "columns_all_documented"
+    description: "All columns must exist in the documentation."
+    severity: "warning"
+
+  - name: "all_columns_described"
+    type: "columns_have_description"
+    description: "All columns must have a description."
+
+  - name: "column_names_snake_case"
+    type: "columns_name_convention"
+    description: "All column names must be snake_case."
+    pattern: "snake_case"
+
+  - name: "columns_have_data_type"
+    type: "columns_have_data_type"
+    description: "All columns must have data types defined."
+    includes: ["models/marts", "models/intermediate"]

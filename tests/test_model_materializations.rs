@@ -218,7 +218,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest_with_materializations(), config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(findings.len(), 1, "Expected 1 finding only for table model");
 }
@@ -237,7 +237,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest_with_materializations(), config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(findings.len(), 1, "Expected 1 finding for view model only");
 }
@@ -257,7 +257,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest_with_materializations(), config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(
         findings.len(),
@@ -280,7 +280,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest_with_materializations(), config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(
         findings.len(),
@@ -301,7 +301,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest_with_materializations(), config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(
         findings.len(),
@@ -325,7 +325,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest_with_materializations(), config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(
         findings.len(),
@@ -348,7 +348,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest_with_materializations(), config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(
         findings.len(),

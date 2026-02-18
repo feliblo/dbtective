@@ -106,7 +106,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, max_lines_config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(findings.len(), 2);
 
@@ -142,7 +142,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, strict_config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(findings.len(), 3);
     for finding in &findings {
@@ -163,7 +163,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, lenient_config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(findings.len(), 1);
     assert!(findings[0].0.message.contains("empty_model"));
@@ -181,7 +181,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, exact_limit_config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     // Should find 2 violations: long_model and empty_model (short_model has exactly 2 lines)
     assert_eq!(findings.len(), 2);
@@ -276,7 +276,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, max_lines_config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].0.severity, "WARN");
@@ -300,7 +300,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, lenient_config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(findings.len(), 0);
 
@@ -316,7 +316,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, strict_config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(findings.len(), 2);
     for finding in &findings {
@@ -337,7 +337,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, exact_config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     // Should find only 1 violation: long_snapshot (short_snapshot has exactly 2 lines)
     assert_eq!(findings.len(), 1);
@@ -425,7 +425,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, max_lines_config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].0.severity, "FAIL");
@@ -449,7 +449,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, lenient_config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(findings.len(), 0);
 
@@ -465,7 +465,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, exact_config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     // Should find no violations: long_macro has exactly 8 lines
     assert_eq!(findings.len(), 0);
@@ -482,7 +482,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, below_limit_config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     // Should find 1 violation: long_macro exceeds 7 lines
     assert_eq!(findings.len(), 1);
@@ -500,7 +500,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, strict_config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(findings.len(), 2);
     let has_short = findings.iter().any(|f| f.0.message.contains("short_macro"));
@@ -637,7 +637,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, max_lines_config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(findings.len(), 3);
 
@@ -671,7 +671,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, lenient_config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(findings.len(), 0);
 
@@ -688,7 +688,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, partial_config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     // Should find 2 violations: violating_model and violating_snapshot (macro not checked)
     assert_eq!(findings.len(), 2);
@@ -713,7 +713,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, strict_config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     // Should find 3 violations: violating_model, violating_snapshot, and violating_macro
     // (compliant_model has exactly 1 line so it passes)

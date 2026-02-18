@@ -68,7 +68,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].0.severity, "FAIL");
@@ -195,7 +195,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     // Should pass: source is referenced by a model
     assert_eq!(findings.len(), 0);
@@ -292,7 +292,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].0.severity, "WARN");
@@ -425,7 +425,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     // Should pass: model is referenced by an exposure
     assert_eq!(findings.len(), 0);
@@ -565,7 +565,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     // Should fail: model is only referenced by a test, which is not in allowed_references
     assert_eq!(findings.len(), 1);
@@ -761,7 +761,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     // Should find 2 orphaned models: orphaned_model (no children) and downstream_model (no children)
     assert_eq!(findings.len(), 2);
@@ -960,7 +960,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     // Model has only schema test children, which are filtered out.
     // Should be treated as orphaned with "not referenced by any other object" message.
@@ -1137,7 +1137,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     // Model has an exposure child (allowed) plus schema tests (filtered out).
     // Should pass.
@@ -1325,7 +1325,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     // mart_model is referenced by a model (not in allowed_references which is exposures only)
     // and by tests (filtered out). Should show warning with "only referenced by: model".
@@ -1446,7 +1446,7 @@ manifest_tests:
 "#;
 
     let env = TestEnvironment::new(manifest, warning_config);
-    let findings = env.run_maniest_rules(false);
+    let findings = env.run_manifest_rules(false);
 
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].0.severity, "WARN");

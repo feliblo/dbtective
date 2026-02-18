@@ -7,8 +7,8 @@ use serde::{Deserialize, Serialize};
 use crate::core::config::applies_to::AppliesTo;
 use crate::core::config::applies_to::RuleTarget;
 use crate::core::config::check_config_options::{
-    default_allowed_references, default_allowed_test_names, default_max_code_lines, AccessLevel,
-    HasTagsCriteria, OrphanedReferenceType,
+    default_allowed_references, default_allowed_test_names, default_max_code_lines,
+    default_max_joins, AccessLevel, HasTagsCriteria, OrphanedReferenceType,
 };
 use crate::core::config::naming_convention::NamingConvention;
 use crate::core::config::severity::Severity;
@@ -69,6 +69,10 @@ pub enum ManifestSpecificRuleConfig {
         case_sensitive: bool,
     },
     CodeContainsRefs {},
+    MaxJoins {
+        #[serde(default = "default_max_joins")]
+        max_joins: usize,
+    },
     SourcesHaveLoader {},
     SourcesHaveFreshness {},
 }
@@ -277,7 +281,8 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             custom_objects: vec![],
         },
         ManifestSpecificRuleConfig::MaxCodeLines { .. }
-        | ManifestSpecificRuleConfig::HasForbiddenCode { .. } => AppliesTo {
+        | ManifestSpecificRuleConfig::HasForbiddenCode { .. }
+        | ManifestSpecificRuleConfig::MaxJoins { .. } => AppliesTo {
             node_objects: vec![RuleTarget::Models, RuleTarget::Snapshots],
             source_objects: vec![],
             unit_test_objects: vec![],
@@ -415,7 +420,8 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
         },
         ManifestSpecificRuleConfig::MaxCodeLines { .. }
         | ManifestSpecificRuleConfig::HasForbiddenCode { .. }
-        | ManifestSpecificRuleConfig::CodeContainsRefs {} => AppliesTo {
+        | ManifestSpecificRuleConfig::CodeContainsRefs {}
+        | ManifestSpecificRuleConfig::MaxJoins { .. } => AppliesTo {
             node_objects: vec![RuleTarget::Models, RuleTarget::Snapshots],
             source_objects: vec![],
             unit_test_objects: vec![],

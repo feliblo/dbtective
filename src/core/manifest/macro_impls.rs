@@ -59,7 +59,7 @@ impl HasMetadata for Macro {
 }
 
 impl HasCode for Macro {
-    fn get_code(&self) -> Option<&str> {
+    fn get_raw_code(&self) -> Option<&str> {
         Some(&self.macro_sql)
     }
 }

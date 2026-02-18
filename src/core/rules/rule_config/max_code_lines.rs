@@ -4,7 +4,7 @@ use crate::{
 };
 
 pub trait HasCode: Identifiable {
-    fn get_code(&self) -> Option<&str>;
+    fn get_raw_code(&self) -> Option<&str>;
 }
 
 // Models, Macros, Snapshots can all contain code.
@@ -14,7 +14,7 @@ pub fn max_code_lines<T: HasCode>(
     max_length: usize,
 ) -> Option<RuleResult> {
     let code_lines = object_with_code
-        .get_code()
+        .get_raw_code()
         .map_or(0, |code| code.lines().count());
 
     if code_lines > 0 && code_lines <= max_length {
@@ -68,7 +68,7 @@ mod tests {
         }
     }
     impl HasCode for TestNode {
-        fn get_code(&self) -> Option<&str> {
+        fn get_raw_code(&self) -> Option<&str> {
             self.code.as_deref()
         }
     }

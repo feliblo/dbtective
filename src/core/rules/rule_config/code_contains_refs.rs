@@ -1,23 +1,7 @@
 use crate::{cli::table::RuleResult, core::config::manifest_rule::ManifestRule};
 
 use super::max_code_lines::HasCode;
-
-fn strip_sql_comments(code: &str) -> String {
-    let mut result = code.to_string();
-    while let Some(start) = result.find("/*") {
-        if let Some(end) = result[start..].find("*/") {
-            result.replace_range(start..start + end + 2, "");
-        } else {
-            result.replace_range(start.., "");
-        }
-    }
-
-    result
-        .lines()
-        .map(|line| line.split_once("--").map_or(line, |(before, _)| before))
-        .collect::<Vec<_>>()
-        .join("\n")
-}
+use super::utils::strip_sql_comments;
 
 /// Check if code contains `ref()` or `source()` function calls.
 /// Strips SQL comments before checking to avoid false positives from commented-out code.
@@ -26,7 +10,13 @@ pub fn code_contains_refs<T: HasCode>(
     object_with_code: &T,
     rule: &ManifestRule,
 ) -> Option<RuleResult> {
-    let raw_code = object_with_code.get_code()?;
+    let raw_code = match object_with_code.get_raw_code() {
+        Some(code) if !code.trim().is_empty() => code,
+        Some(_) | None => {
+            // No code available — skip gracefully
+            return None;
+        }
+    };
 
     let stripped = strip_sql_comments(raw_code);
     let lowered = stripped.to_lowercase();
@@ -76,7 +66,7 @@ mod tests {
     }
 
     impl HasCode for TestNode {
-        fn get_code(&self) -> Option<&str> {
+        fn get_raw_code(&self) -> Option<&str> {
             self.code.as_deref()
         }
     }
@@ -86,39 +76,6 @@ mod tests {
             ManifestSpecificRuleConfig::CodeContainsRefs {},
             Severity::Warning,
         )
-    }
-
-    #[test]
-    fn test_strip_single_line_comment() {
-        let code = "SELECT * FROM {{ ref('model') }} -- this is a comment\nWHERE 1=1";
-        let stripped = strip_sql_comments(code);
-        assert!(stripped.contains("ref('model')"));
-        assert!(!stripped.contains("this is a comment"));
-    }
-
-    #[test]
-    fn test_strip_multi_line_comment() {
-        let code = "SELECT * /* ref('commented_out') */ FROM table";
-        let stripped = strip_sql_comments(code);
-        assert!(!stripped.contains("ref('commented_out')"));
-        assert!(stripped.contains("FROM table"));
-    }
-
-    #[test]
-    fn test_strip_entire_line_comment() {
-        let code = "-- ref('old_model')\nSELECT 1";
-        let stripped = strip_sql_comments(code);
-        assert!(!stripped.contains("ref('old_model')"));
-        assert!(stripped.contains("SELECT 1"));
-    }
-
-    #[test]
-    fn test_strip_nested_multi_line_comment() {
-        let code = "/* \n  source('raw', 'table') \n  ref('model') \n*/ SELECT 1";
-        let stripped = strip_sql_comments(code);
-        assert!(!stripped.contains("source("));
-        assert!(!stripped.contains("ref("));
-        assert!(stripped.contains("SELECT 1"));
     }
 
     #[test]

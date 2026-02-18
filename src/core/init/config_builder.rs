@@ -37,6 +37,7 @@ impl InitConfig {
             .collect()
     }
 
+    #[allow(clippy::too_many_lines)]
     fn create_manifest_rule(
         rule: &ManifestSpecificRuleConfig,
         result: &QuestionnaireResult,
@@ -131,6 +132,9 @@ impl InitConfig {
             }
             ManifestSpecificRuleConfig::CodeContainsRefs { .. } => {
                 ManifestSpecificRuleConfig::CodeContainsRefs {}
+            }
+            ManifestSpecificRuleConfig::MaxJoins { .. } => {
+                ManifestSpecificRuleConfig::MaxJoins { max_joins: 5 }
             }
             ManifestSpecificRuleConfig::SourcesHaveLoader { .. } => {
                 ManifestSpecificRuleConfig::SourcesHaveLoader {}
@@ -410,6 +414,14 @@ impl InitConfig {
             ManifestSpecificRuleConfig::CodeContainsRefs {} => r#"  - name: "code_contains_refs"
     type: "code_contains_refs""#
                 .to_string(),
+            ManifestSpecificRuleConfig::MaxJoins { max_joins } => {
+                format!(
+                    r#"  - name: "max_joins"
+    description: "Reduce model complexity"
+    type: "max_joins"
+    max_joins: {max_joins}"#
+                )
+            }
             ManifestSpecificRuleConfig::SourcesHaveLoader {} => r#"  - name: "sources_have_loader"
     type: "sources_have_loader"
 "#
@@ -707,6 +719,15 @@ forbidden_patterns = [{patterns_str}]"#
                     r#"[[{section}]]
 name = "code_contains_refs"
 type = "code_contains_refs""#
+                )
+            }
+            ManifestSpecificRuleConfig::MaxJoins { max_joins } => {
+                format!(
+                    r#"[[{section}]]
+name = "max_joins"
+description = "Reduce model complexity"
+type = "max_joins"
+max_joins = {max_joins}"#
                 )
             }
             ManifestSpecificRuleConfig::SourcesHaveLoader {} => {
@@ -1394,6 +1415,7 @@ mod tests {
                     forbidden_patterns: vec![],
                     case_sensitive: false,
                 },
+                ManifestSpecificRuleConfig::MaxJoins { max_joins: 0 },
                 ManifestSpecificRuleConfig::SourcesHaveLoader {},
                 ManifestSpecificRuleConfig::SourcesHaveFreshness {},
             ],
@@ -1402,7 +1424,7 @@ mod tests {
         );
 
         let config = InitConfig::from_questionnaire(&result);
-        assert_eq!(config.manifest_rules.len(), 10);
+        assert_eq!(config.manifest_rules.len(), 11);
     }
 
     #[test]
@@ -2305,7 +2327,7 @@ mod tests {
         );
 
         let config = InitConfig::from_questionnaire(&result);
-        assert_eq!(config.manifest_rules.len(), 14); // All 14 manifest rules
+        assert_eq!(config.manifest_rules.len(), 15); // All 15 manifest rules
     }
 
     #[test]

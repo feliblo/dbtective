@@ -111,7 +111,7 @@ impl Tagable for Node {
 }
 
 impl HasCode for Node {
-    fn get_code(&self) -> Option<&str> {
+    fn get_raw_code(&self) -> Option<&str> {
         match self {
             Self::Model(m) => m.get_raw_code(),
             Self::Snapshot(s) => s.get_raw_code(),
