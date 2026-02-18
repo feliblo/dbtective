@@ -129,6 +129,9 @@ impl InitConfig {
                     case_sensitive: false,
                 }
             }
+            ManifestSpecificRuleConfig::CodeContainsRefs { .. } => {
+                ManifestSpecificRuleConfig::CodeContainsRefs {}
+            }
             ManifestSpecificRuleConfig::SourcesHaveLoader { .. } => {
                 ManifestSpecificRuleConfig::SourcesHaveLoader {}
             }
@@ -404,6 +407,9 @@ impl InitConfig {
 
                 s
             }
+            ManifestSpecificRuleConfig::CodeContainsRefs {} => r#"  - name: "code_contains_refs"
+    type: "code_contains_refs""#
+                .to_string(),
             ManifestSpecificRuleConfig::SourcesHaveLoader {} => r#"  - name: "sources_have_loader"
     type: "sources_have_loader"
 "#
@@ -695,6 +701,13 @@ forbidden_patterns = [{patterns_str}]"#
                     s.push_str("\ncase_sensitive = true");
                 }
                 s
+            }
+            ManifestSpecificRuleConfig::CodeContainsRefs {} => {
+                format!(
+                    r#"[[{section}]]
+name = "code_contains_refs"
+type = "code_contains_refs""#
+                )
             }
             ManifestSpecificRuleConfig::SourcesHaveLoader {} => {
                 format!(
@@ -2292,7 +2305,7 @@ mod tests {
         );
 
         let config = InitConfig::from_questionnaire(&result);
-        assert_eq!(config.manifest_rules.len(), 13); // All 13 manifest rules
+        assert_eq!(config.manifest_rules.len(), 14); // All 14 manifest rules
     }
 
     #[test]

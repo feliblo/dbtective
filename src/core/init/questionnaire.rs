@@ -96,6 +96,9 @@ impl Init for ManifestSpecificRuleConfig {
             Self::HasForbiddenCode { .. } => {
                 "has_forbidden_code - Check for forbidden code patterns"
             }
+            Self::CodeContainsRefs { .. } => {
+                "code_contains_refs - Require ref()/source() calls in SQL code"
+            }
             Self::SourcesHaveFreshness { .. } => {
                 "sources_have_freshness - Require freshness for sources"
             }
@@ -218,6 +221,7 @@ pub fn run_questionnaire() -> Result<QuestionnaireResult, String> {
                 ManifestSpecificRuleConfig::NameConvention {
                     convention: NamingConvention::default(),
                 },
+                ManifestSpecificRuleConfig::CodeContainsRefs {},
             ],
             vec![CatalogSpecificRuleConfig::ColumnsNameConvention {
                 convention: NamingConvention::default(),
@@ -238,6 +242,7 @@ pub fn run_questionnaire() -> Result<QuestionnaireResult, String> {
                     custom_message: None,
                 },
                 ManifestSpecificRuleConfig::HasRefs {},
+                ManifestSpecificRuleConfig::CodeContainsRefs {},
             ],
             vec![
                 CatalogSpecificRuleConfig::ColumnsNameConvention {
@@ -272,6 +277,7 @@ pub fn run_questionnaire() -> Result<QuestionnaireResult, String> {
                     forbidden_patterns: vec![],
                     case_sensitive: false,
                 },
+                ManifestSpecificRuleConfig::CodeContainsRefs {},
                 ManifestSpecificRuleConfig::SourcesHaveLoader {},
                 ManifestSpecificRuleConfig::SourcesHaveFreshness {},
             ],
@@ -432,6 +438,9 @@ mod tests {
         assert!(descriptions.contains(&"has_metadata_keys - Require metadata keys (e.g., owner)"));
         assert!(descriptions.contains(&"has_refs - Require use of ref() function"));
         assert!(descriptions.contains(&"max_code_lines - Limit code line count"));
+        assert!(
+            descriptions.contains(&"code_contains_refs - Require ref()/source() calls in SQL code")
+        );
         assert!(descriptions.contains(&"allowed_subfolders - Restrict subfolder usage"));
         assert!(descriptions.contains(&"sources_have_loader - Require loader for sources"));
     }
@@ -458,7 +467,7 @@ mod tests {
 
     #[test]
     fn test_manifest_rule_iter_count() {
-        assert_eq!(ManifestSpecificRuleConfig::iter().count(), 13);
+        assert_eq!(ManifestSpecificRuleConfig::iter().count(), 14);
     }
 
     #[test]

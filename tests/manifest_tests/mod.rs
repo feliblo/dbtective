@@ -1,3 +1,4 @@
+mod test_code_contains_refs;
 mod test_has_contract_enforced;
 mod test_has_description;
 mod test_has_forbidden_code;

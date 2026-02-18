@@ -69,14 +69,20 @@ Here you can find an overview of all possible rules. Use the filter below to fin
       <td>Check if dbt objects have at least one upstream reference using <code>ref()</code> or <code>source()</code>. Identifies objects that may be using hardcoded SQL instead of leveraging dbt's dependency management.</td>
       <td style="font-size: 12px; color: #666;">references, upstream, dependencies, ref, source</td>
     </tr>
+    <tr class="rule-item" data-keywords="code ref source references hardcoded sql lineage dependency raw_code" data-category="manifest">
+      <td><a href="code" class="rule-name">code_contains_refs</a></td>
+      <td><span class="rule-category-badge badge-manifest">Manifest</span></td>
+      <td>Check if SQL code contains <code>ref()</code> or <code>source()</code> function calls. Strips comments before checking. Case-insensitive.</td>
+      <td style="font-size: 12px; color: #666;">code, ref, source, references, hardcoded, sql</td>
+    </tr>
     <tr class="rule-item" data-keywords="code lines length size complexity maintainability modularity readability" data-category="manifest">
-      <td><a href="max_code_lines" class="rule-name">max_code_lines</a></td>
+      <td><a href="code" class="rule-name">max_code_lines</a></td>
       <td><span class="rule-category-badge badge-manifest">Manifest</span></td>
       <td>Enforce a maximum line count for code. </td>
       <td style="font-size: 12px; color: #666;">code, lines, length, size, complexity</td>
     </tr>
     <tr class="rule-item" data-keywords="forbidden code patterns jinja macros sql banned prohibited disallowed raw_code" data-category="manifest">
-      <td><a href="has_forbidden_code" class="rule-name">has_forbidden_code</a></td>
+      <td><a href="code" class="rule-name">has_forbidden_code</a></td>
       <td><span class="rule-category-badge badge-manifest">Manifest</span></td>
       <td>Check if code contains forbidden patterns, such direct selects <code>SELECT *</code></td>
       <td style="font-size: 12px; color: #666;">forbidden, code, patterns, jinja, macros</td>
