@@ -111,6 +111,18 @@ Here you can find an overview of all possible rules. Use the filter below to fin
       <td>Check if sources have freshness configured. Ensures sources define acceptable data staleness thresholds.</td>
       <td style="font-size: 12px; color: #666;">freshness, source, staleness, monitoring, data quality</td>
     </tr>
+    <tr class="rule-item" data-keywords="upstream fan-in ref source consuming complexity limit threshold lineage dag" data-category="manifest">
+      <td><a href="fan-in-fan-out" class="rule-name">max_upstream_dependencies</a></td>
+      <td><span class="rule-category-badge badge-manifest">Manifest</span></td>
+      <td>Limit <b>fan-in</b>. How many other models a model can select from via ref() and source().</td>
+      <td style="font-size: 12px; color: #666;">upstream, fan-in, ref, source, lineage</td>
+    </tr>
+    <tr class="rule-item" data-keywords="downstream fan-out bottleneck blast radius limit threshold lineage dag consumers" data-category="manifest">
+      <td><a href="fan-in-fan-out" class="rule-name">max_downstream_dependencies</a></td>
+      <td><span class="rule-category-badge badge-manifest">Manifest</span></td>
+      <td>Limit <b>fan-out</b>. How many other models can ref() a single model.</td>
+      <td style="font-size: 12px; color: #666;">downstream, fan-out, bottleneck, blast radius, lineage</td>
+    </tr>
   </tbody>
 </table>
 

@@ -6,6 +6,7 @@ use crate::core::config::includes_excludes::IncludeExcludable;
 use crate::core::rules::common_traits::{Columnable, Identifiable};
 use crate::core::rules::rule_config::allowed_subfolders::PathCheckable;
 use crate::core::rules::rule_config::child_map::ChildMappable;
+use crate::core::rules::rule_config::fan_in_out::ParentMappable;
 use crate::core::rules::rule_config::has_contract_enforced::ContractAble;
 use crate::core::rules::rule_config::has_description::Descriptable;
 use crate::core::rules::rule_config::has_metadata_keys::HasMetadata;
@@ -127,6 +128,17 @@ impl ChildMappable for Node {
             .child_map
             .get(unique_id)
             .map(|children| children.iter().map(String::as_str).collect())
+            .unwrap_or_default()
+    }
+}
+
+impl ParentMappable for Node {
+    fn get_parents<'a>(&self, manifest: &'a Manifest) -> Vec<&'a str> {
+        let unique_id = self.get_unique_id();
+        manifest
+            .parent_map
+            .get(unique_id)
+            .map(|parents| parents.iter().map(String::as_str).collect())
             .unwrap_or_default()
     }
 }

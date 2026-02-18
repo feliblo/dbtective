@@ -4,7 +4,8 @@ use crate::core::config::manifest_rule::ManifestSpecificRuleConfig;
 use crate::core::rules::rule_config::{
     check_allowed_subfolders, check_name_convention, child_map::is_not_orphaned,
     code_contains_refs, has_contract_enforced, has_description, has_forbidden_code,
-    has_metadata_keys, has_refs, has_tags, has_unique_test, max_code_lines, max_joins,
+    has_metadata_keys, has_refs, has_tags, has_unique_test, max_code_lines,
+    max_downstream_dependencies, max_joins, max_upstream_dependencies,
 };
 
 use crate::core::config::severity::Severity;
@@ -15,6 +16,7 @@ use crate::core::manifest::Manifest;
 ///
 /// # Errors
 /// Returns an error if a rule has invalid configuration (e.g., invalid regex pattern).
+#[allow(clippy::too_many_lines)]
 pub fn apply_manifest_node_rules<'a>(
     manifest: &'a Manifest,
     config: &'a Config,
@@ -95,6 +97,26 @@ pub fn apply_manifest_node_rules<'a>(
                         allowed_subfolders,
                         path_prefix.as_ref(),
                         path_postfix.as_ref(),
+                    ),
+                    ManifestSpecificRuleConfig::MaxUpstreamDependencies {
+                        max_upstream,
+                        exclude_types,
+                    } => max_upstream_dependencies(
+                        node,
+                        rule,
+                        *max_upstream,
+                        exclude_types,
+                        manifest,
+                    ),
+                    ManifestSpecificRuleConfig::MaxDownstreamDependencies {
+                        max_downstream,
+                        exclude_types,
+                    } => max_downstream_dependencies(
+                        node,
+                        rule,
+                        *max_downstream,
+                        exclude_types,
+                        manifest,
                     ),
                     // These only apply to sources
                     ManifestSpecificRuleConfig::SourcesHaveLoader {}

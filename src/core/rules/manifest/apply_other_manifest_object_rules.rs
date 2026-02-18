@@ -2,7 +2,8 @@ use crate::core::config::applies_to::RuleTargetable;
 use crate::core::rules::rule_config::{
     check_allowed_subfolders, check_name_convention, code_contains_refs, has_description,
     has_forbidden_code, has_freshness, has_loader, has_metadata_keys, has_refs, has_tags,
-    has_unique_test, is_not_orphaned, max_code_lines, max_joins,
+    has_unique_test, is_not_orphaned, max_code_lines, max_downstream_dependencies, max_joins,
+    max_upstream_dependencies,
 };
 use crate::{
     cli::table::RuleResult,
@@ -105,6 +106,26 @@ fn apply_source_rules<'a>(
                     ManifestSpecificRuleConfig::SourcesHaveFreshness {} => {
                         has_freshness(source, rule)
                     }
+                    ManifestSpecificRuleConfig::MaxUpstreamDependencies {
+                        max_upstream,
+                        exclude_types,
+                    } => max_upstream_dependencies(
+                        source,
+                        rule,
+                        *max_upstream,
+                        exclude_types,
+                        manifest,
+                    ),
+                    ManifestSpecificRuleConfig::MaxDownstreamDependencies {
+                        max_downstream,
+                        exclude_types,
+                    } => max_downstream_dependencies(
+                        source,
+                        rule,
+                        *max_downstream,
+                        exclude_types,
+                        manifest,
+                    ),
 
                     // These can't be implemented for sources
                     ManifestSpecificRuleConfig::HasRefs {}
@@ -208,6 +229,8 @@ fn apply_macro_rules<'a>(
                         | ManifestSpecificRuleConfig::HasUniqueTest { .. }
                         | ManifestSpecificRuleConfig::HasRefs {}
                         | ManifestSpecificRuleConfig::HasContractEnforced { .. }
+                        | ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. }
+                        | ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. }
                         | ManifestSpecificRuleConfig::SourcesHaveLoader {}
                         | ManifestSpecificRuleConfig::SourcesHaveFreshness {} => return Ok(acc),
                     };
@@ -298,6 +321,8 @@ fn apply_exposure_rules<'a>(
                         | ManifestSpecificRuleConfig::HasContractEnforced { .. }
                         | ManifestSpecificRuleConfig::CodeContainsRefs {}
                         | ManifestSpecificRuleConfig::MaxJoins { .. }
+                        | ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. }
+                        | ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. }
                         | ManifestSpecificRuleConfig::SourcesHaveLoader {}
                         | ManifestSpecificRuleConfig::SourcesHaveFreshness {} => return Ok(acc),
                     };
@@ -374,6 +399,8 @@ fn apply_semantic_model_rules<'a>(
                     | ManifestSpecificRuleConfig::HasContractEnforced { .. }
                     | ManifestSpecificRuleConfig::CodeContainsRefs {}
                     | ManifestSpecificRuleConfig::MaxJoins { .. }
+                    | ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. }
+                    | ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. }
                     | ManifestSpecificRuleConfig::SourcesHaveLoader {}
                     | ManifestSpecificRuleConfig::SourcesHaveFreshness {} => return Ok(acc),
                 };
@@ -446,6 +473,8 @@ fn apply_unit_test_rules<'a>(
                     | ManifestSpecificRuleConfig::HasMetadataKeys { .. }
                     | ManifestSpecificRuleConfig::CodeContainsRefs {}
                     | ManifestSpecificRuleConfig::MaxJoins { .. }
+                    | ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. }
+                    | ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. }
                     | ManifestSpecificRuleConfig::SourcesHaveLoader {}
                     | ManifestSpecificRuleConfig::SourcesHaveFreshness {} => return Ok(acc),
                 };

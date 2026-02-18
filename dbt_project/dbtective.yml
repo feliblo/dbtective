@@ -54,6 +54,22 @@ manifest_tests:
     type: "max_joins"
     max_joins: 5
 
+  - name: "max_upstream_dependencies"
+    description: "Models should not select from too many ref() and source() calls"
+    type: "max_upstream_dependencies"
+    max_upstream: 5
+
+  - name: "max_downstream_dependencies"
+    description: "Reduce model fanout complexity"
+    type: "max_downstream_dependencies"
+    max_downstream: 5
+
+  - name: "source_max_downstream_dependencies"
+    description: "Sources should not be referenced by more than 1 model (use a staging model)"
+    type: "max_downstream_dependencies"
+    max_downstream: 1
+    applies_to: ["sources"]
+
   - name: "sources_have_loader"
     type: "sources_have_loader"
 

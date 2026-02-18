@@ -136,6 +136,18 @@ impl InitConfig {
             ManifestSpecificRuleConfig::MaxJoins { .. } => {
                 ManifestSpecificRuleConfig::MaxJoins { max_joins: 5 }
             }
+            ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. } => {
+                ManifestSpecificRuleConfig::MaxUpstreamDependencies {
+                    max_upstream: 5,
+                    exclude_types: vec![],
+                }
+            }
+            ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. } => {
+                ManifestSpecificRuleConfig::MaxDownstreamDependencies {
+                    max_downstream: 5,
+                    exclude_types: vec![],
+                }
+            }
             ManifestSpecificRuleConfig::SourcesHaveLoader { .. } => {
                 ManifestSpecificRuleConfig::SourcesHaveLoader {}
             }
@@ -421,6 +433,29 @@ impl InitConfig {
     description: "Reduce model complexity"
     type: "max_joins"
     max_joins: {max_joins}"#
+                )
+            }
+            ManifestSpecificRuleConfig::MaxUpstreamDependencies { max_upstream, .. } => {
+                format!(
+                    r#"  - name: "max_upstream_dependencies"
+    description: "Models should not select from too many ref() and source() calls"
+    type: "max_upstream_dependencies"
+    max_upstream: {max_upstream}"#
+                )
+            }
+            ManifestSpecificRuleConfig::MaxDownstreamDependencies { max_downstream, .. } => {
+                format!(
+                    r#"  - name: "max_downstream_dependencies"
+    description: "Reduce model fanout complexity"
+    type: "max_downstream_dependencies"
+    max_downstream: {max_downstream}
+    applies_to: ["models"]
+
+  - name: "source_max_downstream_dependencies"
+    description: "Sources should not be referenced by more than 1 model (use a staging model)"
+    type: "max_downstream_dependencies"
+    max_downstream: 1
+    applies_to: ["sources"]"#
                 )
             }
             ManifestSpecificRuleConfig::SourcesHaveLoader {} => r#"  - name: "sources_have_loader"
@@ -729,6 +764,32 @@ name = "max_joins"
 description = "Reduce model complexity"
 type = "max_joins"
 max_joins = {max_joins}"#
+                )
+            }
+            ManifestSpecificRuleConfig::MaxUpstreamDependencies { max_upstream, .. } => {
+                format!(
+                    r#"[[{section}]]
+name = "max_upstream_dependencies"
+description = "Models should not select from too many ref() and source() calls"
+type = "max_upstream_dependencies"
+max_upstream = {max_upstream}"#
+                )
+            }
+            ManifestSpecificRuleConfig::MaxDownstreamDependencies { max_downstream, .. } => {
+                format!(
+                    r#"[[{section}]]
+name = "max_downstream_dependencies"
+description = "Reduce model fanout complexity"
+type = "max_downstream_dependencies"
+max_downstream = {max_downstream}
+applies_to = ["models"]
+
+[[{section}]]
+name = "source_max_downstream_dependencies"
+description = "Sources should not be referenced by more than 1 model (use a staging model)"
+type = "max_downstream_dependencies"
+max_downstream = 1
+applies_to = ["sources"]"#
                 )
             }
             ManifestSpecificRuleConfig::SourcesHaveLoader {} => {
@@ -2341,7 +2402,7 @@ mod tests {
         );
 
         let config = InitConfig::from_questionnaire(&result);
-        assert_eq!(config.manifest_rules.len(), 15); // All 15 manifest rules
+        assert_eq!(config.manifest_rules.len(), 17); // All 17 manifest rules
     }
 
     #[test]
