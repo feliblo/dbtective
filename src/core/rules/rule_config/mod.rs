@@ -1,5 +1,6 @@
 pub mod allowed_subfolders;
 pub mod child_map;
+pub mod code_contains_refs;
 pub mod has_contract_enforced;
 pub mod has_description;
 pub mod has_forbidden_code;
@@ -14,6 +15,7 @@ pub mod name_convention;
 
 pub use allowed_subfolders::check_allowed_subfolders;
 pub use child_map::is_not_orphaned;
+pub use code_contains_refs::code_contains_refs;
 pub use has_contract_enforced::has_contract_enforced;
 pub use has_description::has_description;
 pub use has_forbidden_code::has_forbidden_code;

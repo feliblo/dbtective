@@ -1,8 +1,8 @@
 use crate::core::config::applies_to::RuleTargetable;
 use crate::core::rules::rule_config::{
-    check_allowed_subfolders, check_name_convention, has_description, has_forbidden_code,
-    has_freshness, has_loader, has_metadata_keys, has_refs, has_tags, has_unique_test,
-    is_not_orphaned, max_code_lines,
+    check_allowed_subfolders, check_name_convention, code_contains_refs, has_description,
+    has_forbidden_code, has_freshness, has_loader, has_metadata_keys, has_refs, has_tags,
+    has_unique_test, is_not_orphaned, max_code_lines,
 };
 use crate::{
     cli::table::RuleResult,
@@ -110,7 +110,8 @@ fn apply_source_rules<'a>(
                     ManifestSpecificRuleConfig::HasRefs {}
                     | ManifestSpecificRuleConfig::MaxCodeLines { .. }
                     | ManifestSpecificRuleConfig::HasForbiddenCode { .. }
-                    | ManifestSpecificRuleConfig::HasContractEnforced { .. } => return Ok(acc),
+                    | ManifestSpecificRuleConfig::HasContractEnforced { .. }
+                    | ManifestSpecificRuleConfig::CodeContainsRefs {} => return Ok(acc),
                 };
 
                 if let Some(rule_row) = rule_row_result {
@@ -182,6 +183,9 @@ fn apply_macro_rules<'a>(
                             case_sensitive,
                         } => {
                             has_forbidden_code(macro_obj, rule, forbidden_patterns, *case_sensitive)
+                        }
+                        ManifestSpecificRuleConfig::CodeContainsRefs {} => {
+                            code_contains_refs(macro_obj, rule)
                         }
                         ManifestSpecificRuleConfig::AllowedSubfolders {
                             allowed_subfolders,
@@ -288,6 +292,7 @@ fn apply_exposure_rules<'a>(
                         | ManifestSpecificRuleConfig::HasForbiddenCode { .. }
                         | ManifestSpecificRuleConfig::HasUniqueTest { .. }
                         | ManifestSpecificRuleConfig::HasContractEnforced { .. }
+                        | ManifestSpecificRuleConfig::CodeContainsRefs {}
                         | ManifestSpecificRuleConfig::SourcesHaveLoader {}
                         | ManifestSpecificRuleConfig::SourcesHaveFreshness {} => return Ok(acc),
                     };
@@ -362,6 +367,7 @@ fn apply_semantic_model_rules<'a>(
                     | ManifestSpecificRuleConfig::IsNotOrphaned { .. }
                     | ManifestSpecificRuleConfig::HasUniqueTest { .. }
                     | ManifestSpecificRuleConfig::HasContractEnforced { .. }
+                    | ManifestSpecificRuleConfig::CodeContainsRefs {}
                     | ManifestSpecificRuleConfig::SourcesHaveLoader {}
                     | ManifestSpecificRuleConfig::SourcesHaveFreshness {} => return Ok(acc),
                 };
@@ -432,6 +438,7 @@ fn apply_unit_test_rules<'a>(
                     | ManifestSpecificRuleConfig::HasUniqueTest { .. }
                     | ManifestSpecificRuleConfig::HasContractEnforced { .. }
                     | ManifestSpecificRuleConfig::HasMetadataKeys { .. }
+                    | ManifestSpecificRuleConfig::CodeContainsRefs {}
                     | ManifestSpecificRuleConfig::SourcesHaveLoader {}
                     | ManifestSpecificRuleConfig::SourcesHaveFreshness {} => return Ok(acc),
                 };

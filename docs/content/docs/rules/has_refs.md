@@ -13,9 +13,11 @@ sidebar:
 <details open>
 <summary>has_refs details</summary>
 <br>
-This rule ensures that dbt objects have at least one upstream reference. An upstream reference is created using <code>ref()</code> or <code>source()</code> in your dbt model.
+This rule ensures that dbt objects have at least one upstream reference. An upstream reference is created using <code>ref()</code> or <code>source()</code> in your dbt model. This rule checks the dependency graph (<code>depends_on.nodes</code>) in the manifest.
 
 This may indicate that you're using hardcoded SQL to reference data directly from the warehouse instead of leveraging dbt's dependency management. Or that an object is simply not being used.
+
+Also check out [`code_contains_refs`](../code#rule-code_contains_refs), which inspects the raw SQL text directly for <code>ref()</code> / <code>source()</code>. It differs since <code>has_refs</code> also checks the <a href="https://docs.getdbt.com/reference/dbt-jinja-functions/ref"><code>depends_on config</code></a>.
 
 ---
 

@@ -68,6 +68,7 @@ pub enum ManifestSpecificRuleConfig {
         #[serde(default)]
         case_sensitive: bool,
     },
+    CodeContainsRefs {},
     SourcesHaveLoader {},
     SourcesHaveFreshness {},
 }
@@ -309,6 +310,15 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             semantic_model_objects: vec![],
             custom_objects: vec![],
         },
+        ManifestSpecificRuleConfig::CodeContainsRefs {} => AppliesTo {
+            node_objects: vec![RuleTarget::Models, RuleTarget::Snapshots],
+            source_objects: vec![],
+            unit_test_objects: vec![],
+            macro_objects: vec![],
+            exposure_objects: vec![],
+            semantic_model_objects: vec![],
+            custom_objects: vec![],
+        },
         // allowed_subfolders
         ManifestSpecificRuleConfig::AllowedSubfolders { .. } => AppliesTo {
             node_objects: vec![RuleTarget::Models],
@@ -404,7 +414,8 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
             custom_objects: vec![],
         },
         ManifestSpecificRuleConfig::MaxCodeLines { .. }
-        | ManifestSpecificRuleConfig::HasForbiddenCode { .. } => AppliesTo {
+        | ManifestSpecificRuleConfig::HasForbiddenCode { .. }
+        | ManifestSpecificRuleConfig::CodeContainsRefs {} => AppliesTo {
             node_objects: vec![RuleTarget::Models, RuleTarget::Snapshots],
             source_objects: vec![],
             unit_test_objects: vec![],
