@@ -71,6 +71,47 @@ pub const fn default_max_joins() -> usize {
     5
 }
 
+// Dependency count rules (max_upstream_dependencies / max_downstream_dependencies)
+#[derive(EnumString, Debug, Clone, PartialEq, Eq, AsRefStr)]
+#[strum(serialize_all = "snake_case")]
+#[derive(serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum DependencyType {
+    Models,
+    Seeds,
+    Sources,
+    Snapshots,
+    Tests,
+    Macros,
+    Exposures,
+}
+
+impl DependencyType {
+    pub fn matches(&self, resource_type: &str) -> bool {
+        match self {
+            Self::Models => resource_type == "model",
+            Self::Seeds => resource_type == "seed",
+            Self::Sources => resource_type == "source",
+            Self::Snapshots => resource_type == "snapshot",
+            Self::Tests => resource_type == "test",
+            Self::Macros => resource_type == "macro",
+            Self::Exposures => resource_type == "exposure",
+        }
+    }
+}
+
+pub fn default_excluded_dependency_types() -> Vec<DependencyType> {
+    vec![DependencyType::Tests]
+}
+
+pub const fn default_max_upstream() -> usize {
+    5
+}
+
+pub const fn default_max_downstream() -> usize {
+    5
+}
+
 /// `ColumnNamePattern` for `columns_canonical_name` rule
 /// Parse regex if the string looks like a regex pattern
 /// Otherwise, treat it as a literal string

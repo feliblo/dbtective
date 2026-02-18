@@ -7,8 +7,9 @@ use serde::{Deserialize, Serialize};
 use crate::core::config::applies_to::AppliesTo;
 use crate::core::config::applies_to::RuleTarget;
 use crate::core::config::check_config_options::{
-    default_allowed_references, default_allowed_test_names, default_max_code_lines,
-    default_max_joins, AccessLevel, HasTagsCriteria, OrphanedReferenceType,
+    default_allowed_references, default_allowed_test_names, default_excluded_dependency_types,
+    default_max_code_lines, default_max_downstream, default_max_joins, default_max_upstream,
+    AccessLevel, DependencyType, HasTagsCriteria, OrphanedReferenceType,
 };
 use crate::core::config::naming_convention::NamingConvention;
 use crate::core::config::severity::Severity;
@@ -72,6 +73,18 @@ pub enum ManifestSpecificRuleConfig {
     MaxJoins {
         #[serde(default = "default_max_joins")]
         max_joins: usize,
+    },
+    MaxUpstreamDependencies {
+        #[serde(default = "default_max_upstream")]
+        max_upstream: usize,
+        #[serde(default = "default_excluded_dependency_types")]
+        exclude_types: Vec<DependencyType>,
+    },
+    MaxDownstreamDependencies {
+        #[serde(default = "default_max_downstream")]
+        max_downstream: usize,
+        #[serde(default = "default_excluded_dependency_types")]
+        exclude_types: Vec<DependencyType>,
     },
     SourcesHaveLoader {},
     SourcesHaveFreshness {},
@@ -258,6 +271,18 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             semantic_model_objects: vec![],
             custom_objects: vec![],
         },
+        // max_upstream_dependencies & max_downstream_dependencies & code_contains_refs
+        ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. }
+        | ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. }
+        | ManifestSpecificRuleConfig::CodeContainsRefs {} => AppliesTo {
+            node_objects: vec![RuleTarget::Models, RuleTarget::Snapshots],
+            source_objects: vec![],
+            unit_test_objects: vec![],
+            macro_objects: vec![],
+            exposure_objects: vec![],
+            semantic_model_objects: vec![],
+            custom_objects: vec![],
+        },
         // is_not_orphaned & sources_have_loader & sources_have_freshness
         ManifestSpecificRuleConfig::IsNotOrphaned { .. }
         | ManifestSpecificRuleConfig::SourcesHaveLoader {}
@@ -308,15 +333,6 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
                 RuleTarget::Snapshots,
                 RuleTarget::Analyses,
             ],
-            source_objects: vec![],
-            unit_test_objects: vec![],
-            macro_objects: vec![],
-            exposure_objects: vec![],
-            semantic_model_objects: vec![],
-            custom_objects: vec![],
-        },
-        ManifestSpecificRuleConfig::CodeContainsRefs {} => AppliesTo {
-            node_objects: vec![RuleTarget::Models, RuleTarget::Snapshots],
             source_objects: vec![],
             unit_test_objects: vec![],
             macro_objects: vec![],
@@ -391,7 +407,9 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
             semantic_model_objects: vec![],
             custom_objects: vec![],
         },
-        ManifestSpecificRuleConfig::HasUniqueTest { .. } => AppliesTo {
+        ManifestSpecificRuleConfig::HasUniqueTest { .. }
+        | ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. }
+        | ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. } => AppliesTo {
             node_objects: vec![RuleTarget::Models, RuleTarget::Seeds, RuleTarget::Snapshots],
             source_objects: vec![RuleTarget::Sources],
             unit_test_objects: vec![],

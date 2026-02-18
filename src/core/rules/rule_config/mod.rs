@@ -1,6 +1,7 @@
 pub mod allowed_subfolders;
 pub mod child_map;
 pub mod code_contains_refs;
+pub mod fan_in_out;
 pub mod has_contract_enforced;
 pub mod has_description;
 pub mod has_forbidden_code;
@@ -18,6 +19,7 @@ pub mod utils;
 pub use allowed_subfolders::check_allowed_subfolders;
 pub use child_map::is_not_orphaned;
 pub use code_contains_refs::code_contains_refs;
+pub use fan_in_out::{max_downstream_dependencies, max_upstream_dependencies};
 pub use has_contract_enforced::has_contract_enforced;
 pub use has_description::has_description;
 pub use has_forbidden_code::has_forbidden_code;
