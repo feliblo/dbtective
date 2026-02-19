@@ -280,7 +280,7 @@ mod tests {
                 crate::core::config::manifest_rule::ManifestSpecificRuleConfig::NameConvention { convention: NamingConvention::default() },
             ],
             catalog_rules: vec![
-                crate::core::config::catalog_rule::CatalogSpecificRuleConfig::ColumnsNameConvention { convention: NamingConvention::default(), data_types: None },
+                crate::core::config::catalog_rule::CatalogSpecificRuleConfig::ColumnsNameConvention { convention: NamingConvention::default(), data_types: None, use_database_columns: true },
             ],
         };
         let config = InitConfig::from_questionnaire(&questionnaire_result);

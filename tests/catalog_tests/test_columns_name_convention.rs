@@ -1497,3 +1497,177 @@ catalog_tests:
     assert!(!findings[0].0.message.contains("EventID"));
     assert!(!findings[0].0.message.contains("EventName"));
 }
+
+/// Tests for `use_database_columns` option.
+/// Simulates a case-insensitive database (e.g. Snowflake) where catalog columns
+/// are uppercase (case-insensitive db) but manifest columns are `snake_case`.
+#[test]
+#[allow(clippy::too_many_lines)]
+fn test_use_database_columns_false_uses_manifest_columns() {
+    // Manifest has snake_case column names (as written in dbt code)
+    let manifest = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "invocation_id": "test-invocation",
+    "env": {},
+    "project_name": "test_project",
+    "adapter_type": "snowflake",
+    "quoting": {
+      "database": false,
+      "schema": false,
+      "identifier": false,
+      "column": null
+    }
+  },
+  "nodes": {
+    "model.test_project.int_address_temp": {
+      "database": "analytics",
+      "schema": "public",
+      "name": "int_address_temp",
+      "resource_type": "model",
+      "package_name": "test_project",
+      "path": "int_address_temp.sql",
+      "original_file_path": "models/int_address_temp.sql",
+      "unique_id": "model.test_project.int_address_temp",
+      "fqn": ["test_project", "int_address_temp"],
+      "alias": "int_address_temp",
+      "checksum": {"name": "sha256", "checksum": "abc123"},
+      "tags": [],
+      "config": {
+        "enabled": true,
+        "materialized": "view",
+        "tags": []
+      },
+      "description": "Address model",
+      "columns": {
+        "acs_address_id": {"name": "acs_address_id", "description": "", "tags": []},
+        "country_code": {"name": "country_code", "description": "", "tags": []},
+        "primary_language": {"name": "primary_language", "description": "", "tags": []}
+      },
+      "meta": {},
+      "group": null,
+      "docs": {"show": true},
+      "patch_path": null,
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {},
+      "created_at": 1704067200.0,
+      "config_call_dict": {},
+      "relation_name": "analytics.public.int_address_temp",
+      "raw_code": "select acs_address_id, country_code, primary_language from source",
+      "language": "sql",
+      "refs": [],
+      "sources": [],
+      "metrics": [],
+      "depends_on": {"macros": [], "nodes": []},
+      "compiled_code": null,
+      "extra_ctes_injected": false,
+      "extra_ctes": [],
+      "contract": {"enforced": false, "checksum": null}
+    }
+  },
+  "sources": {},
+  "macros": {},
+  "exposures": {},
+  "metrics": {},
+  "groups": {},
+  "selectors": {},
+  "disabled": {},
+  "parent_map": {},
+  "child_map": {},
+  "group_map": {},
+  "saved_queries": {},
+  "semantic_models": {},
+  "unit_tests": {}
+}"#;
+
+    // Catalog has SCREAMING_SNAKE_CASE (as Snowflake stores them)
+    let catalog = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/catalog/v1.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "env": {}
+  },
+  "nodes": {
+    "model.test_project.int_address_temp": {
+      "unique_id": "model.test_project.int_address_temp",
+      "metadata": {
+        "type": "BASE TABLE",
+        "schema": "PUBLIC",
+        "name": "INT_ADDRESS_TEMP",
+        "database": "ANALYTICS"
+      },
+      "columns": {
+        "ACS_ADDRESS_ID": {"type": "VARCHAR", "name": "ACS_ADDRESS_ID", "index": 1},
+        "COUNTRY_CODE": {"type": "VARCHAR", "name": "COUNTRY_CODE", "index": 2},
+        "PRIMARY_LANGUAGE": {"type": "VARCHAR", "name": "PRIMARY_LANGUAGE", "index": 3}
+      },
+      "stats": {}
+    }
+  },
+  "sources": {}
+}"#;
+
+    // Test 1: Default behavior (use_database_columns not set) — should FAIL
+    // because catalog columns are SCREAMING_SNAKE_CASE
+    let config_default = r#"
+catalog_tests:
+  - name: "columns_snake_case"
+    type: "columns_name_convention"
+    pattern: snake_case
+"#;
+
+    let env = TestEnvironment::new_with_catalog(manifest, catalog, config_default);
+    let findings = env.run_catalog_rules(false).expect("should not error");
+
+    assert_eq!(
+        findings.len(),
+        1,
+        "Expected 1 finding (SCREAMING_SNAKE_CASE fails snake_case), got: {findings:?}"
+    );
+    assert!(findings[0].0.message.contains("ACS_ADDRESS_ID"));
+    assert!(findings[0].0.message.contains("COUNTRY_CODE"));
+    assert!(findings[0].0.message.contains("PRIMARY_LANGUAGE"));
+
+    // Test 2: use_database_columns: false — should PASS
+    // because manifest columns are snake_case
+    let config_no_db_cols = r#"
+catalog_tests:
+  - name: "columns_snake_case"
+    type: "columns_name_convention"
+    pattern: snake_case
+    use_database_columns: false
+"#;
+
+    let env = TestEnvironment::new_with_catalog(manifest, catalog, config_no_db_cols);
+    let findings = env.run_catalog_rules(false).expect("should not error");
+
+    assert_eq!(
+        findings.len(),
+        0,
+        "Expected no findings with use_database_columns: false, but got: {findings:?}"
+    );
+
+    // Test 3: use_database_columns: true (explicit) — should FAIL same as default
+    let config_db_cols_true = r#"
+catalog_tests:
+  - name: "columns_snake_case"
+    type: "columns_name_convention"
+    pattern: snake_case
+    use_database_columns: true
+"#;
+
+    let env = TestEnvironment::new_with_catalog(manifest, catalog, config_db_cols_true);
+    let findings = env.run_catalog_rules(false).expect("should not error");
+
+    assert_eq!(
+        findings.len(),
+        1,
+        "Expected 1 finding with use_database_columns: true, got: {findings:?}"
+    );
+    assert!(findings[0].0.message.contains("ACS_ADDRESS_ID"));
+}
