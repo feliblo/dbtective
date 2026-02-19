@@ -37,7 +37,7 @@ pub fn has_unique_test<T: TestAble>(
             testable.get_object_type(),
             rule.get_name(),
             format!(
-                "{} does should have a unique test",
+                "{} should have atleast 1 unique test",
                 testable.get_object_string(),
             ),
             testable.get_problematic_path(false).map(str::to_owned),
@@ -169,7 +169,7 @@ mod tests {
         assert_eq!(rule_result.rule_name, "has_unique_test");
         assert_eq!(
             rule_result.message,
-            "my_model does should have a unique test"
+            "my_model should have atleast 1 unique test"
         );
         assert_eq!(
             rule_result.relative_path,
@@ -197,7 +197,7 @@ mod tests {
         assert!(result.is_some());
         assert_eq!(
             result.unwrap().message,
-            "my_model does should have a unique test"
+            "my_model should have atleast 1 unique test"
         );
     }
 

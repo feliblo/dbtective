@@ -97,7 +97,10 @@ manifest_tests:
     assert_eq!(findings[0].0.severity, "FAIL");
     assert_eq!(findings[0].0.object_type, "Model");
     assert!(findings[0].0.message.contains("customers"));
-    assert!(findings[0].0.message.contains("should have a unique test"));
+    assert!(findings[0]
+        .0
+        .message
+        .contains("should have atleast 1 unique test"));
 }
 
 #[test]
@@ -542,7 +545,10 @@ manifest_tests:
     assert_eq!(findings[0].0.severity, "FAIL");
     assert_eq!(findings[0].0.object_type, "Model");
     assert!(findings[0].0.message.contains("customers"));
-    assert!(findings[0].0.message.contains("should have a unique test"));
+    assert!(findings[0]
+        .0
+        .message
+        .contains("should have atleast 1 unique test"));
 }
 
 #[test]
@@ -1208,7 +1214,10 @@ manifest_tests:
     assert_eq!(findings[0].0.severity, "FAIL");
     assert_eq!(findings[0].0.object_type, "Model");
     assert!(findings[0].0.message.contains("orders"));
-    assert!(findings[0].0.message.contains("should have a unique test"));
+    assert!(findings[0]
+        .0
+        .message
+        .contains("should have atleast 1 unique test"));
 }
 
 #[test]
@@ -1407,7 +1416,10 @@ manifest_tests:
     assert_eq!(findings[0].0.severity, "FAIL");
     assert_eq!(findings[0].0.object_type, "Source");
     assert!(findings[0].0.message.contains("customers"));
-    assert!(findings[0].0.message.contains("should have a unique test"));
+    assert!(findings[0]
+        .0
+        .message
+        .contains("should have atleast 1 unique test"));
 }
 
 #[test]
