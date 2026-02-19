@@ -14,6 +14,8 @@ The `--only-manifest` flag tells dbtective to skip loading `catalog.json`. This 
 
 Use `--only-manifest` for all local hooks. The `catalog.json` goes stale quickly during local development because it is **only** updated by `dbt docs generate` (which takes a long time), while `manifest.json` is updated by most dbt commands (`dbt run`, `dbt build`, `dbt compile`, etc.). Running catalog rules against a stale catalog produces misleading failures.
 
+Combine with `--auto-parse` to ensure the manifest is always up to date before running rules. See [Pre-commit & Prek](../running/precommit) for setup details.
+
 ```yaml
 # .pre-commit-config.yaml
 repos:
@@ -22,7 +24,7 @@ repos:
     hooks:
       - id: dbtective-run
         entry: dbtective run
-        args: [--only-manifest, --hide-warnings]
+        args: [--auto-parse, --only-manifest, --hide-warnings]
 ```
 
 ### Do not use `--only-manifest` in CI/CD (use a catalog here)
@@ -67,7 +69,7 @@ The `data_types` filter uses the `data_type` field from your YAML schema files i
 
 ## Summary
 
-| Environment               | Flag              | Catalog Rules                                |
-| ------------------------- | ----------------- | -------------------------------------------- |
-| Local / pre-commit / prek | `--only-manifest` | Eligible rules fall back to manifest data    |
-| CI/CD                     | _(none)_          | Full catalog rules with fresh `catalog.json` |
+| Environment               | Flags                            | Catalog Rules                                |
+| ------------------------- | -------------------------------- | -------------------------------------------- |
+| Local / pre-commit / prek | `--auto-parse --only-manifest`   | Eligible rules fall back to manifest data    |
+| CI/CD                     | _(none)_                         | Full catalog rules with fresh `catalog.json` |

@@ -55,6 +55,7 @@ fn create_default_init_config() -> dbtective::core::init::config_builder::InitCo
             },
             CatalogSpecificRuleConfig::ColumnsHaveDescription {},
         ],
+        auto_parse_command: None,
     };
 
     InitConfig::from_questionnaire(&questionnaire_result)
@@ -427,6 +428,7 @@ fn create_full_questionnaire_result(
         data_model,
         manifest_rules: get_manifest_rules(strictness, data_model),
         catalog_rules: get_catalog_rules(strictness),
+        auto_parse_command: None,
     }
 }
 
@@ -941,6 +943,7 @@ fn test_columns_canonical_name_rule_generates_correct_content() {
         data_model: DataModel::None,
         manifest_rules,
         catalog_rules,
+        auto_parse_command: None,
     };
 
     let exit_code = init_with_result(&options, false, questionnaire_result);
@@ -953,4 +956,207 @@ fn test_columns_canonical_name_rule_generates_correct_content() {
     assert!(content.contains("canonical = \"user_id\""));
     assert!(content.contains("\"userid\""));
     assert!(content.contains("\"UserId\""));
+}
+
+// ========================================================================
+// Auto-parse Command Tests
+// ========================================================================
+
+#[test]
+fn test_init_yaml_contains_auto_parse_comment_when_none() {
+    let temp_dir = TempDir::new().unwrap();
+    let options = default_options(&temp_dir);
+    let config = create_default_init_config();
+
+    create_config(&options, &config, false);
+
+    let config_path = temp_dir.path().join("dbtective.yml");
+    let content = fs::read_to_string(&config_path).unwrap();
+
+    // Should contain commented-out auto_parse_command
+    assert!(content.contains("# config:"));
+    assert!(content.contains("#   auto_parse_command:"));
+}
+
+#[test]
+fn test_init_yaml_contains_auto_parse_command_when_set() {
+    let temp_dir = TempDir::new().unwrap();
+    let options = default_options(&temp_dir);
+
+    let questionnaire_result = QuestionnaireResult {
+        format: ConfigFormat::Yaml,
+        naming_convention: NamingConvention::default(),
+        data_model: DataModel::None,
+        manifest_rules: vec![ManifestSpecificRuleConfig::HasDescription {
+            min_length: None,
+            forbidden_substrings: None,
+        }],
+        catalog_rules: vec![],
+        auto_parse_command: Some("uv run dbt parse".to_string()),
+    };
+
+    let config = dbtective::core::init::config_builder::InitConfig::from_questionnaire(
+        &questionnaire_result,
+    );
+    create_config(&options, &config, false);
+
+    let config_path = temp_dir.path().join("dbtective.yml");
+    let content = fs::read_to_string(&config_path).unwrap();
+
+    assert!(content.contains("config:"));
+    assert!(content.contains("auto_parse_command: \"uv run dbt parse\""));
+}
+
+#[test]
+fn test_init_yaml_with_auto_parse_is_valid_parseable_config() {
+    let temp_dir = TempDir::new().unwrap();
+    let options = default_options(&temp_dir);
+
+    let questionnaire_result = QuestionnaireResult {
+        format: ConfigFormat::Yaml,
+        naming_convention: NamingConvention::default(),
+        data_model: DataModel::None,
+        manifest_rules: vec![ManifestSpecificRuleConfig::HasDescription {
+            min_length: None,
+            forbidden_substrings: None,
+        }],
+        catalog_rules: vec![],
+        auto_parse_command: Some("uv run dbt parse".to_string()),
+    };
+
+    let config = dbtective::core::init::config_builder::InitConfig::from_questionnaire(
+        &questionnaire_result,
+    );
+    create_config(&options, &config, false);
+
+    let config_path = temp_dir.path().join("dbtective.yml");
+    let parsed = Config::from_file(&config_path);
+    assert!(
+        parsed.is_ok(),
+        "YAML with auto_parse_command should parse successfully"
+    );
+
+    let parsed = parsed.unwrap();
+    assert_eq!(parsed.auto_parse_command(), Some("uv run dbt parse"));
+}
+
+#[test]
+fn test_init_toml_contains_auto_parse_command_when_set() {
+    let temp_dir = TempDir::new().unwrap();
+    let options = InitOptions {
+        location: temp_dir.path().to_string_lossy().to_string(),
+        format: "toml".to_string(),
+    };
+
+    let questionnaire_result = QuestionnaireResult {
+        format: ConfigFormat::Toml,
+        naming_convention: NamingConvention::default(),
+        data_model: DataModel::None,
+        manifest_rules: vec![ManifestSpecificRuleConfig::HasDescription {
+            min_length: None,
+            forbidden_substrings: None,
+        }],
+        catalog_rules: vec![],
+        auto_parse_command: Some("poetry run dbt parse".to_string()),
+    };
+
+    let config = dbtective::core::init::config_builder::InitConfig::from_questionnaire(
+        &questionnaire_result,
+    );
+    create_config(&options, &config, false);
+
+    let config_path = temp_dir.path().join("dbtective.toml");
+    let content = fs::read_to_string(&config_path).unwrap();
+
+    assert!(content.contains("[config]"));
+    assert!(content.contains("auto_parse_command = \"poetry run dbt parse\""));
+}
+
+#[test]
+fn test_init_toml_with_auto_parse_is_valid_parseable_config() {
+    let temp_dir = TempDir::new().unwrap();
+    let options = InitOptions {
+        location: temp_dir.path().to_string_lossy().to_string(),
+        format: "toml".to_string(),
+    };
+
+    let questionnaire_result = QuestionnaireResult {
+        format: ConfigFormat::Toml,
+        naming_convention: NamingConvention::default(),
+        data_model: DataModel::None,
+        manifest_rules: vec![ManifestSpecificRuleConfig::HasDescription {
+            min_length: None,
+            forbidden_substrings: None,
+        }],
+        catalog_rules: vec![],
+        auto_parse_command: Some("dbt parse".to_string()),
+    };
+
+    let config = dbtective::core::init::config_builder::InitConfig::from_questionnaire(
+        &questionnaire_result,
+    );
+    create_config(&options, &config, false);
+
+    let config_path = temp_dir.path().join("dbtective.toml");
+    let parsed = Config::from_file(&config_path);
+    assert!(
+        parsed.is_ok(),
+        "TOML with auto_parse_command should parse successfully"
+    );
+
+    let parsed = parsed.unwrap();
+    assert_eq!(parsed.auto_parse_command(), Some("dbt parse"));
+}
+
+#[test]
+fn test_init_pyproject_contains_auto_parse_command_when_set() {
+    let temp_dir = TempDir::new().unwrap();
+    let pyproject_path = temp_dir.path().join("pyproject.toml");
+    fs::write(&pyproject_path, "[project]\nname = \"test\"\n").unwrap();
+
+    let options = InitOptions {
+        location: temp_dir.path().to_string_lossy().to_string(),
+        format: "pyproject".to_string(),
+    };
+
+    let questionnaire_result = QuestionnaireResult {
+        format: ConfigFormat::Pyproject,
+        naming_convention: NamingConvention::default(),
+        data_model: DataModel::None,
+        manifest_rules: vec![ManifestSpecificRuleConfig::HasDescription {
+            min_length: None,
+            forbidden_substrings: None,
+        }],
+        catalog_rules: vec![],
+        auto_parse_command: Some("uv run dbt parse".to_string()),
+    };
+
+    let config = dbtective::core::init::config_builder::InitConfig::from_questionnaire(
+        &questionnaire_result,
+    );
+    create_config(&options, &config, false);
+
+    let content = fs::read_to_string(&pyproject_path).unwrap();
+
+    assert!(content.contains("[tool.dbtective.config]"));
+    assert!(content.contains("auto_parse_command = \"uv run dbt parse\""));
+}
+
+#[test]
+fn test_init_without_auto_parse_generates_backward_compatible_config() {
+    let temp_dir = TempDir::new().unwrap();
+    let options = default_options(&temp_dir);
+    let config = create_default_init_config();
+
+    create_config(&options, &config, false);
+
+    let config_path = temp_dir.path().join("dbtective.yml");
+    let parsed = Config::from_file(&config_path);
+    assert!(
+        parsed.is_ok(),
+        "Config without auto_parse should still parse"
+    );
+
+    let parsed = parsed.unwrap();
+    assert_eq!(parsed.auto_parse_command(), None);
 }

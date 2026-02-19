@@ -81,7 +81,7 @@ repos:
     hooks:
       - id: dbtective-run
         entry: dbtective run
-        args: [--only-manifest, --hide-warnings]
+        args: [--only-manifest, --hide-warnings, --auto-parse]
 ```
 
 And run:

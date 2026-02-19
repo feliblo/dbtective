@@ -10,7 +10,7 @@ For details on `--only-manifest` mode, manifest fallback for catalog rules, and 
 
 ## Pre-commit Setup
 
-We recommend running with `--only-manifest` and `--hide-warnings` for pre-commit hooks:
+We recommend running with `--auto-parse`, `--only-manifest`, and `--hide-warnings` for pre-commit hooks:
 
 ```yaml
 # .pre-commit-config.yaml
@@ -20,7 +20,17 @@ repos:
     hooks:
       - id: dbtective-run
         entry: dbtective run
-        args: [--only-manifest, --hide-warnings]
+        args: [--auto-parse, --only-manifest, --hide-warnings]
 ```
 
-This avoids stale catalog issues while still catching metadata problems. Eligible catalog rules will automatically [fall back to manifest data](../running/manifest-only#manifest-fallback-for-catalog-rules).
+`--auto-parse` runs your configured `auto_parse_command` (e.g. `dbt parse`, `uv run dbt parse`) before reading the manifest, so it is always up to date. Configure it in your dbtective config:
+
+```yaml
+# dbtective.yml
+config:
+  auto_parse_command: "dbt parse"
+```
+
+`dbtective init` detects uv and poetry automatically and suggests the right command.
+
+This avoids stale catalog and manifest issues while still catching metadata problems. Eligible catalog rules will automatically [fall back to manifest data](../running/manifest-only#manifest-fallback-for-catalog-rules).

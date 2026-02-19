@@ -43,9 +43,20 @@ impl ConfigFile {
     }
 }
 
+/// General dbtective settings (nested under the `config` key).
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
+pub struct DbtectiveSettings {
+    /// Command to run before reading the manifest when using `--auto-parse`.
+    /// Examples: `"dbt parse"`, `"uv run dbt parse"`, `"poetry run dbt parse"`.
+    /// Recommended for pre-commit hooks and CI pipelines only.
+    /// Note: this adds a performance penalty as dbt needs to parse your project first.
+    pub auto_parse_command: Option<String>,
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 #[allow(dead_code)]
 pub struct Config {
+    pub config: Option<DbtectiveSettings>,
     pub manifest_tests: Option<Vec<ManifestRule>>,
     pub catalog_tests: Option<Vec<CatalogRule>>,
 }
@@ -61,6 +72,13 @@ struct Tool {
 }
 
 impl Config {
+    /// Returns the `auto_parse_command` if configured, or `None`.
+    pub fn auto_parse_command(&self) -> Option<&str> {
+        self.config
+            .as_ref()
+            .and_then(|c| c.auto_parse_command.as_deref())
+    }
+
     /// Finds and selects the appropriate config file from a directory.
     /// Searches for config files in the following preference order:
     /// 1. dbtective.yml or dbtective.yaml (highest priority)

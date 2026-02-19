@@ -4,7 +4,6 @@ description: Learn how to configure dbtective for your dbt project
 weight: 2
 ---
 
-
 dbtective supports multiple configuration formats to fit your project needs. You can use YAML, TOML, or integrate with your existing `pyproject.toml` file.
 
 **Supported formats:**
@@ -22,6 +21,9 @@ Since everyone hates reading documentation they don't need. Let's start with a c
 {{< tab >}}
 
 ```yaml
+config:
+  auto_parse_command: dbt parse
+
 manifest_tests:
   # Ensure all models and sources have descriptions
   - name: "models_must_have_description"
@@ -63,6 +65,9 @@ manifest_tests:
 {{< tab >}}
 
 ```toml
+[config]
+auto_parse_command = "dbt parse"
+
 # Ensure all models and sources have descriptions
 [[manifest_tests]]
 name = "models_must_have_description"
@@ -105,6 +110,9 @@ description = "All mart models must have descriptions."
 
 ```toml
 [tool.dbtective]
+
+[tool.dbtective.config]
+auto_parse_command = "dbt parse"
 
 # Ensure all models and sources have descriptions
 [[tool.dbtective.manifest_tests]]
@@ -162,14 +170,14 @@ dbtective automatically detects and loads your configuration file. If you have m
 
 ## Rule Configuration
 
-| Property | Required | Description |
-|----------|----------|-------------|
-| `type` | **Yes** | The type of rule to perform see [individual rule documentation](/docs/rules) |
-| `name` | No | Custom name to show for the rule. Defaults to the rule type if not specified |
-| `severity` | No | `error` (fails rule, default) or `warning` (reports but doesn't fail) |
-| `description` | No | Human-readable description of the rule |
-| `applies_to` | No | List of dbt object types to include (e.g., `["models", "sources"]`). See [individual rule documentation](/docs/rules) for valid targets |
-| `includes` | No | File path patterns to include. See [Includes & Excludes](../includes_excludes) for full pattern syntax and examples |
-| `excludes` | No | File path patterns to exclude. See [Includes & Excludes](../includes_excludes) for full pattern syntax and examples |
-| `model_materializations` | No | Filter models by materialization type (e.g., `["table", "incremental"]`). Only applies when `applies_to` includes `models`. Built-in types: `table`, `view`, `incremental`, `ephemeral`, `materialized_view`. Custom materializations are also supported. |
-| `custom_fields` | Sometimes | Custom fields for rules. See [individual rule documentation](/docs/rules) |
+| Property                 | Required  | Description                                                                                                                                                                                                                                               |
+| ------------------------ | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `type`                   | **Yes**   | The type of rule to perform see [individual rule documentation](/docs/rules)                                                                                                                                                                              |
+| `name`                   | No        | Custom name to show for the rule. Defaults to the rule type if not specified                                                                                                                                                                              |
+| `severity`               | No        | `error` (fails rule, default) or `warning` (reports but doesn't fail)                                                                                                                                                                                     |
+| `description`            | No        | Human-readable description of the rule                                                                                                                                                                                                                    |
+| `applies_to`             | No        | List of dbt object types to include (e.g., `["models", "sources"]`). See [individual rule documentation](/docs/rules) for valid targets                                                                                                                   |
+| `includes`               | No        | File path patterns to include. See [Includes & Excludes](../includes_excludes) for full pattern syntax and examples                                                                                                                                       |
+| `excludes`               | No        | File path patterns to exclude. See [Includes & Excludes](../includes_excludes) for full pattern syntax and examples                                                                                                                                       |
+| `model_materializations` | No        | Filter models by materialization type (e.g., `["table", "incremental"]`). Only applies when `applies_to` includes `models`. Built-in types: `table`, `view`, `incremental`, `ephemeral`, `materialized_view`. Custom materializations are also supported. |
+| `custom_fields`          | Sometimes | Custom fields for rules. See [individual rule documentation](/docs/rules)                                                                                                                                                                                 |

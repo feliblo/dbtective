@@ -4,6 +4,7 @@ use crate::core::config::manifest_rule::ManifestSpecificRuleConfig;
 use crate::core::config::naming_convention::NamingConvention;
 use inquire::{MultiSelect, Select};
 use owo_colors::OwoColorize;
+use std::path::Path;
 use strum::IntoEnumIterator;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -155,6 +156,7 @@ pub struct QuestionnaireResult {
     pub data_model: DataModel,
     pub manifest_rules: Vec<ManifestSpecificRuleConfig>,
     pub catalog_rules: Vec<CatalogSpecificRuleConfig>,
+    pub auto_parse_command: Option<String>,
 }
 
 #[allow(clippy::too_many_lines)]
@@ -382,13 +384,79 @@ pub fn run_questionnaire() -> Result<QuestionnaireResult, String> {
         }
     }
 
+    // 7. Auto-parse command detection
+    let auto_parse_command =
+        detect_and_ask_auto_parse().map_err(|e| format!("Failed to configure auto-parse: {e}"))?;
+
     Ok(QuestionnaireResult {
         format,
         naming_convention,
         data_model,
         manifest_rules,
         catalog_rules,
+        auto_parse_command,
     })
+}
+
+/// Detect whether `uv` or `poetry` is used (via lock files) and ask the user
+/// to confirm the auto-parse command.
+fn detect_and_ask_auto_parse() -> Result<Option<String>, inquire::InquireError> {
+    let has_uv = Path::new("uv.lock").exists();
+    let has_poetry = Path::new("poetry.lock").exists();
+
+    let detected = if has_uv {
+        println!(
+            "\n{} {} detected!",
+            "ℹ".bright_blue().bold(),
+            "uv".bright_cyan().bold()
+        );
+        Some("uv run dbt parse")
+    } else if has_poetry {
+        println!(
+            "\n{} {} detected!",
+            "ℹ".bright_blue().bold(),
+            "poetry".bright_cyan().bold()
+        );
+        Some("poetry run dbt parse")
+    } else {
+        None
+    };
+
+    let mut options = Vec::new();
+
+    if let Some(cmd) = detected {
+        // Detected tool goes first with "(recommended)" label
+        options.push(format!("{cmd} (recommended)"));
+        for opt in ["dbt parse", "uv run dbt parse", "poetry run dbt parse"] {
+            if opt != cmd {
+                options.push(opt.to_string());
+            }
+        }
+    } else {
+        // Nothing detected — plain list, no recommended label
+        options.push("dbt parse".to_string());
+        options.push("uv run dbt parse".to_string());
+        options.push("poetry run dbt parse".to_string());
+    }
+    options.push("Skip (no auto-parse)".to_string());
+
+    let selected = Select::new(
+        "Which command should dbtective use for auto-parsing? (used with --auto-parse flag)",
+        options,
+    )
+    .with_starting_cursor(0)
+    .with_help_message(
+        "Recommended for pre-commit hooks and CI. Adds a performance penalty as dbt parses your project first.",
+    )
+    .prompt()?;
+
+    if selected.contains("Skip") {
+        Ok(None)
+    } else {
+        // Strip the " (recommended)" suffix if present
+        let command = selected.strip_suffix(" (recommended)").unwrap_or(&selected);
+        Ok(Some(command.to_string()))
+    }
 }
 
 #[cfg(test)]

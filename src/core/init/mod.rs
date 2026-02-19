@@ -64,6 +64,7 @@ fn init_impl(
             data_model: questionnaire::DataModel::None,
             manifest_rules: Vec::new(),
             catalog_rules: Vec::new(),
+            auto_parse_command: None,
         };
         InitConfig::from_questionnaire(&result)
     };
@@ -282,6 +283,7 @@ mod tests {
             catalog_rules: vec![
                 crate::core::config::catalog_rule::CatalogSpecificRuleConfig::ColumnsNameConvention { convention: NamingConvention::default(), data_types: None, use_database_columns: true },
             ],
+            auto_parse_command: None,
         };
         let config = InitConfig::from_questionnaire(&questionnaire_result);
 
@@ -311,6 +313,7 @@ mod tests {
             data_model: questionnaire::DataModel::None,
             manifest_rules: vec![],
             catalog_rules: vec![],
+            auto_parse_command: None,
         };
         let config = InitConfig::from_questionnaire(&questionnaire_result);
 
@@ -350,6 +353,7 @@ requires = ["setuptools"]
                 },
             ],
             catalog_rules: vec![],
+            auto_parse_command: None,
         };
         let config = InitConfig::from_questionnaire(&questionnaire_result);
 
@@ -374,6 +378,7 @@ requires = ["setuptools"]
             data_model: questionnaire::DataModel::None,
             manifest_rules: vec![],
             catalog_rules: vec![],
+            auto_parse_command: None,
         };
         let config = InitConfig::from_questionnaire(&questionnaire_result);
 

@@ -11,6 +11,7 @@ pub struct InitConfig {
     pub manifest_rules: Vec<ManifestSpecificRuleConfig>,
     pub catalog_rules: Vec<CatalogSpecificRuleConfig>,
     pub data_model: DataModel,
+    pub auto_parse_command: Option<String>,
 }
 
 impl InitConfig {
@@ -22,6 +23,7 @@ impl InitConfig {
             manifest_rules,
             catalog_rules,
             data_model: result.data_model,
+            auto_parse_command: result.auto_parse_command.clone(),
         }
     }
 
@@ -211,9 +213,17 @@ impl InitConfig {
         let mut content = String::from(
             "# dbtective configuration file\n\
              # Documentation: https://feliblo.github.io/dbtective/docs/config\n\
-             # Rules: https://feliblo.github.io/dbtective/docs/rules/\n\n\
-             manifest_tests:\n",
+             # Rules: https://feliblo.github.io/dbtective/docs/rules/\n\n",
         );
+
+        // Auto-parse command configuration
+        if let Some(ref cmd) = self.auto_parse_command {
+            let _ = writeln!(content, "config:\n  auto_parse_command: \"{cmd}\"\n");
+        } else {
+            content.push_str("# config:\n#   auto_parse_command: \"dbt parse\"\n\n");
+        }
+
+        content.push_str("manifest_tests:\n");
 
         for rule in &self.manifest_rules {
             content.push_str(&self.manifest_rule_to_yaml(rule));
@@ -242,6 +252,13 @@ impl InitConfig {
              # Rules: https://feliblo.github.io/dbtective/docs/rules/\n\n",
         );
 
+        // Auto-parse command configuration
+        if let Some(ref cmd) = self.auto_parse_command {
+            let _ = writeln!(content, "[config]\nauto_parse_command = \"{cmd}\"\n");
+        } else {
+            content.push_str("# [config]\n# auto_parse_command = \"dbt parse\"\n\n");
+        }
+
         for rule in &self.manifest_rules {
             content.push_str(&self.manifest_rule_to_toml(rule, "manifest_tests"));
             content.push_str("\n\n");
@@ -267,6 +284,16 @@ impl InitConfig {
              # Rules: https://feliblo.github.io/dbtective/docs/rules/\n\n\
              [tool.dbtective]\n\n",
         );
+
+        // Auto-parse command configuration
+        if let Some(ref cmd) = self.auto_parse_command {
+            let _ = writeln!(
+                content,
+                "[tool.dbtective.config]\nauto_parse_command = \"{cmd}\"\n"
+            );
+        } else {
+            content.push_str("# [tool.dbtective.config]\n# auto_parse_command = \"dbt parse\"\n\n");
+        }
 
         for rule in &self.manifest_rules {
             content.push_str(&self.manifest_rule_to_toml(rule, "tool.dbtective.manifest_tests"));
@@ -916,6 +943,7 @@ mod tests {
             data_model,
             manifest_rules,
             catalog_rules,
+            auto_parse_command: None,
         }
     }
 

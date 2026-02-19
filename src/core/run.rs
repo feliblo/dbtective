@@ -17,10 +17,54 @@ use crate::core::rules::manifest::{
     apply_other_manifest_object_rules::apply_manifest_object_rules,
 };
 use crate::core::utils::{print_catalog_warning, unwrap_or_exit};
+use anyhow::{Context, Result};
 use chrono::Utc;
 use log::debug;
+use owo_colors::OwoColorize;
 use std::collections::HashSet;
 use std::time::Instant;
+
+/// Execute the configured `auto_parse_command` in the given working directory.
+///
+/// # Errors
+/// Returns an error if:
+/// - The command string is empty
+/// - The command fails to spawn (e.g. binary not found)
+/// - The command exits with a non-zero status
+pub fn run_auto_parse(command: &str, working_dir: &str) -> Result<()> {
+    let parts: Vec<&str> = command.split_whitespace().collect();
+    if parts.is_empty() {
+        return Err(anyhow::anyhow!("auto_parse_command is empty"));
+    }
+
+    let program = parts[0];
+    let args = &parts[1..];
+
+    eprintln!(
+        "{} Running auto-parse: {}",
+        "ℹ".bright_blue().bold(),
+        command.bright_magenta()
+    );
+
+    let status = std::process::Command::new(program)
+        .args(args)
+        .current_dir(working_dir)
+        .stdout(std::process::Stdio::inherit())
+        .stderr(std::process::Stdio::inherit())
+        .status()
+        .context(format!(
+            "Failed to run auto_parse_command '{command}'. Is '{program}' installed and on your PATH?"
+        ))?;
+
+    if !status.success() {
+        let code = status.code().unwrap_or(-1);
+        return Err(anyhow::anyhow!(
+            "auto_parse_command '{command}' exited with code {code}"
+        ));
+    }
+
+    Ok(())
+}
 
 #[must_use]
 #[allow(clippy::too_many_lines)]
@@ -32,6 +76,23 @@ pub fn run(options: &RunOptions, verbose: bool) -> i32 {
     let config = unwrap_or_exit(Config::from_file(config_path));
 
     debug!("Loaded configuration: {config:#?}");
+
+    // Run auto-parse command if --auto-parse flag is set
+    if options.auto_parse {
+        match config.auto_parse_command() {
+            Some(cmd) => {
+                unwrap_or_exit(run_auto_parse(cmd, &options.entry_point));
+            }
+            None => {
+                unwrap_or_exit::<()>(Err(anyhow::anyhow!(
+                    "--auto-parse flag was set but no auto_parse_command is configured.\n\
+                    Add the following to your dbtective config:\n\n\
+                    config:\n  auto_parse_command: \"dbt parse\"\n\n\
+                    Or run 'dbtective init' to set it up interactively."
+                )));
+            }
+        }
+    }
 
     let mut findings: Vec<(RuleResult, &Severity)> = Vec::new();
 
@@ -154,4 +215,61 @@ pub fn run(options: &RunOptions, verbose: bool) -> i32 {
     };
 
     exit_code
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_run_auto_parse_success() {
+        let result = run_auto_parse("echo hello", ".");
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_run_auto_parse_with_multiple_args() {
+        let result = run_auto_parse("echo hello world", ".");
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_run_auto_parse_failing_command() {
+        let result = run_auto_parse("false", ".");
+        assert!(result.is_err());
+        let err = result.unwrap_err().to_string();
+        assert!(err.contains("exited with code"));
+    }
+
+    #[test]
+    fn test_run_auto_parse_nonexistent_command() {
+        let result = run_auto_parse("nonexistent_binary_that_does_not_exist", ".");
+        assert!(result.is_err());
+        let err = result.unwrap_err().to_string();
+        assert!(err.contains("Failed to run auto_parse_command"));
+    }
+
+    #[test]
+    fn test_run_auto_parse_empty_command() {
+        let result = run_auto_parse("", ".");
+        assert!(result.is_err());
+        let err = result.unwrap_err().to_string();
+        assert!(err.contains("empty"));
+    }
+
+    #[test]
+    fn test_run_auto_parse_whitespace_only_command() {
+        let result = run_auto_parse("   ", ".");
+        assert!(result.is_err());
+        let err = result.unwrap_err().to_string();
+        assert!(err.contains("empty"));
+    }
+
+    #[test]
+    fn test_run_auto_parse_respects_working_dir() {
+        // Use a temp dir to verify working directory is respected
+        let temp_dir = tempfile::TempDir::new().unwrap();
+        let result = run_auto_parse("pwd", temp_dir.path().to_str().unwrap());
+        assert!(result.is_ok());
+    }
 }
