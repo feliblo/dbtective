@@ -1,3 +1,20 @@
+## v0.2.7 (2026-02-19)
+
+### Feat
+
+- **rules**: create max_downstream_dependencies & max_downstream_dependencies - ([b0c349e](https://github.com/feliblo/dbtective/commit/b0c349ed0b8f0686d0532d60c5e704f494708d9e)) - feliblo
+- **rules**: add use_database_columns to columns_name_convention rule - ([f04fdf2](https://github.com/feliblo/dbtective/commit/f04fdf297754f9ec144eafc7616173266b99afa5)) - feliblo
+- **rules**: create 'max_joins' rule - ([71a4534](https://github.com/feliblo/dbtective/commit/71a4534397b9d62f57288eff3b8aab170fa254ad)) - feliblo
+- **rules**: add code_contains_refs rule - ([9a1e4c2](https://github.com/feliblo/dbtective/commit/9a1e4c2edaf6076aa1ba93bc9a5ec0b3f5a267b1)) - feliblo
+
+### Fix
+
+- **rules**: fix return message of has_unique_test - ([c55c8b9](https://github.com/feliblo/dbtective/commit/c55c8b9c4961d904d990418a85c440dcae164986)) - feliblo
+
+### Contributors
+
+[@feliblo](https://github.com/feliblo)
+
 ## v0.2.6 (2026-02-17)
 
 ### Fix
