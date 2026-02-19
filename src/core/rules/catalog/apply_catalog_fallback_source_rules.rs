@@ -62,7 +62,16 @@ pub fn apply_catalog_fallback_source_rules<'a>(
                 CatalogSpecificRuleConfig::ColumnsNameConvention {
                     convention,
                     data_types,
-                } => column_name_convention(source, convention, data_types.as_ref(), rule, verbose),
+                    ..
+                } => column_name_convention(
+                    source,
+                    source,
+                    convention,
+                    data_types.as_ref(),
+                    false,
+                    rule,
+                    verbose,
+                ),
                 CatalogSpecificRuleConfig::ColumnsCanonicalName {
                     canonical,
                     invalid_names,

@@ -64,19 +64,31 @@ fn parse_data_type(db_type: &str) -> Option<DataTypes> {
     }
 }
 
-/// C => Catalog object only in this test
-pub fn column_name_convention<C: Columnable>(
+/// C => Catalog object, M => Manifest object (used when `use_database_columns` is false)
+///
+/// When `use_database_columns` is false, column names are read from the manifest object
+/// instead of the catalog object. This is useful for case-insensitive databases (e.g. Snowflake)
+/// where updating column casing in dbt code does not change the materialized table.
+pub fn column_name_convention<C: Columnable, M: Columnable>(
     catalog_object: &C,
+    manifest_object: &M,
     convention: &NamingConvention,
     data_types_filter: Option<&Vec<DataTypes>>,
+    use_database_columns: bool,
     rule: &CatalogRule,
     _verbose: bool,
 ) -> Option<RuleResult> {
+    let column_source: &dyn Columnable = if use_database_columns {
+        catalog_object
+    } else {
+        manifest_object
+    };
+
     // Get columns to check - either all columns or filtered by data type
     let columns_to_check: Vec<&String> = if let Some(data_types) = data_types_filter {
         let type_set: HashSet<_> = data_types.iter().collect();
 
-        let columns_with_types = catalog_object.get_columns_with_types()?;
+        let columns_with_types = column_source.get_columns_with_types()?;
 
         columns_with_types
             .into_iter()
@@ -87,7 +99,7 @@ pub fn column_name_convention<C: Columnable>(
             })
             .collect()
     } else {
-        catalog_object.get_column_names()?
+        column_source.get_column_names()?
     };
 
     let invalid_columns: Vec<&String> = columns_to_check
@@ -165,6 +177,7 @@ mod tests {
             CatalogSpecificRuleConfig::ColumnsNameConvention {
                 convention: NamingConvention::from_pattern("snake_case").unwrap(),
                 data_types: None,
+                use_database_columns: true,
             },
             Severity::Warning,
         );
@@ -173,7 +186,7 @@ mod tests {
             columns: vec!["first_column".to_string(), "second_column".to_string()],
         };
         assert_eq!(
-            column_name_convention(&item, &convention, None, &rule, false),
+            column_name_convention(&item, &item, &convention, None, true, &rule, false),
             None
         );
     }
@@ -185,6 +198,7 @@ mod tests {
             CatalogSpecificRuleConfig::ColumnsNameConvention {
                 convention: NamingConvention::from_pattern("snake_case").unwrap(),
                 data_types: None,
+                use_database_columns: true,
             },
             Severity::Warning,
         );
@@ -193,7 +207,7 @@ mod tests {
             columns: vec!["FirstColumn".to_string(), "second_column".to_string()],
         };
         assert_eq!(
-            column_name_convention(&item, &convention, None, &rule, false),
+            column_name_convention(&item, &item, &convention, None, true, &rule, false),
             Some(RuleResult::new(
                 &rule.severity,
                 "TestItem",
@@ -220,6 +234,7 @@ mod tests {
                 CatalogSpecificRuleConfig::ColumnsNameConvention {
                     convention: NamingConvention::from_pattern(pattern).unwrap(),
                     data_types: None,
+                    use_database_columns: true,
                 },
                 Severity::Warning,
             );
@@ -228,7 +243,7 @@ mod tests {
                 columns: test_columns[i].iter().map(|s| (*s).to_string()).collect(),
             };
             assert_eq!(
-                column_name_convention(&item, &convention, None, &rule, false),
+                column_name_convention(&item, &item, &convention, None, true, &rule, false),
                 None,
                 "Failed for pattern: {pattern}",
             );
@@ -251,6 +266,7 @@ mod tests {
                 CatalogSpecificRuleConfig::ColumnsNameConvention {
                     convention: NamingConvention::from_pattern(pattern).unwrap(),
                     data_types: None,
+                    use_database_columns: true,
                 },
                 Severity::Warning,
             );
@@ -259,7 +275,8 @@ mod tests {
                 columns: test_columns[i].iter().map(|s| (*s).to_string()).collect(),
             };
             assert!(
-                column_name_convention(&item, &convention, None, &rule, false).is_some(),
+                column_name_convention(&item, &item, &convention, None, true, &rule, false)
+                    .is_some(),
                 "Failed for pattern: {pattern}",
             );
         }
@@ -272,6 +289,7 @@ mod tests {
             CatalogSpecificRuleConfig::ColumnsNameConvention {
                 convention: NamingConvention::from_pattern(r"^[a-z]{3}[0-9]{2}$").unwrap(),
                 data_types: None,
+                use_database_columns: true,
             },
             Severity::Warning,
         );
@@ -280,7 +298,7 @@ mod tests {
             columns: vec!["abc12".to_string(), "def34".to_string()],
         };
         assert_eq!(
-            column_name_convention(&item, &convention, None, &rule, false),
+            column_name_convention(&item, &item, &convention, None, true, &rule, false),
             None
         );
     }
@@ -292,6 +310,7 @@ mod tests {
             CatalogSpecificRuleConfig::ColumnsNameConvention {
                 convention: NamingConvention::from_pattern(r"^[a-z]{3}[0-9]{2}$").unwrap(),
                 data_types: None,
+                use_database_columns: true,
             },
             Severity::Warning,
         );
@@ -300,7 +319,7 @@ mod tests {
             columns: vec!["ab12".to_string(), "defg34".to_string()],
         };
         assert_eq!(
-            column_name_convention(&item, &convention, None, &rule, false),
+            column_name_convention(&item, &item, &convention, None, true, &rule, false),
             Some(RuleResult::new(
                 &rule.severity,
                 "TestItem",
@@ -309,6 +328,52 @@ mod tests {
                 item.get_problematic_path(false).map(str::to_owned),
             ))
         );
+    }
+
+    #[test]
+    fn test_use_database_columns_false_uses_manifest_columns() {
+        let convention = NamingConvention::from_pattern("snake_case").unwrap();
+        let rule = CatalogRule::from_specific_rule(
+            CatalogSpecificRuleConfig::ColumnsNameConvention {
+                convention: NamingConvention::from_pattern("snake_case").unwrap(),
+                data_types: None,
+                use_database_columns: false,
+            },
+            Severity::Warning,
+        );
+        // Catalog has uppercase columns (case-insensitive db), manifest has snake_case
+        let catalog_item = TestItem {
+            name: "test_item".to_string(),
+            columns: vec!["FIRST_COLUMN".to_string(), "SECOND_COLUMN".to_string()],
+        };
+        let manifest_item = TestItem {
+            name: "test_item".to_string(),
+            columns: vec!["first_column".to_string(), "second_column".to_string()],
+        };
+        // With use_database_columns=false, should use manifest columns (snake_case) → passes
+        assert_eq!(
+            column_name_convention(
+                &catalog_item,
+                &manifest_item,
+                &convention,
+                None,
+                false,
+                &rule,
+                false
+            ),
+            None
+        );
+        // With use_database_columns=true, should use catalog columns (SCREAMING) → fails
+        assert!(column_name_convention(
+            &catalog_item,
+            &manifest_item,
+            &convention,
+            None,
+            true,
+            &rule,
+            false
+        )
+        .is_some(),);
     }
 
     #[test]

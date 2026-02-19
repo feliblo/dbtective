@@ -172,6 +172,7 @@ impl InitConfig {
                 CatalogSpecificRuleConfig::ColumnsNameConvention {
                     convention: result.naming_convention.clone(),
                     data_types: None,
+                    use_database_columns: true,
                 }
             }
             CatalogSpecificRuleConfig::ColumnsCanonicalName { .. } => {
@@ -1194,6 +1195,7 @@ mod tests {
             vec![CatalogSpecificRuleConfig::ColumnsNameConvention {
                 convention: NamingConvention::default(),
                 data_types: None,
+                use_database_columns: true,
             }],
             convention.clone(),
         );
@@ -1204,6 +1206,7 @@ mod tests {
             CatalogSpecificRuleConfig::ColumnsNameConvention {
                 convention: c,
                 data_types,
+                ..
             } => {
                 assert_eq!(c.name(), convention.name());
                 assert!(data_types.is_none());
@@ -1295,6 +1298,7 @@ mod tests {
             vec![CatalogSpecificRuleConfig::ColumnsNameConvention {
                 convention: NamingConvention::default(),
                 data_types: None,
+                use_database_columns: true,
             }],
             NamingConvention::default(),
         );
@@ -1364,6 +1368,7 @@ mod tests {
                 CatalogSpecificRuleConfig::ColumnsNameConvention {
                     convention: NamingConvention::default(),
                     data_types: None,
+                    use_database_columns: true,
                 },
                 CatalogSpecificRuleConfig::ColumnsHaveDescription {},
             ],
@@ -1436,6 +1441,7 @@ mod tests {
                 CatalogSpecificRuleConfig::ColumnsNameConvention {
                     convention: NamingConvention::default(),
                     data_types: None,
+                    use_database_columns: true,
                 },
                 CatalogSpecificRuleConfig::ColumnsHaveDescription {},
                 CatalogSpecificRuleConfig::ColumnsAllDocumented {},
@@ -1478,6 +1484,7 @@ mod tests {
                 CatalogSpecificRuleConfig::ColumnsNameConvention {
                     convention: NamingConvention::default(),
                     data_types: None,
+                    use_database_columns: true,
                 },
                 CatalogSpecificRuleConfig::ColumnsHaveDescription {},
             ],
@@ -1520,6 +1527,7 @@ mod tests {
             vec![CatalogSpecificRuleConfig::ColumnsNameConvention {
                 convention: NamingConvention::default(),
                 data_types: None,
+                use_database_columns: true,
             }],
             NamingConvention::default(),
         );
@@ -1570,6 +1578,7 @@ mod tests {
                 CatalogSpecificRuleConfig::ColumnsNameConvention {
                     convention: NamingConvention::default(),
                     data_types: None,
+                    use_database_columns: true,
                 },
                 CatalogSpecificRuleConfig::ColumnsHaveDescription {},
                 CatalogSpecificRuleConfig::ColumnsAllDocumented {},
@@ -1878,6 +1887,7 @@ mod tests {
             vec![CatalogSpecificRuleConfig::ColumnsNameConvention {
                 convention: NamingConvention::default(),
                 data_types: None,
+                use_database_columns: true,
             }],
             convention,
         );
@@ -1979,6 +1989,7 @@ mod tests {
             vec![CatalogSpecificRuleConfig::ColumnsNameConvention {
                 convention: NamingConvention::default(),
                 data_types: None,
+                use_database_columns: true,
             }],
             NamingConvention::default(),
         );
@@ -2115,6 +2126,7 @@ mod tests {
             vec![CatalogSpecificRuleConfig::ColumnsNameConvention {
                 convention: NamingConvention::default(),
                 data_types: None,
+                use_database_columns: true,
             }],
             NamingConvention::default(),
         );
@@ -2184,6 +2196,7 @@ mod tests {
             vec![CatalogSpecificRuleConfig::ColumnsNameConvention {
                 convention: NamingConvention::default(),
                 data_types: None,
+                use_database_columns: true,
             }],
             NamingConvention::default(),
         );
@@ -2284,6 +2297,7 @@ mod tests {
             vec![CatalogSpecificRuleConfig::ColumnsNameConvention {
                 convention: NamingConvention::default(),
                 data_types: None,
+                use_database_columns: true,
             }],
             NamingConvention::default(),
         );

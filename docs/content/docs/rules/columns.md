@@ -136,6 +136,8 @@ This rule ensures that column names follow naming conventions based on a specifi
   - _Default_: All data types
   - _Example_: If you want all datetime columns to end with 'dt', you can set `data_types: ['date', 'date_time', 'timestamp', 'timestamptz']` with pattern `.*_dt$`
   - _Available types_: `integer`, `big_int`, `small_int`, `tiny_int`, `decimal`, `numeric`, `float`, `double`, `real`, `string`, `text`, `varchar`, `char`, `date`, `date_time`, `time`, `timestamp`, `timestamptz`, `boolean`, `json`, `jsonb`, `array`, `object`, `variant`, `binary`, `varbinary`, `uuid`, `interval`
+- **use_database_columns**: _(optional)_ Whether to check column names from the database catalog (`true`) or from the manifest/dbt code (`false`). This is useful for case-insensitive databases (Snowflake). Updating casing in `dbt` code does not update the actual materialized table. Set to `false` to validate against the column names as written in your dbt project instead of as they appear in the database. This option is independent of the `--only-manifest` flag.
+  - _Default_: `true`
 
 {{< include-markdown "content/snippets/common_rule_config.md" >}}
 
@@ -147,6 +149,7 @@ This rule ensures that column names follow naming conventions based on a specifi
 
 ```yaml
 catalog_tests:
+  # Basic snake_case check
   - name: "columns_snake_case"
     type: "columns_name_convention"
     description: "All column names must be snake_case."
@@ -155,56 +158,20 @@ catalog_tests:
     # applies_to: ['models', 'sources']  (optional)
     # includes: ["path/to/include/*"]  (optional)
     # excludes: ["path/to/exclude/*"]  (optional)
-```
 
-{{< /tab >}}
-
-{{< tab >}}
-
-```toml
-[[catalog_tests]]
-name = "columns_snake_case"
-type = "columns_name_convention"
-description = "All column names must be snake_case."
-pattern = "snake_case"
-# severity = "warning"  # (optional)
-# applies_to = ["models", "sources"]  # (optional)
-# includes = ["path/to/include/*"]  # (optional)
-# excludes = ["path/to/exclude/*"]  # (optional)
-```
-
-{{< /tab >}}
-
-{{< tab >}}
-
-```toml
-[[tool.dbtective.catalog_tests]]
-name = "columns_snake_case"
-type = "columns_name_convention"
-description = "All column names must be snake_case."
-pattern = "snake_case"
-# severity = "warning"  # (optional)
-# applies_to = ["models", "sources"]  # (optional)
-# includes = ["path/to/include/*"]  # (optional)
-# excludes = ["path/to/exclude/*"]  # (optional)
-```
-
-{{< /tab >}}
-
-{{< /tabs >}}
-
-**Example with Custom Regex**
-
-{{< tabs items="dbtective.yml,dbtective.toml,pyproject.toml" >}}
-
-{{< tab >}}
-
-```yaml
-catalog_tests:
-  - name: "columns_snake_case"
+  # Custom regex pattern
+  - name: "columns_custom_pattern"
     type: "columns_name_convention"
-    description: "All column must be snake_case."
+    description: "All columns must match custom pattern."
+    pattern: "^[a-z][a-z0-9_]*$"
+
+    # Use dbt project column names instead of the materialized table
+  # Useful for case-insensitive databases
+  - name: "columns_snake_case_dbt_project"
+    type: "columns_name_convention"
+    description: "All column names must be snake_case."
     pattern: "snake_case"
+    use_database_columns: false
 ```
 
 {{< /tab >}}
@@ -212,11 +179,32 @@ catalog_tests:
 {{< tab >}}
 
 ```toml
+# Basic snake_case check
 [[catalog_tests]]
 name = "columns_snake_case"
 type = "columns_name_convention"
 description = "All column names must be snake_case."
 pattern = "snake_case"
+# severity = "warning"  # (optional)
+# applies_to = ["models", "sources"]  # (optional)
+# includes = ["path/to/include/*"]  # (optional)
+# excludes = ["path/to/exclude/*"]  # (optional)
+
+# Custom regex pattern
+[[catalog_tests]]
+name = "columns_custom_pattern"
+type = "columns_name_convention"
+description = "All columns must match custom pattern."
+pattern = "^[a-z][a-z0-9_]*$"
+
+# Use dbt project column names instead of the materialized table
+# Useful for case-insensitive databases
+[[catalog_tests]]
+name = "columns_snake_case_dbt_project"
+type = "columns_name_convention"
+description = "All column names must be snake_case."
+pattern = "snake_case"
+use_database_columns = false
 ```
 
 {{< /tab >}}
@@ -224,11 +212,32 @@ pattern = "snake_case"
 {{< tab >}}
 
 ```toml
+# Basic snake_case check
 [[tool.dbtective.catalog_tests]]
 name = "columns_snake_case"
 type = "columns_name_convention"
 description = "All column names must be snake_case."
 pattern = "snake_case"
+# severity = "warning"  # (optional)
+# applies_to = ["models", "sources"]  # (optional)
+# includes = ["path/to/include/*"]  # (optional)
+# excludes = ["path/to/exclude/*"]  # (optional)
+
+# Custom regex pattern
+[[tool.dbtective.catalog_tests]]
+name = "columns_custom_pattern"
+type = "columns_name_convention"
+description = "All columns must match custom pattern."
+pattern = "^[a-z][a-z0-9_]*$"
+
+# Use dbt project column names instead of the materialized table
+# Useful for case-insensitive databases
+[[tool.dbtective.catalog_tests]]
+name = "columns_snake_case_dbt_project"
+type = "columns_name_convention"
+description = "All column names must be snake_case."
+pattern = "snake_case"
+use_database_columns = false
 ```
 
 {{< /tab >}}

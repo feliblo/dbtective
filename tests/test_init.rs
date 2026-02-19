@@ -51,6 +51,7 @@ fn create_default_init_config() -> dbtective::core::init::config_builder::InitCo
             CatalogSpecificRuleConfig::ColumnsNameConvention {
                 convention: NamingConvention::default(),
                 data_types: None,
+                use_database_columns: true,
             },
             CatalogSpecificRuleConfig::ColumnsHaveDescription {},
         ],
@@ -397,6 +398,7 @@ fn get_catalog_rules(strictness: Strictness) -> Vec<CatalogSpecificRuleConfig> {
     rules.push(CatalogSpecificRuleConfig::ColumnsNameConvention {
         convention: NamingConvention::default(),
         data_types: None,
+        use_database_columns: true,
     });
 
     // Standard adds more

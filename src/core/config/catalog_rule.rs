@@ -20,6 +20,8 @@ pub enum CatalogSpecificRuleConfig {
         #[serde(rename = "pattern")]
         convention: NamingConvention,
         data_types: Option<Vec<DataTypes>>,
+        #[serde(default = "default_use_database_columns")]
+        use_database_columns: bool,
     },
     ColumnsCanonicalName {
         canonical: String,
@@ -111,6 +113,10 @@ impl CatalogSpecificRuleConfig {
             Self::ColumnsAllDocumented { .. } => false,
         }
     }
+}
+
+const fn default_use_database_columns() -> bool {
+    true
 }
 
 const fn catalog_default_severity() -> Severity {
@@ -288,6 +294,7 @@ mod tests {
         assert!(CatalogSpecificRuleConfig::ColumnsNameConvention {
             convention: NamingConvention::from_pattern("snake_case").unwrap(),
             data_types: None,
+            use_database_columns: true,
         }
         .supports_manifest_fallback());
         assert!(CatalogSpecificRuleConfig::ColumnsCanonicalName {

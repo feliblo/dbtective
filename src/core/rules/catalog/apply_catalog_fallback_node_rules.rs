@@ -71,7 +71,16 @@ pub fn apply_catalog_fallback_node_rules<'a>(
                 CatalogSpecificRuleConfig::ColumnsNameConvention {
                     convention,
                     data_types,
-                } => column_name_convention(node, convention, data_types.as_ref(), rule, verbose),
+                    ..
+                } => column_name_convention(
+                    node,
+                    node,
+                    convention,
+                    data_types.as_ref(),
+                    false,
+                    rule,
+                    verbose,
+                ),
                 CatalogSpecificRuleConfig::ColumnsCanonicalName {
                     canonical,
                     invalid_names,

@@ -227,6 +227,7 @@ pub fn run_questionnaire() -> Result<QuestionnaireResult, String> {
             vec![CatalogSpecificRuleConfig::ColumnsNameConvention {
                 convention: NamingConvention::default(),
                 data_types: None,
+                use_database_columns: true,
             }],
         ),
         Strictness::Standard => (
@@ -249,6 +250,7 @@ pub fn run_questionnaire() -> Result<QuestionnaireResult, String> {
                 CatalogSpecificRuleConfig::ColumnsNameConvention {
                     convention: NamingConvention::default(),
                     data_types: None,
+                    use_database_columns: true,
                 },
                 CatalogSpecificRuleConfig::ColumnsHaveDescription {},
             ],
@@ -287,6 +289,7 @@ pub fn run_questionnaire() -> Result<QuestionnaireResult, String> {
                 CatalogSpecificRuleConfig::ColumnsNameConvention {
                     convention: NamingConvention::default(),
                     data_types: None,
+                    use_database_columns: true,
                 },
                 CatalogSpecificRuleConfig::ColumnsHaveDescription {},
                 CatalogSpecificRuleConfig::ColumnsAllDocumented {},
