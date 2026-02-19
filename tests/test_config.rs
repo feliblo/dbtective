@@ -1074,3 +1074,141 @@ manifest_tests:
     assert!(all_found.contains(&"dbtective.yml".to_string()));
     assert!(all_found.contains(&"dbtective.yaml".to_string()));
 }
+
+// ===== AUTO-PARSE COMMAND CONFIG TESTS =====
+
+#[test]
+fn test_yaml_config_with_auto_parse_command() {
+    let config = r#"
+config:
+  auto_parse_command: "uv run dbt parse"
+manifest_tests:
+  - type: "has_description"
+    severity: "error"
+"#;
+    let temp_file = create_temp_config(config, Some(".yml"));
+    let cfg = Config::from_file(temp_file.path()).expect("Failed to parse config");
+
+    assert_eq!(cfg.auto_parse_command(), Some("uv run dbt parse"));
+}
+
+#[test]
+fn test_yaml_config_without_auto_parse_command() {
+    let config = r#"
+manifest_tests:
+  - type: "has_description"
+    severity: "error"
+"#;
+    let temp_file = create_temp_config(config, Some(".yml"));
+    let cfg = Config::from_file(temp_file.path()).expect("Failed to parse config");
+
+    assert_eq!(cfg.auto_parse_command(), None);
+}
+
+#[test]
+fn test_yaml_config_with_empty_config_section() {
+    let config = r#"
+config: {}
+manifest_tests:
+  - type: "has_description"
+    severity: "error"
+"#;
+    let temp_file = create_temp_config(config, Some(".yml"));
+    let cfg = Config::from_file(temp_file.path()).expect("Failed to parse config");
+
+    assert_eq!(cfg.auto_parse_command(), None);
+}
+
+#[test]
+fn test_yaml_config_with_dbt_parse_command() {
+    let config = r#"
+config:
+  auto_parse_command: "dbt parse"
+manifest_tests:
+  - type: "has_description"
+    severity: "error"
+"#;
+    let temp_file = create_temp_config(config, Some(".yml"));
+    let cfg = Config::from_file(temp_file.path()).expect("Failed to parse config");
+
+    assert_eq!(cfg.auto_parse_command(), Some("dbt parse"));
+}
+
+#[test]
+fn test_yaml_config_with_poetry_parse_command() {
+    let config = r#"
+config:
+  auto_parse_command: "poetry run dbt parse"
+manifest_tests:
+  - type: "has_description"
+    severity: "error"
+"#;
+    let temp_file = create_temp_config(config, Some(".yml"));
+    let cfg = Config::from_file(temp_file.path()).expect("Failed to parse config");
+
+    assert_eq!(cfg.auto_parse_command(), Some("poetry run dbt parse"));
+}
+
+#[test]
+fn test_toml_config_with_auto_parse_command() {
+    let config = r#"
+[config]
+auto_parse_command = "uv run dbt parse"
+
+[[manifest_tests]]
+type = "has_description"
+severity = "error"
+"#;
+    let temp_file = create_temp_config(config, Some(".toml"));
+    let cfg = Config::from_file(temp_file.path()).expect("Failed to parse config");
+
+    assert_eq!(cfg.auto_parse_command(), Some("uv run dbt parse"));
+}
+
+#[test]
+fn test_toml_config_without_auto_parse_command() {
+    let config = r#"
+[[manifest_tests]]
+type = "has_description"
+severity = "error"
+"#;
+    let temp_file = create_temp_config(config, Some(".toml"));
+    let cfg = Config::from_file(temp_file.path()).expect("Failed to parse config");
+
+    assert_eq!(cfg.auto_parse_command(), None);
+}
+
+#[test]
+fn test_pyproject_config_with_auto_parse_command() {
+    let config = r#"
+[tool.dbtective.config]
+auto_parse_command = "uv run dbt parse"
+
+[[tool.dbtective.manifest_tests]]
+type = "has_description"
+severity = "error"
+"#;
+    let temp_dir = tempfile::TempDir::new().unwrap();
+    let pyproject_path = temp_dir.path().join("pyproject.toml");
+    std::fs::write(&pyproject_path, config).unwrap();
+    let cfg = Config::from_file(&pyproject_path).expect("Failed to parse config");
+
+    assert_eq!(cfg.auto_parse_command(), Some("uv run dbt parse"));
+}
+
+#[test]
+fn test_pyproject_config_without_auto_parse_command() {
+    let config = r#"
+[tool.dbtective]
+
+[[tool.dbtective.manifest_tests]]
+type = "has_description"
+severity = "error"
+"#;
+    let temp_dir = tempfile::TempDir::new().unwrap();
+    let pyproject_path = temp_dir.path().join("pyproject.toml");
+    std::fs::write(&pyproject_path, config).unwrap();
+    let cfg = Config::from_file(&pyproject_path).expect("Failed to parse config");
+
+    assert_eq!(cfg.auto_parse_command(), None);
+}

@@ -2,10 +2,13 @@
 # Documentation: https://feliblo.github.io/dbtective/docs/config
 # Rules: https://feliblo.github.io/dbtective/docs/rules/
 
+# Auto-parse command, used with the --auto-parse flag.
+config:
+  auto_parse_command: "uv run dbt parse"
+
 manifest_tests:
   - name: "has_description"
     type: "has_description"
-
 
   - name: "naming_convention"
     type: "name_convention"
@@ -63,6 +66,7 @@ manifest_tests:
     description: "Reduce model fanout complexity"
     type: "max_downstream_dependencies"
     max_downstream: 5
+    applies_to: ["models"]
 
   - name: "source_max_downstream_dependencies"
     description: "Sources should not be referenced by more than 1 model (use a staging model)"
@@ -73,10 +77,8 @@ manifest_tests:
   - name: "sources_have_loader"
     type: "sources_have_loader"
 
-
   - name: "sources_have_freshness"
     type: "sources_have_freshness"
-
 
   - name: "all_marts_are_exposed"
     type: "is_not_orphaned"

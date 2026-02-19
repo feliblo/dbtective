@@ -93,6 +93,13 @@ pub struct RunOptions {
     /// Write output to a file instead of stdout (does nothing in combination with `table` output format).
     #[arg(long)]
     pub output_file: Option<String>,
+
+    /// Run the configured `auto_parse_command` before reading the manifest.
+    /// This ensures the manifest is up-to-date. Recommended for pre-commit hooks
+    /// and CI pipelines only, as it adds a performance penalty (dbt needs to parse
+    /// your project first).
+    #[arg(long, default_value_t = false)]
+    pub auto_parse: bool,
 }
 
 #[cfg(test)]
@@ -147,6 +154,7 @@ mod tests {
             hide_catalog_tip: false,
             output_format: OutputFormat::Table,
             output_file: None,
+            auto_parse: false,
         };
         let debug_str = format!("{options:?}");
         assert!(debug_str.contains("RunOptions"));
@@ -167,6 +175,7 @@ mod tests {
             hide_catalog_tip: false,
             output_format: OutputFormat::Table,
             output_file: None,
+            auto_parse: false,
         };
 
         assert_eq!(options.entry_point, "./");
@@ -187,6 +196,7 @@ mod tests {
             hide_catalog_tip: false,
             output_format: OutputFormat::Table,
             output_file: None,
+            auto_parse: false,
         };
 
         assert_eq!(options.entry_point, "/path/to/project");
@@ -217,6 +227,7 @@ mod tests {
                 hide_catalog_tip: false,
                 output_format: OutputFormat::Table,
                 output_file: None,
+                auto_parse: false,
             },
         };
 
@@ -263,6 +274,7 @@ mod tests {
                     hide_catalog_tip: false,
                     output_format: OutputFormat::Table,
                     output_file: None,
+                    auto_parse: false,
                 },
             }),
         };
@@ -298,6 +310,7 @@ mod tests {
                 hide_catalog_tip: false,
                 output_format: OutputFormat::Table,
                 output_file: None,
+                auto_parse: false,
             },
         };
         let debug_str = format!("{run_cmd:?}");
