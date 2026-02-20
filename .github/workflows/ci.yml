@@ -39,9 +39,6 @@ jobs:
       - name: 📦 Install cargo-binstall
         uses: cargo-bins/cargo-binstall@main
 
-      - name: 📦 Install cargo-nextest
-        run: cargo install cargo-nextest --locked
-
       - name: ✂️ Install cargo-shear
         run: cargo binstall --no-confirm cargo-shear
 
@@ -102,37 +99,8 @@ jobs:
             --lcov `
             --output-path lcov.info
 
-      - name: Upload coverage artifact
-        uses: actions/upload-artifact@v6
-        with:
-          name: coverage-${{ matrix.os }}
-          path: lcov.info
-
-  codecov:
-    name: ☁️ Upload Combined Coverage
-    runs-on: ubuntu-latest
-    needs: test
-
-    steps:
-      - name: 📥 Download Linux Coverage
-        uses: actions/download-artifact@v4
-        with:
-          name: coverage-ubuntu-latest
-          path: ./ubuntu
-
-      - name: 📥 Download Windows Coverage
-        uses: actions/download-artifact@v4
-        with:
-          name: coverage-windows-latest
-          path: ./windows
-
-      - name: List coverage files
-        run: ls -R ./ubuntu ./windows
-
-      - name: Upload to Codecov
+      - name: ☁️ Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
-          files: |
-            ./ubuntu/lcov.info
-            ./windows/lcov.info
-          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: lcov.info
