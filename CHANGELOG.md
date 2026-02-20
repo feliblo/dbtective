@@ -1,3 +1,13 @@
+## v0.2.10 (2026-02-20)
+
+### Feat
+
+- **config**: add name: and tag: to includes/excludes - ([d824625](https://github.com/feliblo/dbtective/commit/d82462583279a55b261238603631a272beba5daa)) - feliblo
+
+### Contributors
+
+[@feliblo](https://github.com/feliblo)
+
 ## v0.2.9 (2026-02-20)
 
 ### Feat
