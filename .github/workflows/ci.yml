@@ -4,7 +4,6 @@ on:
   pull_request:
   push:
     branches: [main]
-
   workflow_call:
 
 env:
@@ -35,11 +34,13 @@ jobs:
     name: ✂️ Check Code Shearing (unwanted package dependencies)
     runs-on: ubuntu-latest
     steps:
-      - name: 📦 Checkout Repository
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v5
 
       - name: 📦 Install cargo-binstall
         uses: cargo-bins/cargo-binstall@main
+
+      - name: 📦 Install cargo-nextest
+        run: cargo install cargo-nextest --locked
 
       - name: ✂️ Install cargo-shear
         run: cargo binstall --no-confirm cargo-shear
@@ -55,11 +56,8 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - name: 📦 Checkout Repository
-        uses: actions/checkout@v5
-
-      - name: 🦀 Setup Rust (stable)
-        uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
 
       - name: 📂 Cache Cargo
         uses: actions/cache@v4
@@ -70,14 +68,71 @@ jobs:
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
+      - name: 📦 Install cargo-nextest
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
+
       - name: 📦 Install cargo-llvm-cov
-        run: cargo install cargo-llvm-cov
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-llvm-cov
 
-      - name: 🧪 Run tests + collect coverage
-        run: cargo llvm-cov --workspace --all-features --lcov --output-path lcov.info
+      # ✔️ Correct stable MSVC setup action
+      - name: ⚙️ Setup MSVC (Windows only)
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
 
-      - name: ☁️ Upload to Codecov
+      - name: 🧪 Run tests + coverage (Linux)
+        if: runner.os != 'Windows'
+        run: |
+          cargo llvm-cov nextest \
+            --workspace \
+            --all-features \
+            --lcov \
+            --output-path lcov.info
+
+      - name: 🧪 Run tests + coverage (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          cargo llvm-cov nextest `
+            --workspace `
+            --all-features `
+            --lcov `
+            --output-path lcov.info
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: coverage-${{ matrix.os }}
+          path: lcov.info
+
+  codecov:
+    name: ☁️ Upload Combined Coverage
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: 📥 Download Linux Coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-ubuntu-latest
+          path: ./ubuntu
+
+      - name: 📥 Download Windows Coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-windows-latest
+          path: ./windows
+
+      - name: List coverage files
+        run: ls -R ./ubuntu ./windows
+
+      - name: Upload to Codecov
         uses: codecov/codecov-action@v5
         with:
-          files: lcov.info
+          files: |
+            ./ubuntu/lcov.info
+            ./windows/lcov.info
           fail_ci_if_error: true
