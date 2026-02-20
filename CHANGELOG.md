@@ -1,3 +1,13 @@
+## v0.2.8 (2026-02-20)
+
+### Feat
+
+- **cli**: add --auto-parse option to run - ([82946c0](https://github.com/feliblo/dbtective/commit/82946c06d70b1ead1cf6f6b998d5cdaeb91828ab)) - feliblo
+
+### Contributors
+
+[@feliblo](https://github.com/feliblo)
+
 ## v0.2.7 (2026-02-19)
 
 ### Feat
