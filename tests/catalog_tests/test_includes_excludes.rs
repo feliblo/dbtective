@@ -51,6 +51,101 @@ const CATALOG_METADATA: &str = r#"
     "env": {}
   }"#;
 
+/// Create a manifest node JSON snippet with tags
+fn manifest_node_with_tags(
+    unique_id: &str,
+    name: &str,
+    resource_type: &str,
+    original_file_path: &str,
+    tags: &[&str],
+) -> String {
+    let escaped_path = original_file_path.replace('\\', "\\\\");
+    let tags_json: Vec<String> = tags.iter().map(|t| format!("\"{t}\"")).collect();
+    let tags_str = tags_json.join(", ");
+    format!(
+        r#"    "{unique_id}": {{
+      "database": "analytics",
+      "schema": "public",
+      "name": "{name}",
+      "resource_type": "{resource_type}",
+      "package_name": "test_project",
+      "path": "{name}.sql",
+      "original_file_path": "{escaped_path}",
+      "unique_id": "{unique_id}",
+      "fqn": ["test_project", "{name}"],
+      "alias": "{name}",
+      "checksum": {{"name": "sha256", "checksum": "abc123"}},
+      "tags": [{tags_str}],
+      "config": {{
+        "enabled": true,
+        "materialized": "view",
+        "tags": []
+      }},
+      "description": "Test {name}",
+      "columns": {{
+        "id": {{"name": "id", "description": "", "tags": []}}
+      }},
+      "meta": {{}},
+      "group": null,
+      "docs": {{"show": true}},
+      "patch_path": null,
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {{}},
+      "created_at": 1704067200.0,
+      "config_call_dict": {{}},
+      "relation_name": "analytics.public.{name}",
+      "raw_code": "SELECT 1",
+      "language": "sql",
+      "refs": [],
+      "sources": [],
+      "metrics": [],
+      "depends_on": {{"macros": [], "nodes": []}},
+      "compiled_code": null,
+      "extra_ctes_injected": false,
+      "extra_ctes": [],
+      "contract": {{"enforced": false, "checksum": null}}
+    }}"#
+    )
+}
+
+/// Create a manifest source JSON snippet with tags
+fn manifest_source_with_tags(
+    unique_id: &str,
+    name: &str,
+    source_name: &str,
+    original_file_path: &str,
+    tags: &[&str],
+) -> String {
+    let escaped_path = original_file_path.replace('\\', "\\\\");
+    let tags_json: Vec<String> = tags.iter().map(|t| format!("\"{t}\"")).collect();
+    let tags_str = tags_json.join(", ");
+    format!(
+        r#"    "{unique_id}": {{
+      "database": "raw",
+      "schema": "raw_data",
+      "name": "{name}",
+      "source_name": "{source_name}",
+      "source_description": "Test source",
+      "loader": "",
+      "identifier": "{name}",
+      "resource_type": "source",
+      "package_name": "test_project",
+      "tags": [{tags_str}],
+      "path": "sources.yml",
+      "original_file_path": "{escaped_path}",
+      "unique_id": "{unique_id}",
+      "fqn": ["test_project", "{source_name}", "{name}"],
+      "config": {{"enabled": true}},
+      "description": "Test source {name}",
+      "columns": {{
+        "id": {{"name": "id", "description": "", "tags": []}}
+      }}
+    }}"#
+    )
+}
+
 /// Create a manifest node JSON snippet
 fn manifest_node(
     unique_id: &str,
@@ -1489,4 +1584,740 @@ fn test_fallback_multiple_exclude_patterns() {
         "Multiple excludes should work, got: {findings:?}"
     );
     assert!(findings[0].0.message.contains("mart_orders"));
+}
+
+// =========================================================================
+// name: prefix tests — Fallback rules
+// =========================================================================
+
+#[test]
+fn test_fallback_node_exclude_by_name() {
+    let manifest = build_manifest(
+        &[
+            manifest_node(
+                "model.test_project.raw_orders",
+                "raw_orders",
+                "model",
+                "models/raw/raw_orders.sql",
+            ),
+            manifest_node(
+                "model.test_project.mart_orders",
+                "mart_orders",
+                "model",
+                "models/marts/mart_orders.sql",
+            ),
+        ],
+        &[],
+    );
+    let config = catalog_config_with_excludes(&["name:raw_orders"], &["models"]);
+    let env = TestEnvironment::new(&manifest, &config);
+    let findings = env
+        .run_catalog_fallback_rules(false)
+        .expect("should not error");
+
+    assert_eq!(
+        findings.len(),
+        1,
+        "name: exclude should filter out raw_orders, got: {findings:?}"
+    );
+    assert!(findings[0].0.message.contains("mart_orders"));
+}
+
+#[test]
+fn test_fallback_node_include_by_name() {
+    let manifest = build_manifest(
+        &[
+            manifest_node(
+                "model.test_project.raw_orders",
+                "raw_orders",
+                "model",
+                "models/raw/raw_orders.sql",
+            ),
+            manifest_node(
+                "model.test_project.mart_orders",
+                "mart_orders",
+                "model",
+                "models/marts/mart_orders.sql",
+            ),
+            manifest_node(
+                "model.test_project.stg_orders",
+                "stg_orders",
+                "model",
+                "models/staging/stg_orders.sql",
+            ),
+        ],
+        &[],
+    );
+    let config = catalog_config_with_includes(&["name:mart_orders"], &["models"]);
+    let env = TestEnvironment::new(&manifest, &config);
+    let findings = env
+        .run_catalog_fallback_rules(false)
+        .expect("should not error");
+
+    assert_eq!(
+        findings.len(),
+        1,
+        "name: include should only match mart_orders, got: {findings:?}"
+    );
+    assert!(findings[0].0.message.contains("mart_orders"));
+}
+
+#[test]
+fn test_fallback_node_include_by_name_glob() {
+    let manifest = build_manifest(
+        &[
+            manifest_node(
+                "model.test_project.stg_orders",
+                "stg_orders",
+                "model",
+                "models/staging/stg_orders.sql",
+            ),
+            manifest_node(
+                "model.test_project.stg_customers",
+                "stg_customers",
+                "model",
+                "models/staging/stg_customers.sql",
+            ),
+            manifest_node(
+                "model.test_project.mart_orders",
+                "mart_orders",
+                "model",
+                "models/marts/mart_orders.sql",
+            ),
+        ],
+        &[],
+    );
+    let config = catalog_config_with_includes(&["name:stg_*"], &["models"]);
+    let env = TestEnvironment::new(&manifest, &config);
+    let findings = env
+        .run_catalog_fallback_rules(false)
+        .expect("should not error");
+
+    assert_eq!(
+        findings.len(),
+        2,
+        "name:stg_* should match both staging models, got: {findings:?}"
+    );
+    let names: Vec<&str> = findings.iter().map(|(r, _)| r.message.as_str()).collect();
+    assert!(names.iter().any(|m| m.contains("stg_orders")));
+    assert!(names.iter().any(|m| m.contains("stg_customers")));
+}
+
+#[test]
+fn test_fallback_source_exclude_by_name() {
+    // Sources sharing the same file path — name: filtering differentiates them
+    let manifest = build_manifest(
+        &[],
+        &[
+            manifest_source(
+                "source.test_project.raw.users",
+                "users",
+                "raw",
+                "models/sources.yml",
+            ),
+            manifest_source(
+                "source.test_project.raw.orders",
+                "orders",
+                "raw",
+                "models/sources.yml",
+            ),
+        ],
+    );
+    let config = catalog_config_with_excludes(&["name:users"], &["sources"]);
+    let env = TestEnvironment::new(&manifest, &config);
+    let findings = env
+        .run_catalog_fallback_rules(false)
+        .expect("should not error");
+
+    assert_eq!(
+        findings.len(),
+        1,
+        "name: exclude should filter out users source, got: {findings:?}"
+    );
+    assert!(findings[0].0.message.contains("orders"));
+}
+
+#[test]
+fn test_fallback_source_include_by_name() {
+    let manifest = build_manifest(
+        &[],
+        &[
+            manifest_source(
+                "source.test_project.raw.users",
+                "users",
+                "raw",
+                "models/sources.yml",
+            ),
+            manifest_source(
+                "source.test_project.raw.orders",
+                "orders",
+                "raw",
+                "models/sources.yml",
+            ),
+            manifest_source(
+                "source.test_project.raw.products",
+                "products",
+                "raw",
+                "models/sources.yml",
+            ),
+        ],
+    );
+    let config = catalog_config_with_includes(&["name:orders"], &["sources"]);
+    let env = TestEnvironment::new(&manifest, &config);
+    let findings = env
+        .run_catalog_fallback_rules(false)
+        .expect("should not error");
+
+    assert_eq!(
+        findings.len(),
+        1,
+        "name: include should only match orders source, got: {findings:?}"
+    );
+    assert!(findings[0].0.message.contains("orders"));
+}
+
+// =========================================================================
+// tag: prefix tests — Fallback rules
+// =========================================================================
+
+#[test]
+fn test_fallback_node_exclude_by_tag() {
+    let manifest = build_manifest(
+        &[
+            manifest_node_with_tags(
+                "model.test_project.raw_orders",
+                "raw_orders",
+                "model",
+                "models/raw/raw_orders.sql",
+                &["deprecated"],
+            ),
+            manifest_node_with_tags(
+                "model.test_project.mart_orders",
+                "mart_orders",
+                "model",
+                "models/marts/mart_orders.sql",
+                &["active"],
+            ),
+        ],
+        &[],
+    );
+    let config = catalog_config_with_excludes(&["tag:deprecated"], &["models"]);
+    let env = TestEnvironment::new(&manifest, &config);
+    let findings = env
+        .run_catalog_fallback_rules(false)
+        .expect("should not error");
+
+    assert_eq!(
+        findings.len(),
+        1,
+        "tag: exclude should filter out deprecated model, got: {findings:?}"
+    );
+    assert!(findings[0].0.message.contains("mart_orders"));
+}
+
+#[test]
+fn test_fallback_node_include_by_tag() {
+    let manifest = build_manifest(
+        &[
+            manifest_node_with_tags(
+                "model.test_project.raw_orders",
+                "raw_orders",
+                "model",
+                "models/raw/raw_orders.sql",
+                &["raw"],
+            ),
+            manifest_node_with_tags(
+                "model.test_project.mart_orders",
+                "mart_orders",
+                "model",
+                "models/marts/mart_orders.sql",
+                &["finance"],
+            ),
+            manifest_node_with_tags(
+                "model.test_project.stg_orders",
+                "stg_orders",
+                "model",
+                "models/staging/stg_orders.sql",
+                &["finance"],
+            ),
+        ],
+        &[],
+    );
+    let config = catalog_config_with_includes(&["tag:finance"], &["models"]);
+    let env = TestEnvironment::new(&manifest, &config);
+    let findings = env
+        .run_catalog_fallback_rules(false)
+        .expect("should not error");
+
+    assert_eq!(
+        findings.len(),
+        2,
+        "tag: include should match both finance models, got: {findings:?}"
+    );
+    let names: Vec<&str> = findings.iter().map(|(r, _)| r.message.as_str()).collect();
+    assert!(names.iter().any(|m| m.contains("mart_orders")));
+    assert!(names.iter().any(|m| m.contains("stg_orders")));
+}
+
+#[test]
+fn test_fallback_node_include_by_tag_glob() {
+    let manifest = build_manifest(
+        &[
+            manifest_node_with_tags(
+                "model.test_project.pii_model",
+                "pii_model",
+                "model",
+                "models/pii_model.sql",
+                &["pii_email"],
+            ),
+            manifest_node_with_tags(
+                "model.test_project.pii_phone_model",
+                "pii_phone_model",
+                "model",
+                "models/pii_phone_model.sql",
+                &["pii_phone"],
+            ),
+            manifest_node_with_tags(
+                "model.test_project.safe_model",
+                "safe_model",
+                "model",
+                "models/safe_model.sql",
+                &["public"],
+            ),
+        ],
+        &[],
+    );
+    let config = catalog_config_with_includes(&["tag:pii_*"], &["models"]);
+    let env = TestEnvironment::new(&manifest, &config);
+    let findings = env
+        .run_catalog_fallback_rules(false)
+        .expect("should not error");
+
+    assert_eq!(
+        findings.len(),
+        2,
+        "tag:pii_* should match both PII models, got: {findings:?}"
+    );
+    let names: Vec<&str> = findings.iter().map(|(r, _)| r.message.as_str()).collect();
+    assert!(names.iter().any(|m| m.contains("pii_model")));
+    assert!(names.iter().any(|m| m.contains("pii_phone_model")));
+}
+
+#[test]
+fn test_fallback_source_exclude_by_tag() {
+    let manifest = build_manifest(
+        &[],
+        &[
+            manifest_source_with_tags(
+                "source.test_project.raw.users",
+                "users",
+                "raw",
+                "models/sources.yml",
+                &["deprecated"],
+            ),
+            manifest_source_with_tags(
+                "source.test_project.raw.orders",
+                "orders",
+                "raw",
+                "models/sources.yml",
+                &["active"],
+            ),
+        ],
+    );
+    let config = catalog_config_with_excludes(&["tag:deprecated"], &["sources"]);
+    let env = TestEnvironment::new(&manifest, &config);
+    let findings = env
+        .run_catalog_fallback_rules(false)
+        .expect("should not error");
+
+    assert_eq!(
+        findings.len(),
+        1,
+        "tag: exclude should filter out deprecated source, got: {findings:?}"
+    );
+    assert!(findings[0].0.message.contains("orders"));
+}
+
+// =========================================================================
+// Mixed name: + tag: + path patterns — Fallback rules
+// =========================================================================
+
+#[test]
+fn test_fallback_mixed_path_include_name_exclude() {
+    let manifest = build_manifest(
+        &[
+            manifest_node(
+                "model.test_project.mart_orders",
+                "mart_orders",
+                "model",
+                "models/marts/mart_orders.sql",
+            ),
+            manifest_node(
+                "model.test_project.mart_customers",
+                "mart_customers",
+                "model",
+                "models/marts/mart_customers.sql",
+            ),
+            manifest_node(
+                "model.test_project.stg_orders",
+                "stg_orders",
+                "model",
+                "models/staging/stg_orders.sql",
+            ),
+        ],
+        &[],
+    );
+    let config = catalog_config_with_includes_and_excludes(
+        &["models/marts"],
+        &["name:mart_orders"],
+        &["models"],
+    );
+    let env = TestEnvironment::new(&manifest, &config);
+    let findings = env
+        .run_catalog_fallback_rules(false)
+        .expect("should not error");
+
+    assert_eq!(
+        findings.len(),
+        1,
+        "Should include marts but exclude mart_orders by name, got: {findings:?}"
+    );
+    assert!(findings[0].0.message.contains("mart_customers"));
+}
+
+#[test]
+fn test_fallback_mixed_tag_include_name_exclude() {
+    let manifest = build_manifest(
+        &[
+            manifest_node_with_tags(
+                "model.test_project.model_a",
+                "model_a",
+                "model",
+                "models/model_a.sql",
+                &["finance"],
+            ),
+            manifest_node_with_tags(
+                "model.test_project.model_b",
+                "model_b",
+                "model",
+                "models/model_b.sql",
+                &["finance"],
+            ),
+            manifest_node_with_tags(
+                "model.test_project.model_c",
+                "model_c",
+                "model",
+                "models/model_c.sql",
+                &["marketing"],
+            ),
+        ],
+        &[],
+    );
+    let config =
+        catalog_config_with_includes_and_excludes(&["tag:finance"], &["name:model_b"], &["models"]);
+    let env = TestEnvironment::new(&manifest, &config);
+    let findings = env
+        .run_catalog_fallback_rules(false)
+        .expect("should not error");
+
+    assert_eq!(
+        findings.len(),
+        1,
+        "Should include finance-tagged but exclude model_b by name, got: {findings:?}"
+    );
+    assert!(findings[0].0.message.contains("model_a"));
+}
+
+#[test]
+fn test_fallback_mixed_path_include_tag_exclude() {
+    let manifest = build_manifest(
+        &[
+            manifest_node_with_tags(
+                "model.test_project.mart_orders",
+                "mart_orders",
+                "model",
+                "models/marts/mart_orders.sql",
+                &["deprecated"],
+            ),
+            manifest_node_with_tags(
+                "model.test_project.mart_customers",
+                "mart_customers",
+                "model",
+                "models/marts/mart_customers.sql",
+                &["active"],
+            ),
+        ],
+        &[],
+    );
+    let config = catalog_config_with_includes_and_excludes(
+        &["models/marts"],
+        &["tag:deprecated"],
+        &["models"],
+    );
+    let env = TestEnvironment::new(&manifest, &config);
+    let findings = env
+        .run_catalog_fallback_rules(false)
+        .expect("should not error");
+
+    assert_eq!(
+        findings.len(),
+        1,
+        "Should include marts but exclude deprecated-tagged, got: {findings:?}"
+    );
+    assert!(findings[0].0.message.contains("mart_customers"));
+}
+
+// =========================================================================
+// name: and tag: prefix tests — Catalog rules (with actual catalog)
+// =========================================================================
+
+#[test]
+fn test_catalog_node_exclude_by_name() {
+    let manifest = build_manifest(
+        &[
+            manifest_node(
+                "model.test_project.raw_orders",
+                "raw_orders",
+                "model",
+                "models/raw/raw_orders.sql",
+            ),
+            manifest_node(
+                "model.test_project.mart_orders",
+                "mart_orders",
+                "model",
+                "models/marts/mart_orders.sql",
+            ),
+        ],
+        &[],
+    );
+    let catalog = build_catalog(
+        &[
+            catalog_node("model.test_project.raw_orders", "raw_orders"),
+            catalog_node("model.test_project.mart_orders", "mart_orders"),
+        ],
+        &[],
+    );
+    let config = catalog_config_with_excludes(&["name:raw_orders"], &["models"]);
+    let env = TestEnvironment::new_with_catalog(&manifest, &catalog, &config);
+    let findings = env.run_catalog_rules(false).expect("should not error");
+
+    assert_eq!(
+        findings.len(),
+        1,
+        "name: exclude should work in catalog mode, got: {findings:?}"
+    );
+    assert!(findings[0].0.message.contains("mart_orders"));
+}
+
+#[test]
+fn test_catalog_node_include_by_name() {
+    let manifest = build_manifest(
+        &[
+            manifest_node(
+                "model.test_project.raw_orders",
+                "raw_orders",
+                "model",
+                "models/raw/raw_orders.sql",
+            ),
+            manifest_node(
+                "model.test_project.mart_orders",
+                "mart_orders",
+                "model",
+                "models/marts/mart_orders.sql",
+            ),
+            manifest_node(
+                "model.test_project.stg_orders",
+                "stg_orders",
+                "model",
+                "models/staging/stg_orders.sql",
+            ),
+        ],
+        &[],
+    );
+    let catalog = build_catalog(
+        &[
+            catalog_node("model.test_project.raw_orders", "raw_orders"),
+            catalog_node("model.test_project.mart_orders", "mart_orders"),
+            catalog_node("model.test_project.stg_orders", "stg_orders"),
+        ],
+        &[],
+    );
+    let config = catalog_config_with_includes(&["name:mart_orders"], &["models"]);
+    let env = TestEnvironment::new_with_catalog(&manifest, &catalog, &config);
+    let findings = env.run_catalog_rules(false).expect("should not error");
+
+    assert_eq!(
+        findings.len(),
+        1,
+        "name: include should work in catalog mode, got: {findings:?}"
+    );
+    assert!(findings[0].0.message.contains("mart_orders"));
+}
+
+#[test]
+fn test_catalog_node_exclude_by_tag() {
+    let manifest = build_manifest(
+        &[
+            manifest_node_with_tags(
+                "model.test_project.raw_orders",
+                "raw_orders",
+                "model",
+                "models/raw/raw_orders.sql",
+                &["deprecated"],
+            ),
+            manifest_node_with_tags(
+                "model.test_project.mart_orders",
+                "mart_orders",
+                "model",
+                "models/marts/mart_orders.sql",
+                &["active"],
+            ),
+        ],
+        &[],
+    );
+    let catalog = build_catalog(
+        &[
+            catalog_node("model.test_project.raw_orders", "raw_orders"),
+            catalog_node("model.test_project.mart_orders", "mart_orders"),
+        ],
+        &[],
+    );
+    let config = catalog_config_with_excludes(&["tag:deprecated"], &["models"]);
+    let env = TestEnvironment::new_with_catalog(&manifest, &catalog, &config);
+    let findings = env.run_catalog_rules(false).expect("should not error");
+
+    assert_eq!(
+        findings.len(),
+        1,
+        "tag: exclude should work in catalog mode, got: {findings:?}"
+    );
+    assert!(findings[0].0.message.contains("mart_orders"));
+}
+
+#[test]
+fn test_catalog_node_include_by_tag() {
+    let manifest = build_manifest(
+        &[
+            manifest_node_with_tags(
+                "model.test_project.raw_orders",
+                "raw_orders",
+                "model",
+                "models/raw/raw_orders.sql",
+                &["raw"],
+            ),
+            manifest_node_with_tags(
+                "model.test_project.mart_orders",
+                "mart_orders",
+                "model",
+                "models/marts/mart_orders.sql",
+                &["finance"],
+            ),
+            manifest_node_with_tags(
+                "model.test_project.stg_orders",
+                "stg_orders",
+                "model",
+                "models/staging/stg_orders.sql",
+                &["finance"],
+            ),
+        ],
+        &[],
+    );
+    let catalog = build_catalog(
+        &[
+            catalog_node("model.test_project.raw_orders", "raw_orders"),
+            catalog_node("model.test_project.mart_orders", "mart_orders"),
+            catalog_node("model.test_project.stg_orders", "stg_orders"),
+        ],
+        &[],
+    );
+    let config = catalog_config_with_includes(&["tag:finance"], &["models"]);
+    let env = TestEnvironment::new_with_catalog(&manifest, &catalog, &config);
+    let findings = env.run_catalog_rules(false).expect("should not error");
+
+    assert_eq!(
+        findings.len(),
+        2,
+        "tag: include should match both finance models in catalog mode, got: {findings:?}"
+    );
+    let names: Vec<&str> = findings.iter().map(|(r, _)| r.message.as_str()).collect();
+    assert!(names.iter().any(|m| m.contains("mart_orders")));
+    assert!(names.iter().any(|m| m.contains("stg_orders")));
+}
+
+#[test]
+fn test_catalog_source_exclude_by_name() {
+    let manifest = build_manifest(
+        &[],
+        &[
+            manifest_source(
+                "source.test_project.raw.users",
+                "users",
+                "raw",
+                "models/sources.yml",
+            ),
+            manifest_source(
+                "source.test_project.raw.orders",
+                "orders",
+                "raw",
+                "models/sources.yml",
+            ),
+        ],
+    );
+    let catalog = build_catalog(
+        &[],
+        &[
+            catalog_source("source.test_project.raw.users", "users"),
+            catalog_source("source.test_project.raw.orders", "orders"),
+        ],
+    );
+    let config = catalog_config_with_excludes(&["name:users"], &["sources"]);
+    let env = TestEnvironment::new_with_catalog(&manifest, &catalog, &config);
+    let findings = env.run_catalog_rules(false).expect("should not error");
+
+    assert_eq!(
+        findings.len(),
+        1,
+        "name: exclude should work for sources in catalog mode, got: {findings:?}"
+    );
+    assert!(findings[0].0.message.contains("orders"));
+}
+
+#[test]
+fn test_catalog_source_exclude_by_tag() {
+    let manifest = build_manifest(
+        &[],
+        &[
+            manifest_source_with_tags(
+                "source.test_project.raw.users",
+                "users",
+                "raw",
+                "models/sources.yml",
+                &["deprecated"],
+            ),
+            manifest_source_with_tags(
+                "source.test_project.raw.orders",
+                "orders",
+                "raw",
+                "models/sources.yml",
+                &["active"],
+            ),
+        ],
+    );
+    let catalog = build_catalog(
+        &[],
+        &[
+            catalog_source("source.test_project.raw.users", "users"),
+            catalog_source("source.test_project.raw.orders", "orders"),
+        ],
+    );
+    let config = catalog_config_with_excludes(&["tag:deprecated"], &["sources"]);
+    let env = TestEnvironment::new_with_catalog(&manifest, &catalog, &config);
+    let findings = env.run_catalog_rules(false).expect("should not error");
+
+    assert_eq!(
+        findings.len(),
+        1,
+        "tag: exclude should work for sources in catalog mode, got: {findings:?}"
+    );
+    assert!(findings[0].0.message.contains("orders"));
 }

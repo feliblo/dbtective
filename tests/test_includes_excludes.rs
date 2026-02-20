@@ -970,6 +970,321 @@ fn test_no_prefix_paths_still_work() {
     );
 }
 
+// =========================================================================
+// name: prefix tests — Manifest rules
+// =========================================================================
+
+#[test]
+fn test_manifest_name_exclude() {
+    let manifest = manifest_with_models(&[
+        ("stg_orders", "models/staging/stg_orders.sql"),
+        ("stg_customers", "models/staging/stg_customers.sql"),
+        ("dim_customers", "models/marts/dim_customers.sql"),
+    ]);
+
+    let config = config_with_excludes(&["name:stg_orders"]);
+    let env = TestEnvironment::new(&manifest, &config);
+    let findings = env.run_manifest_rules(false);
+
+    assert_eq!(
+        findings.len(),
+        2,
+        "name: exclude should filter out stg_orders, leaving 2 models"
+    );
+}
+
+#[test]
+fn test_manifest_name_include() {
+    let manifest = manifest_with_models(&[
+        ("stg_orders", "models/staging/stg_orders.sql"),
+        ("stg_customers", "models/staging/stg_customers.sql"),
+        ("dim_customers", "models/marts/dim_customers.sql"),
+    ]);
+
+    let config = config_with_includes(&["name:dim_customers"]);
+    let env = TestEnvironment::new(&manifest, &config);
+    let findings = env.run_manifest_rules(false);
+
+    assert_eq!(
+        findings.len(),
+        1,
+        "name: include should only match dim_customers"
+    );
+}
+
+#[test]
+fn test_manifest_name_glob_include() {
+    let manifest = manifest_with_models(&[
+        ("stg_orders", "models/staging/stg_orders.sql"),
+        ("stg_customers", "models/staging/stg_customers.sql"),
+        ("dim_customers", "models/marts/dim_customers.sql"),
+    ]);
+
+    let config = config_with_includes(&["name:stg_*"]);
+    let env = TestEnvironment::new(&manifest, &config);
+    let findings = env.run_manifest_rules(false);
+
+    assert_eq!(
+        findings.len(),
+        2,
+        "name:stg_* should match both staging models"
+    );
+}
+
+#[test]
+fn test_manifest_name_glob_exclude() {
+    let manifest = manifest_with_models(&[
+        ("stg_orders", "models/staging/stg_orders.sql"),
+        ("stg_customers", "models/staging/stg_customers.sql"),
+        ("dim_customers", "models/marts/dim_customers.sql"),
+    ]);
+
+    let config = config_with_excludes(&["name:stg_*"]);
+    let env = TestEnvironment::new(&manifest, &config);
+    let findings = env.run_manifest_rules(false);
+
+    assert_eq!(
+        findings.len(),
+        1,
+        "name:stg_* exclude should leave only dim_customers"
+    );
+}
+
+#[test]
+fn test_manifest_mixed_path_include_name_exclude() {
+    let manifest = manifest_with_models(&[
+        ("stg_orders", "models/staging/stg_orders.sql"),
+        ("stg_customers", "models/staging/stg_customers.sql"),
+        ("dim_customers", "models/marts/dim_customers.sql"),
+    ]);
+
+    let config = config_with_includes_and_excludes(&["models/staging"], &["name:stg_orders"]);
+    let env = TestEnvironment::new(&manifest, &config);
+    let findings = env.run_manifest_rules(false);
+
+    assert_eq!(
+        findings.len(),
+        1,
+        "Include staging path, exclude stg_orders by name -> only stg_customers"
+    );
+}
+
+// =========================================================================
+// tag: prefix tests — Manifest rules
+// (Uses inline manifest JSON since manifest_with_models hardcodes empty tags)
+// =========================================================================
+
+fn manifest_with_tagged_nodes(nodes_json: &str) -> String {
+    format!(
+        r#"{{
+  "metadata": {{
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "invocation_id": "test-invocation",
+    "env": {{}},
+    "project_name": "test_project",
+    "adapter_type": "postgres",
+    "quoting": {{}}
+  }},
+  "nodes": {{
+{nodes_json}
+  }},
+  "sources": {{}},
+  "macros": {{}},
+  "exposures": {{}},
+  "metrics": {{}},
+  "groups": {{}},
+  "selectors": {{}},
+  "disabled": {{}},
+  "parent_map": {{}},
+  "child_map": {{}},
+  "group_map": {{}},
+  "semantic_models": {{}},
+  "unit_tests": {{}},
+  "saved_queries": {{}}
+}}"#
+    )
+}
+
+fn tagged_model_node(name: &str, path: &str, tags: &[&str]) -> String {
+    let tags_json: Vec<String> = tags.iter().map(|t| format!("\"{t}\"")).collect();
+    let tags_str = tags_json.join(", ");
+    format!(
+        r#"    "model.test_project.{name}": {{
+      "database": "analytics",
+      "schema": "public",
+      "name": "{name}",
+      "resource_type": "model",
+      "package_name": "test_project",
+      "path": "{path}",
+      "original_file_path": "{path}",
+      "unique_id": "model.test_project.{name}",
+      "fqn": ["test_project", "{name}"],
+      "alias": "{name}",
+      "checksum": {{"name": "sha256", "checksum": "abc123"}},
+      "tags": [{tags_str}],
+      "description": "",
+      "columns": {{}},
+      "meta": {{}},
+      "depends_on": {{"macros": [], "nodes": []}},
+      "contract": {{"enforced": false, "checksum": null}}
+    }}"#
+    )
+}
+
+#[test]
+fn test_manifest_tag_exclude() {
+    let nodes = [
+        tagged_model_node(
+            "stg_orders",
+            "models/staging/stg_orders.sql",
+            &["deprecated"],
+        ),
+        tagged_model_node(
+            "stg_customers",
+            "models/staging/stg_customers.sql",
+            &["active"],
+        ),
+        tagged_model_node(
+            "dim_customers",
+            "models/marts/dim_customers.sql",
+            &["active"],
+        ),
+    ];
+    let manifest = manifest_with_tagged_nodes(&nodes.join(",\n"));
+
+    let config = config_with_excludes(&["tag:deprecated"]);
+    let env = TestEnvironment::new(&manifest, &config);
+    let findings = env.run_manifest_rules(false);
+
+    assert_eq!(
+        findings.len(),
+        2,
+        "tag: exclude should filter out deprecated model"
+    );
+}
+
+#[test]
+fn test_manifest_tag_include() {
+    let nodes = [
+        tagged_model_node("stg_orders", "models/staging/stg_orders.sql", &["finance"]),
+        tagged_model_node(
+            "stg_customers",
+            "models/staging/stg_customers.sql",
+            &["marketing"],
+        ),
+        tagged_model_node(
+            "dim_customers",
+            "models/marts/dim_customers.sql",
+            &["finance"],
+        ),
+    ];
+    let manifest = manifest_with_tagged_nodes(&nodes.join(",\n"));
+
+    let config = config_with_includes(&["tag:finance"]);
+    let env = TestEnvironment::new(&manifest, &config);
+    let findings = env.run_manifest_rules(false);
+
+    assert_eq!(
+        findings.len(),
+        2,
+        "tag:finance should include both finance-tagged models"
+    );
+}
+
+#[test]
+fn test_manifest_tag_glob_include() {
+    let nodes = [
+        tagged_model_node("model_a", "models/model_a.sql", &["pii_email"]),
+        tagged_model_node("model_b", "models/model_b.sql", &["pii_phone"]),
+        tagged_model_node("model_c", "models/model_c.sql", &["public"]),
+    ];
+    let manifest = manifest_with_tagged_nodes(&nodes.join(",\n"));
+
+    let config = config_with_includes(&["tag:pii_*"]);
+    let env = TestEnvironment::new(&manifest, &config);
+    let findings = env.run_manifest_rules(false);
+
+    assert_eq!(
+        findings.len(),
+        2,
+        "tag:pii_* should match both PII-tagged models"
+    );
+}
+
+#[test]
+fn test_manifest_tag_exclude_with_path_include() {
+    let nodes = [
+        tagged_model_node(
+            "mart_orders",
+            "models/marts/mart_orders.sql",
+            &["deprecated"],
+        ),
+        tagged_model_node(
+            "mart_customers",
+            "models/marts/mart_customers.sql",
+            &["active"],
+        ),
+        tagged_model_node("stg_orders", "models/staging/stg_orders.sql", &["active"]),
+    ];
+    let manifest = manifest_with_tagged_nodes(&nodes.join(",\n"));
+
+    let config = config_with_includes_and_excludes(&["models/marts"], &["tag:deprecated"]);
+    let env = TestEnvironment::new(&manifest, &config);
+    let findings = env.run_manifest_rules(false);
+
+    assert_eq!(
+        findings.len(),
+        1,
+        "Include marts path, exclude deprecated tag -> only mart_customers"
+    );
+}
+
+#[test]
+fn test_manifest_tag_include_name_exclude() {
+    let nodes = [
+        tagged_model_node("model_a", "models/model_a.sql", &["finance"]),
+        tagged_model_node("model_b", "models/model_b.sql", &["finance"]),
+        tagged_model_node("model_c", "models/model_c.sql", &["marketing"]),
+    ];
+    let manifest = manifest_with_tagged_nodes(&nodes.join(",\n"));
+
+    let config = config_with_includes_and_excludes(&["tag:finance"], &["name:model_b"]);
+    let env = TestEnvironment::new(&manifest, &config);
+    let findings = env.run_manifest_rules(false);
+
+    assert_eq!(
+        findings.len(),
+        1,
+        "Include finance tag, exclude model_b by name -> only model_a"
+    );
+}
+
+#[test]
+fn test_manifest_model_with_multiple_tags() {
+    let nodes = [
+        tagged_model_node(
+            "model_a",
+            "models/model_a.sql",
+            &["pii", "finance", "critical"],
+        ),
+        tagged_model_node("model_b", "models/model_b.sql", &["finance"]),
+        tagged_model_node("model_c", "models/model_c.sql", &["marketing"]),
+    ];
+    let manifest = manifest_with_tagged_nodes(&nodes.join(",\n"));
+
+    let config = config_with_includes(&["tag:pii"]);
+    let env = TestEnvironment::new(&manifest, &config);
+    let findings = env.run_manifest_rules(false);
+
+    assert_eq!(
+        findings.len(),
+        1,
+        "tag:pii should match model_a which has multiple tags including pii"
+    );
+}
+
 /// Comprehensive test that validates all pattern matching capabilities in one test
 /// This test creates a diverse set of models and validates pattern matching behavior
 #[test]
