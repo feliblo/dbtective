@@ -39,11 +39,10 @@ fn init_impl(
     _verbose: bool,
     test_questionnaire_result: Option<questionnaire::QuestionnaireResult>,
 ) -> i32 {
-    // Run interactive questionnaire if using defaults
+    // Run interactive questionnaire (or use injected result in tests)
     let config = if let Some(result) = test_questionnaire_result {
-        // Test mode: use injected result
         InitConfig::from_questionnaire(&result)
-    } else if options.format == "yml" && options.location == "." {
+    } else {
         match run_questionnaire() {
             Ok(result) => InitConfig::from_questionnaire(&result),
             Err(e) => {
@@ -51,22 +50,6 @@ fn init_impl(
                 return 1;
             }
         }
-    } else {
-        // Use provided options for non-interactive mode
-        // For now, just create a minimal config
-        let result = questionnaire::QuestionnaireResult {
-            format: match options.format.as_str() {
-                "toml" => questionnaire::ConfigFormat::Toml,
-                "pyproject" => questionnaire::ConfigFormat::Pyproject,
-                _ => questionnaire::ConfigFormat::Yaml,
-            },
-            naming_convention: crate::core::config::naming_convention::NamingConvention::default(),
-            data_model: questionnaire::DataModel::None,
-            manifest_rules: Vec::new(),
-            catalog_rules: Vec::new(),
-            auto_parse_command: None,
-        };
-        InitConfig::from_questionnaire(&result)
     };
 
     // Try without overwrite first; if the file already exists, prompt interactively
@@ -183,11 +166,10 @@ pub fn create_config(options: &InitOptions, config: &InitConfig, overwrite: bool
         return InitResult::Error(format!("Path is not a directory: {}", options.location));
     }
 
-    match options.format.as_str() {
-        "yml" | "yaml" => create_yaml_config(location, config, overwrite),
-        "toml" => create_toml_config(location, config, overwrite),
-        "pyproject" => create_or_update_pyproject(location, config),
-        _ => InitResult::Error(format!("Unknown format: {}", options.format)),
+    match config.format {
+        questionnaire::ConfigFormat::Yaml => create_yaml_config(location, config, overwrite),
+        questionnaire::ConfigFormat::Toml => create_toml_config(location, config, overwrite),
+        questionnaire::ConfigFormat::Pyproject => create_or_update_pyproject(location, config),
     }
 }
 
@@ -262,7 +244,6 @@ mod tests {
     fn default_options(temp_dir: &TempDir) -> InitOptions {
         InitOptions {
             location: temp_dir.path().to_string_lossy().to_string(),
-            format: "yml".to_string(),
         }
     }
 
@@ -305,7 +286,6 @@ mod tests {
         let temp_dir = TempDir::new().unwrap();
         let options = InitOptions {
             location: temp_dir.path().to_string_lossy().to_string(),
-            format: "pyproject".to_string(),
         };
         let questionnaire_result = questionnaire::QuestionnaireResult {
             format: questionnaire::ConfigFormat::Pyproject,
@@ -340,7 +320,6 @@ requires = ["setuptools"]
 
         let options = InitOptions {
             location: temp_dir.path().to_string_lossy().to_string(),
-            format: "pyproject".to_string(),
         };
         let questionnaire_result = questionnaire::QuestionnaireResult {
             format: questionnaire::ConfigFormat::Pyproject,
