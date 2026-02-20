@@ -45,6 +45,28 @@ pub enum ManifestSpecificRuleConfig {
 - The `snake_case` serialization converts it automatically (e.g., `HasOwner` → `has_owner` in confor the user config)
 - Add rule-specific arguments inside the `{}` braces
 
+### Assign a Default Category
+
+In the same file, add a match arm to the `default_category()` method on `ManifestSpecificRuleConfig` (or `CatalogSpecificRuleConfig` for catalog rules). The method returns a `RuleCategory` enum variant (defined in `src/core/config/rule_category.rs`):
+
+```rust
+impl ManifestSpecificRuleConfig {
+    pub fn default_category(&self) -> RuleCategory {
+        match self {
+            // ... existing rules ...
+
+            Self::YourRuleName { .. } => RuleCategory::Governance, // Choose the appropriate category
+        }
+    }
+}
+```
+
+Available `RuleCategory` variants: `Documentation`, `Naming`, `Testing`, `Governance`, `Structure`, `Performance`.
+
+The compiler enforces this via an exhaustive `match` — if you add a new enum variant without adding a category here, the build will fail.
+
+Users can override this default by setting `category: "custom_category"` in their rule config. The category is included in structured output (JSON, CSV, NDJSON) but not in the CLI table.
+
 ### Configure Applies To
 
 In the same file, update two functions:

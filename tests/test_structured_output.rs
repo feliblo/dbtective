@@ -120,6 +120,25 @@ manifest_tests:
     pattern: "pascal_case"
 "#;
 
+const CONFIG_WITH_CUSTOM_CATEGORY: &str = r#"
+manifest_tests:
+  - name: "has_description_default"
+    type: "has_description"
+    severity: "error"
+    applies_to:
+      - "models"
+    includes:
+      - "orders"
+  - name: "has_description_custom"
+    type: "has_description"
+    severity: "warning"
+    category: "custom_docs"
+    applies_to:
+      - "models"
+    includes:
+      - "orders"
+"#;
+
 const CONFIG_ALL_PASS: &str = r#"
 manifest_tests:
   - name: "has_description"
@@ -485,4 +504,109 @@ fn test_write_output_to_file_ndjson() {
         let parsed: Result<serde_json::Value, _> = serde_json::from_str(line);
         assert!(parsed.is_ok(), "Written NDJSON line is not valid JSON");
     }
+}
+
+// ── Category tests ──
+
+#[test]
+fn test_json_output_results_contain_category() {
+    let env = TestEnvironment::new(MANIFEST, CONFIG_WITH_FAILURES);
+    let output = env.run_structured_output(false);
+    let json = output.to_json();
+
+    let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+    let results = parsed["results"].as_array().unwrap();
+
+    for result in results {
+        assert!(
+            result.get("category").is_some(),
+            "Result missing category field"
+        );
+        let category = result["category"].as_str().unwrap();
+        assert!(!category.is_empty(), "Category should not be empty");
+    }
+}
+
+#[test]
+fn test_json_output_default_categories() {
+    let env = TestEnvironment::new(MANIFEST, CONFIG_WITH_FAILURES);
+    let output = env.run_structured_output(false);
+    let json = output.to_json();
+
+    let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+    let results = parsed["results"].as_array().unwrap();
+
+    for result in results {
+        let rule_name = result["rule_name"].as_str().unwrap();
+        let category = result["category"].as_str().unwrap();
+
+        match rule_name {
+            "has_description" | "has_description_default" => {
+                assert_eq!(category, "documentation");
+            }
+            "naming_convention" => {
+                assert_eq!(category, "naming");
+            }
+            _ => {} // Other rules have their own categories
+        }
+    }
+}
+
+#[test]
+fn test_csv_output_contains_category_header() {
+    let env = TestEnvironment::new(MANIFEST, CONFIG_WITH_FAILURES);
+    let output = env.run_structured_output(false);
+    let csv = output.to_csv();
+
+    let header = csv.lines().next().unwrap();
+    assert!(
+        header.contains("category"),
+        "CSV header missing category column"
+    );
+}
+
+#[test]
+fn test_ndjson_output_contains_category() {
+    let env = TestEnvironment::new(MANIFEST, CONFIG_WITH_FAILURES);
+    let output = env.run_structured_output(false);
+    let ndjson = output.to_ndjson();
+
+    for line in ndjson.trim().lines() {
+        let parsed: serde_json::Value = serde_json::from_str(line).unwrap();
+        assert!(
+            parsed.get("category").is_some(),
+            "NDJSON line missing category field"
+        );
+    }
+}
+
+#[test]
+fn test_same_rule_type_different_categories() {
+    // Two has_description rules: one with default category, one with custom category
+    let env = TestEnvironment::new(MANIFEST, CONFIG_WITH_CUSTOM_CATEGORY);
+    let output = env.run_structured_output(false);
+    let json = output.to_json();
+
+    let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+    let results = parsed["results"].as_array().unwrap();
+
+    assert!(
+        results.len() >= 2,
+        "Expected at least 2 results, got {}",
+        results.len()
+    );
+
+    let categories: Vec<&str> = results
+        .iter()
+        .map(|r| r["category"].as_str().unwrap())
+        .collect();
+
+    assert!(
+        categories.contains(&"documentation"),
+        "Expected default category 'documentation', got: {categories:?}",
+    );
+    assert!(
+        categories.contains(&"custom_docs"),
+        "Expected custom category 'custom_docs', got: {categories:?}",
+    );
 }

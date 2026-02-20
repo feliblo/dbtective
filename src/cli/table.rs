@@ -22,6 +22,8 @@ pub struct RuleResult {
     pub message: String,
     #[tabled(skip)]
     pub relative_path: Option<String>,
+    #[tabled(skip)]
+    pub category: String,
 }
 
 impl RuleResult {
@@ -39,6 +41,7 @@ impl RuleResult {
             rule_name: rule_name.into(),
             message: message.into(),
             relative_path,
+            category: String::new(),
         }
     }
 }

@@ -37,6 +37,7 @@ pub struct StructuredResult {
     pub severity: String,
     pub object_type: String,
     pub rule_name: String,
+    pub category: String,
     pub message: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub relative_path: Option<String>,
@@ -58,6 +59,7 @@ pub struct FlatResult {
     pub severity: String,
     pub object_type: String,
     pub rule_name: String,
+    pub category: String,
     pub message: String,
     pub relative_path: String,
 }
@@ -99,6 +101,7 @@ impl StructuredOutput {
                 severity: severity_label(s),
                 object_type: r.object_type.clone(),
                 rule_name: r.rule_name.clone(),
+                category: r.category.clone(),
                 message: r.message.clone(),
                 relative_path: r.relative_path.clone(),
             })
@@ -150,6 +153,7 @@ impl StructuredOutput {
                 severity: r.severity.clone(),
                 object_type: r.object_type.clone(),
                 rule_name: r.rule_name.clone(),
+                category: r.category.clone(),
                 message: r.message.clone(),
                 relative_path: r.relative_path.clone().unwrap_or_default(),
             })
@@ -174,12 +178,12 @@ impl StructuredOutput {
     pub fn to_csv(&self) -> String {
         let flat = self.to_flat_results();
         let mut output = String::from(
-            "dbtective_version,timestamp,project_name,manifest_path,catalog_path,execution_time_seconds,total,total_errors,total_warnings,pass,severity,object_type,rule_name,message,relative_path\n",
+            "dbtective_version,timestamp,project_name,manifest_path,catalog_path,execution_time_seconds,total,total_errors,total_warnings,pass,severity,object_type,rule_name,category,message,relative_path\n",
         );
         for row in &flat {
             let _ = writeln!(
                 output,
-                "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
+                "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
                 csv_escape(&row.dbtective_version),
                 csv_escape(&row.timestamp),
                 csv_escape(&row.project_name),
@@ -193,6 +197,7 @@ impl StructuredOutput {
                 csv_escape(&row.severity),
                 csv_escape(&row.object_type),
                 csv_escape(&row.rule_name),
+                csv_escape(&row.category),
                 csv_escape(&row.message),
                 csv_escape(&row.relative_path),
             );

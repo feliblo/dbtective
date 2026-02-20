@@ -7,6 +7,7 @@ pub use parse_config::Config;
 pub mod catalog_rule;
 pub mod check_config_options;
 pub mod manifest_rule;
+pub mod rule_category;
 
 // Re-export Materialization from dbt_artifact_parser
 pub use dbt_artifact_parser::manifest::Materialization;
