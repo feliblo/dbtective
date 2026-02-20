@@ -45,49 +45,6 @@ impl InitConfig {
         result: &QuestionnaireResult,
     ) -> ManifestSpecificRuleConfig {
         match rule {
-            ManifestSpecificRuleConfig::HasDescription { .. } => {
-                ManifestSpecificRuleConfig::HasDescription {
-                    min_length: None,
-                    forbidden_substrings: None,
-                }
-            }
-            ManifestSpecificRuleConfig::NameConvention { .. } => {
-                ManifestSpecificRuleConfig::NameConvention {
-                    convention: result.naming_convention.clone(),
-                }
-            }
-            ManifestSpecificRuleConfig::HasTags { .. } => ManifestSpecificRuleConfig::HasTags {
-                required_tags: vec![
-                    "daily".to_string(),
-                    "monthly".to_string(),
-                    "yearly".to_string(),
-                    "inactive".to_string(),
-                ],
-                criteria: HasTagsCriteria::OneOf,
-            },
-            ManifestSpecificRuleConfig::IsNotOrphaned { .. } => {
-                ManifestSpecificRuleConfig::IsNotOrphaned {
-                    allowed_references: vec![],
-                }
-            }
-            ManifestSpecificRuleConfig::HasUniqueTest { .. } => {
-                ManifestSpecificRuleConfig::HasUniqueTest {
-                    allowed_test_names: vec![],
-                }
-            }
-            ManifestSpecificRuleConfig::HasContractEnforced { .. } => {
-                ManifestSpecificRuleConfig::HasContractEnforced { access_level: None }
-            }
-            ManifestSpecificRuleConfig::HasMetadataKeys { .. } => {
-                ManifestSpecificRuleConfig::HasMetadataKeys {
-                    required_keys: vec!["owner".to_string()],
-                    custom_message: None,
-                }
-            }
-            ManifestSpecificRuleConfig::HasRefs { .. } => ManifestSpecificRuleConfig::HasRefs {},
-            ManifestSpecificRuleConfig::MaxCodeLines { .. } => {
-                ManifestSpecificRuleConfig::MaxCodeLines { max_lines: 200 }
-            }
             ManifestSpecificRuleConfig::AllowedSubfolders { .. } => {
                 let subfolders = match result.data_model {
                     DataModel::Medallion => vec![
@@ -106,6 +63,18 @@ impl InitConfig {
                     allowed_subfolders: subfolders,
                     path_prefix: None,
                     path_postfix: None,
+                }
+            }
+            ManifestSpecificRuleConfig::CodeContainsRefs { .. } => {
+                ManifestSpecificRuleConfig::CodeContainsRefs {}
+            }
+            ManifestSpecificRuleConfig::HasContractEnforced { .. } => {
+                ManifestSpecificRuleConfig::HasContractEnforced { access_level: None }
+            }
+            ManifestSpecificRuleConfig::HasDescription { .. } => {
+                ManifestSpecificRuleConfig::HasDescription {
+                    min_length: None,
+                    forbidden_substrings: None,
                 }
             }
             ManifestSpecificRuleConfig::HasForbiddenCode { .. } => {
@@ -132,8 +101,40 @@ impl InitConfig {
                     case_sensitive: false,
                 }
             }
-            ManifestSpecificRuleConfig::CodeContainsRefs { .. } => {
-                ManifestSpecificRuleConfig::CodeContainsRefs {}
+            ManifestSpecificRuleConfig::HasMetadataKeys { .. } => {
+                ManifestSpecificRuleConfig::HasMetadataKeys {
+                    required_keys: vec!["owner".to_string()],
+                    custom_message: None,
+                }
+            }
+            ManifestSpecificRuleConfig::HasRefs { .. } => ManifestSpecificRuleConfig::HasRefs {},
+            ManifestSpecificRuleConfig::HasTags { .. } => ManifestSpecificRuleConfig::HasTags {
+                required_tags: vec![
+                    "daily".to_string(),
+                    "monthly".to_string(),
+                    "yearly".to_string(),
+                    "inactive".to_string(),
+                ],
+                criteria: HasTagsCriteria::OneOf,
+            },
+            ManifestSpecificRuleConfig::HasUniqueTest { .. } => {
+                ManifestSpecificRuleConfig::HasUniqueTest {
+                    allowed_test_names: vec![],
+                }
+            }
+            ManifestSpecificRuleConfig::IsNotOrphaned { .. } => {
+                ManifestSpecificRuleConfig::IsNotOrphaned {
+                    allowed_references: vec![],
+                }
+            }
+            ManifestSpecificRuleConfig::MaxCodeLines { .. } => {
+                ManifestSpecificRuleConfig::MaxCodeLines { max_lines: 200 }
+            }
+            ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. } => {
+                ManifestSpecificRuleConfig::MaxDownstreamDependencies {
+                    max_downstream: 5,
+                    exclude_types: vec![],
+                }
             }
             ManifestSpecificRuleConfig::MaxJoins { .. } => {
                 ManifestSpecificRuleConfig::MaxJoins { max_joins: 5 }
@@ -144,17 +145,16 @@ impl InitConfig {
                     exclude_types: vec![],
                 }
             }
-            ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. } => {
-                ManifestSpecificRuleConfig::MaxDownstreamDependencies {
-                    max_downstream: 5,
-                    exclude_types: vec![],
+            ManifestSpecificRuleConfig::NameConvention { .. } => {
+                ManifestSpecificRuleConfig::NameConvention {
+                    convention: result.naming_convention.clone(),
                 }
-            }
-            ManifestSpecificRuleConfig::SourcesHaveLoader { .. } => {
-                ManifestSpecificRuleConfig::SourcesHaveLoader {}
             }
             ManifestSpecificRuleConfig::SourcesHaveFreshness { .. } => {
                 ManifestSpecificRuleConfig::SourcesHaveFreshness {}
+            }
+            ManifestSpecificRuleConfig::SourcesHaveLoader { .. } => {
+                ManifestSpecificRuleConfig::SourcesHaveLoader {}
             }
         }
     }
@@ -179,16 +179,6 @@ impl InitConfig {
             CatalogSpecificRuleConfig::ColumnsAllDocumented { .. } => {
                 CatalogSpecificRuleConfig::ColumnsAllDocumented {}
             }
-            CatalogSpecificRuleConfig::ColumnsHaveDescription { .. } => {
-                CatalogSpecificRuleConfig::ColumnsHaveDescription {}
-            }
-            CatalogSpecificRuleConfig::ColumnsNameConvention { .. } => {
-                CatalogSpecificRuleConfig::ColumnsNameConvention {
-                    convention: result.naming_convention.clone(),
-                    data_types: None,
-                    use_database_columns: true,
-                }
-            }
             CatalogSpecificRuleConfig::ColumnsCanonicalName { .. } => {
                 CatalogSpecificRuleConfig::ColumnsCanonicalName {
                     canonical: "user_id".to_string(),
@@ -205,6 +195,16 @@ impl InitConfig {
             }
             CatalogSpecificRuleConfig::ColumnsHaveDataType { .. } => {
                 CatalogSpecificRuleConfig::ColumnsHaveDataType { min_coverage: None }
+            }
+            CatalogSpecificRuleConfig::ColumnsHaveDescription { .. } => {
+                CatalogSpecificRuleConfig::ColumnsHaveDescription {}
+            }
+            CatalogSpecificRuleConfig::ColumnsNameConvention { .. } => {
+                CatalogSpecificRuleConfig::ColumnsNameConvention {
+                    convention: result.naming_convention.clone(),
+                    data_types: None,
+                    use_database_columns: true,
+                }
             }
         }
     }
@@ -316,61 +316,22 @@ impl InitConfig {
     #[allow(clippy::too_many_lines)]
     fn manifest_rule_to_yaml(&self, rule: &ManifestSpecificRuleConfig) -> String {
         match rule {
-            ManifestSpecificRuleConfig::HasDescription { .. } => r#"  - name: "has_description"
-    type: "has_description"
-"#
-            .to_string(),
-            ManifestSpecificRuleConfig::NameConvention { convention } => {
-                format!(
-                    r#"  - name: "naming_convention"
-    type: "name_convention"
-    pattern: "{}""#,
-                    convention.name()
-                )
-            }
-            ManifestSpecificRuleConfig::HasTags {
-                required_tags,
-                criteria,
+            ManifestSpecificRuleConfig::AllowedSubfolders {
+                allowed_subfolders, ..
             } => {
-                let tags_str = required_tags
+                let folders_str = allowed_subfolders
                     .iter()
-                    .map(|t| format!("\"{t}\""))
+                    .map(|f| format!("\"{f}\""))
                     .collect::<Vec<_>>()
                     .join(", ");
-                let criteria_str = match criteria {
-                    HasTagsCriteria::All => "all",
-                    HasTagsCriteria::Any => "any",
-                    HasTagsCriteria::OneOf => "one_of",
-                };
                 format!(
-                    r#"  - name: "require_execution_tags"
-    type: "has_tags"
-    required_tags: [{tags_str}]
-    criteria: "{criteria_str}"
-    description: "Resources need to have at least one of the required tags. To decide when a resource should be run.""#
+                    r#"  - name: "allowed_subfolders"
+    type: "allowed_subfolders"
+    allowed_subfolders: [{folders_str}]"#
                 )
             }
-            ManifestSpecificRuleConfig::IsNotOrphaned { .. } => match self.data_model {
-                DataModel::Medallion => r#"  - name: "all_gold_models_are_exposed"
-    type: "is_not_orphaned"
-    description: "All gold models should be referenced by at least one exposure."
-    applies_to: ["models"]
-    includes: ["models/gold"]
-    allowed_references: ["exposures"]"#
-                    .to_string(),
-                DataModel::Common => r#"  - name: "all_marts_are_exposed"
-    type: "is_not_orphaned"
-    description: "All mart models should be referenced by at least one exposure."
-    applies_to: ["models"]
-    includes: ["models/marts"]
-    allowed_references: ["exposures"]"#
-                    .to_string(),
-                DataModel::None => r#"  - name: "is_not_orphaned"
-    type: "is_not_orphaned""#
-                    .to_string(),
-            },
-            ManifestSpecificRuleConfig::HasUniqueTest { .. } => r#"  - name: "has_unique_test"
-    type: "has_unique_test""#
+            ManifestSpecificRuleConfig::CodeContainsRefs {} => r#"  - name: "code_contains_refs"
+    type: "code_contains_refs""#
                 .to_string(),
             ManifestSpecificRuleConfig::HasContractEnforced { .. } => {
                 let includes = match self.data_model {
@@ -394,43 +355,10 @@ impl InitConfig {
 
                 s
             }
-
-            ManifestSpecificRuleConfig::HasMetadataKeys { required_keys, .. } => {
-                let keys_str = required_keys
-                    .iter()
-                    .map(|k| format!("\"{k}\""))
-                    .collect::<Vec<_>>()
-                    .join(", ");
-                format!(
-                    r#"  - name: "has_owner"
-    type: "has_metadata_keys"
-    required_keys: [{keys_str}]"#
-                )
-            }
-            ManifestSpecificRuleConfig::HasRefs {} => r#"  - name: "refs_must_be_used"
-    type: "has_refs""#
-                .to_string(),
-            ManifestSpecificRuleConfig::MaxCodeLines { max_lines } => {
-                format!(
-                    r#"  - name: "max_code_lines"
-    type: "max_code_lines"
-    max_lines: {max_lines}"#
-                )
-            }
-            ManifestSpecificRuleConfig::AllowedSubfolders {
-                allowed_subfolders, ..
-            } => {
-                let folders_str = allowed_subfolders
-                    .iter()
-                    .map(|f| format!("\"{f}\""))
-                    .collect::<Vec<_>>()
-                    .join(", ");
-                format!(
-                    r#"  - name: "allowed_subfolders"
-    type: "allowed_subfolders"
-    allowed_subfolders: [{folders_str}]"#
-                )
-            }
+            ManifestSpecificRuleConfig::HasDescription { .. } => r#"  - name: "has_description"
+    type: "has_description"
+"#
+            .to_string(),
             ManifestSpecificRuleConfig::HasForbiddenCode {
                 forbidden_patterns,
                 case_sensitive,
@@ -451,23 +379,70 @@ impl InitConfig {
 
                 s
             }
-            ManifestSpecificRuleConfig::CodeContainsRefs {} => r#"  - name: "code_contains_refs"
-    type: "code_contains_refs""#
-                .to_string(),
-            ManifestSpecificRuleConfig::MaxJoins { max_joins } => {
+            ManifestSpecificRuleConfig::HasMetadataKeys { required_keys, .. } => {
+                let keys_str = required_keys
+                    .iter()
+                    .map(|k| format!("\"{k}\""))
+                    .collect::<Vec<_>>()
+                    .join(", ");
                 format!(
-                    r#"  - name: "max_joins"
-    description: "Reduce model complexity"
-    type: "max_joins"
-    max_joins: {max_joins}"#
+                    r#"  - name: "has_owner"
+    type: "has_metadata_keys"
+    required_keys: [{keys_str}]"#
                 )
             }
-            ManifestSpecificRuleConfig::MaxUpstreamDependencies { max_upstream, .. } => {
+            ManifestSpecificRuleConfig::HasRefs {} => r#"  - name: "refs_must_be_used"
+    type: "has_refs""#
+                .to_string(),
+            ManifestSpecificRuleConfig::HasTags {
+                required_tags,
+                criteria,
+            } => {
+                let tags_str = required_tags
+                    .iter()
+                    .map(|t| format!("\"{t}\""))
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                let criteria_str = match criteria {
+                    HasTagsCriteria::All => "all",
+                    HasTagsCriteria::Any => "any",
+                    HasTagsCriteria::OneOf => "one_of",
+                };
                 format!(
-                    r#"  - name: "max_upstream_dependencies"
-    description: "Models should not select from too many ref() and source() calls"
-    type: "max_upstream_dependencies"
-    max_upstream: {max_upstream}"#
+                    r#"  - name: "require_execution_tags"
+    type: "has_tags"
+    required_tags: [{tags_str}]
+    criteria: "{criteria_str}"
+    description: "Resources need to have at least one of the required tags. To decide when a resource should be run.""#
+                )
+            }
+            ManifestSpecificRuleConfig::HasUniqueTest { .. } => r#"  - name: "has_unique_test"
+    type: "has_unique_test""#
+                .to_string(),
+            ManifestSpecificRuleConfig::IsNotOrphaned { .. } => match self.data_model {
+                DataModel::Medallion => r#"  - name: "all_gold_models_are_exposed"
+    type: "is_not_orphaned"
+    description: "All gold models should be referenced by at least one exposure."
+    applies_to: ["models"]
+    includes: ["models/gold"]
+    allowed_references: ["exposures"]"#
+                    .to_string(),
+                DataModel::Common => r#"  - name: "all_marts_are_exposed"
+    type: "is_not_orphaned"
+    description: "All mart models should be referenced by at least one exposure."
+    applies_to: ["models"]
+    includes: ["models/marts"]
+    allowed_references: ["exposures"]"#
+                    .to_string(),
+                DataModel::None => r#"  - name: "is_not_orphaned"
+    type: "is_not_orphaned""#
+                    .to_string(),
+            },
+            ManifestSpecificRuleConfig::MaxCodeLines { max_lines } => {
+                format!(
+                    r#"  - name: "max_code_lines"
+    type: "max_code_lines"
+    max_lines: {max_lines}"#
                 )
             }
             ManifestSpecificRuleConfig::MaxDownstreamDependencies { max_downstream, .. } => {
@@ -485,16 +460,40 @@ impl InitConfig {
     applies_to: ["sources"]"#
                 )
             }
-            ManifestSpecificRuleConfig::SourcesHaveLoader {} => r#"  - name: "sources_have_loader"
-    type: "sources_have_loader"
-"#
-            .to_string(),
+            ManifestSpecificRuleConfig::MaxJoins { max_joins } => {
+                format!(
+                    r#"  - name: "max_joins"
+    description: "Reduce model complexity"
+    type: "max_joins"
+    max_joins: {max_joins}"#
+                )
+            }
+            ManifestSpecificRuleConfig::MaxUpstreamDependencies { max_upstream, .. } => {
+                format!(
+                    r#"  - name: "max_upstream_dependencies"
+    description: "Models should not select from too many ref() and source() calls"
+    type: "max_upstream_dependencies"
+    max_upstream: {max_upstream}"#
+                )
+            }
+            ManifestSpecificRuleConfig::NameConvention { convention } => {
+                format!(
+                    r#"  - name: "naming_convention"
+    type: "name_convention"
+    pattern: "{}""#,
+                    convention.name()
+                )
+            }
             ManifestSpecificRuleConfig::SourcesHaveFreshness {} => {
                 r#"  - name: "sources_have_freshness"
     type: "sources_have_freshness"
 "#
                 .to_string()
             }
+            ManifestSpecificRuleConfig::SourcesHaveLoader {} => r#"  - name: "sources_have_loader"
+    type: "sources_have_loader"
+"#
+            .to_string(),
         }
     }
 
@@ -539,21 +538,6 @@ severity = "warning""#
     description: "All columns must exist in the documentation."
     severity: "warning""#
                     .to_string()
-            }
-            CatalogSpecificRuleConfig::ColumnsHaveDescription {} => {
-                r#"  - name: "all_columns_described"
-    type: "columns_have_description"
-    description: "All columns must have a description.""#
-                    .to_string()
-            }
-            CatalogSpecificRuleConfig::ColumnsNameConvention { convention, .. } => {
-                let convention_name = convention.name();
-                format!(
-                    r#"  - name: "column_names_{convention_name}"
-    type: "columns_name_convention"
-    description: "All column names must be {convention_name}."
-    pattern: "{convention_name}""#
-                )
             }
             CatalogSpecificRuleConfig::ColumnsCanonicalName {
                 canonical,
@@ -606,11 +590,72 @@ severity = "warning""#
 
                 s
             }
+            CatalogSpecificRuleConfig::ColumnsHaveDescription {} => {
+                r#"  - name: "all_columns_described"
+    type: "columns_have_description"
+    description: "All columns must have a description.""#
+                    .to_string()
+            }
+            CatalogSpecificRuleConfig::ColumnsNameConvention { convention, .. } => {
+                let convention_name = convention.name();
+                format!(
+                    r#"  - name: "column_names_{convention_name}"
+    type: "columns_name_convention"
+    description: "All column names must be {convention_name}."
+    pattern: "{convention_name}""#
+                )
+            }
         }
     }
     #[allow(clippy::too_many_lines)]
     fn manifest_rule_to_toml(&self, rule: &ManifestSpecificRuleConfig, section: &str) -> String {
         match rule {
+            ManifestSpecificRuleConfig::AllowedSubfolders {
+                allowed_subfolders, ..
+            } => {
+                let folders_str = allowed_subfolders
+                    .iter()
+                    .map(|f| format!("\"{f}\""))
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                format!(
+                    r#"[[{section}]]
+name = "allowed_subfolders"
+type = "allowed_subfolders"
+allowed_subfolders = [{folders_str}]"#
+                )
+            }
+            ManifestSpecificRuleConfig::CodeContainsRefs {} => {
+                format!(
+                    r#"[[{section}]]
+name = "code_contains_refs"
+type = "code_contains_refs""#
+                )
+            }
+            ManifestSpecificRuleConfig::HasContractEnforced { .. } => {
+                let includes = match self.data_model {
+                    DataModel::Medallion => Some(vec!["models/silver", "models/gold"]),
+                    DataModel::Common => Some(vec!["models/marts", "models/intermediate"]),
+                    DataModel::None => return String::new(),
+                };
+
+                let mut s = format!(
+                    r#"[[{section}]]
+name = "has_contract_enforced"
+type = "has_contract_enforced""#
+                );
+
+                if let Some(folders) = includes {
+                    let folders_str = folders
+                        .iter()
+                        .map(|f| format!("\"{f}\""))
+                        .collect::<Vec<_>>()
+                        .join(", ");
+                    let _ = write!(s, "\nincludes = [{folders_str}]");
+                }
+
+                s
+            }
             ManifestSpecificRuleConfig::HasDescription { .. } => {
                 format!(
                     r#"[[{section}]]
@@ -619,13 +664,44 @@ type = "has_description"
 "#
                 )
             }
-            ManifestSpecificRuleConfig::NameConvention { convention } => {
+            ManifestSpecificRuleConfig::HasForbiddenCode {
+                forbidden_patterns,
+                case_sensitive,
+            } => {
+                let patterns_str = forbidden_patterns
+                    .iter()
+                    .map(|p| format!("\"{p}\""))
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                let mut s = format!(
+                    r#"[[{section}]]
+name = "has_forbidden_code"
+type = "has_forbidden_code"
+forbidden_patterns = [{patterns_str}]"#
+                );
+                if *case_sensitive {
+                    s.push_str("\ncase_sensitive = true");
+                }
+                s
+            }
+            ManifestSpecificRuleConfig::HasMetadataKeys { required_keys, .. } => {
+                let keys_str = required_keys
+                    .iter()
+                    .map(|k| format!("\"{k}\""))
+                    .collect::<Vec<_>>()
+                    .join(", ");
                 format!(
                     r#"[[{section}]]
-name = "naming_convention"
-type = "name_convention"
-pattern = "{}""#,
-                    convention.name()
+name = "has_owner"
+type = "has_metadata_keys"
+required_keys = [{keys_str}]"#
+                )
+            }
+            ManifestSpecificRuleConfig::HasRefs {} => {
+                format!(
+                    r#"[[{section}]]
+name = "refs_must_be_used"
+type = "has_refs""#
                 )
             }
             ManifestSpecificRuleConfig::HasTags {
@@ -649,6 +725,13 @@ type = "has_tags"
 required_tags = [{tags_str}]
 criteria = "{criteria_str}"
 description = "Resources need to have at least one of the required tags. To decide when a resource should be run.""#
+                )
+            }
+            ManifestSpecificRuleConfig::HasUniqueTest { .. } => {
+                format!(
+                    r#"[[{section}]]
+name = "has_unique_test"
+type = "has_unique_test""#
                 )
             }
             ManifestSpecificRuleConfig::IsNotOrphaned { .. } => match self.data_model {
@@ -682,58 +765,6 @@ type = "is_not_orphaned""#
                     )
                 }
             },
-            ManifestSpecificRuleConfig::HasUniqueTest { .. } => {
-                format!(
-                    r#"[[{section}]]
-name = "has_unique_test"
-type = "has_unique_test""#
-                )
-            }
-            ManifestSpecificRuleConfig::HasContractEnforced { .. } => {
-                let includes = match self.data_model {
-                    DataModel::Medallion => Some(vec!["models/silver", "models/gold"]),
-                    DataModel::Common => Some(vec!["models/marts", "models/intermediate"]),
-                    DataModel::None => return String::new(),
-                };
-
-                let mut s = format!(
-                    r#"[[{section}]]
-name = "has_contract_enforced"
-type = "has_contract_enforced""#
-                );
-
-                if let Some(folders) = includes {
-                    let folders_str = folders
-                        .iter()
-                        .map(|f| format!("\"{f}\""))
-                        .collect::<Vec<_>>()
-                        .join(", ");
-                    let _ = write!(s, "\nincludes = [{folders_str}]");
-                }
-
-                s
-            }
-
-            ManifestSpecificRuleConfig::HasMetadataKeys { required_keys, .. } => {
-                let keys_str = required_keys
-                    .iter()
-                    .map(|k| format!("\"{k}\""))
-                    .collect::<Vec<_>>()
-                    .join(", ");
-                format!(
-                    r#"[[{section}]]
-name = "has_owner"
-type = "has_metadata_keys"
-required_keys = [{keys_str}]"#
-                )
-            }
-            ManifestSpecificRuleConfig::HasRefs {} => {
-                format!(
-                    r#"[[{section}]]
-name = "refs_must_be_used"
-type = "has_refs""#
-                )
-            }
             ManifestSpecificRuleConfig::MaxCodeLines { max_lines } => {
                 format!(
                     r#"[[{section}]]
@@ -742,46 +773,21 @@ type = "max_code_lines"
 max_lines = {max_lines}"#
                 )
             }
-            ManifestSpecificRuleConfig::AllowedSubfolders {
-                allowed_subfolders, ..
-            } => {
-                let folders_str = allowed_subfolders
-                    .iter()
-                    .map(|f| format!("\"{f}\""))
-                    .collect::<Vec<_>>()
-                    .join(", ");
+            ManifestSpecificRuleConfig::MaxDownstreamDependencies { max_downstream, .. } => {
                 format!(
                     r#"[[{section}]]
-name = "allowed_subfolders"
-type = "allowed_subfolders"
-allowed_subfolders = [{folders_str}]"#
-                )
-            }
-            ManifestSpecificRuleConfig::HasForbiddenCode {
-                forbidden_patterns,
-                case_sensitive,
-            } => {
-                let patterns_str = forbidden_patterns
-                    .iter()
-                    .map(|p| format!("\"{p}\""))
-                    .collect::<Vec<_>>()
-                    .join(", ");
-                let mut s = format!(
-                    r#"[[{section}]]
-name = "has_forbidden_code"
-type = "has_forbidden_code"
-forbidden_patterns = [{patterns_str}]"#
-                );
-                if *case_sensitive {
-                    s.push_str("\ncase_sensitive = true");
-                }
-                s
-            }
-            ManifestSpecificRuleConfig::CodeContainsRefs {} => {
-                format!(
-                    r#"[[{section}]]
-name = "code_contains_refs"
-type = "code_contains_refs""#
+name = "max_downstream_dependencies"
+description = "Reduce model fanout complexity"
+type = "max_downstream_dependencies"
+max_downstream = {max_downstream}
+applies_to = ["models"]
+
+[[{section}]]
+name = "source_max_downstream_dependencies"
+description = "Sources should not be referenced by more than 1 model (use a staging model)"
+type = "max_downstream_dependencies"
+max_downstream = 1
+applies_to = ["sources"]"#
                 )
             }
             ManifestSpecificRuleConfig::MaxJoins { max_joins } => {
@@ -802,29 +808,13 @@ type = "max_upstream_dependencies"
 max_upstream = {max_upstream}"#
                 )
             }
-            ManifestSpecificRuleConfig::MaxDownstreamDependencies { max_downstream, .. } => {
+            ManifestSpecificRuleConfig::NameConvention { convention } => {
                 format!(
                     r#"[[{section}]]
-name = "max_downstream_dependencies"
-description = "Reduce model fanout complexity"
-type = "max_downstream_dependencies"
-max_downstream = {max_downstream}
-applies_to = ["models"]
-
-[[{section}]]
-name = "source_max_downstream_dependencies"
-description = "Sources should not be referenced by more than 1 model (use a staging model)"
-type = "max_downstream_dependencies"
-max_downstream = 1
-applies_to = ["sources"]"#
-                )
-            }
-            ManifestSpecificRuleConfig::SourcesHaveLoader {} => {
-                format!(
-                    r#"[[{section}]]
-name = "sources_have_loader"
-type = "sources_have_loader"
-"#
+name = "naming_convention"
+type = "name_convention"
+pattern = "{}""#,
+                    convention.name()
                 )
             }
             ManifestSpecificRuleConfig::SourcesHaveFreshness {} => {
@@ -832,6 +822,14 @@ type = "sources_have_loader"
                     r#"[[{section}]]
 name = "sources_have_freshness"
 type = "sources_have_freshness"
+"#
+                )
+            }
+            ManifestSpecificRuleConfig::SourcesHaveLoader {} => {
+                format!(
+                    r#"[[{section}]]
+name = "sources_have_loader"
+type = "sources_have_loader"
 "#
                 )
             }
@@ -846,24 +844,6 @@ type = "sources_have_freshness"
 name = "all_columns_documented"
 type = "columns_all_documented"
 description = "All columns must exist in the documentation.""#
-                )
-            }
-            CatalogSpecificRuleConfig::ColumnsHaveDescription {} => {
-                format!(
-                    r#"[[{section}]]
-name = "all_columns_described"
-type = "columns_have_description"
-description = "All columns must have a description.""#
-                )
-            }
-            CatalogSpecificRuleConfig::ColumnsNameConvention { convention, .. } => {
-                let convention_name = convention.name();
-                format!(
-                    r#"[[{section}]]
-name = "column_names_{convention_name}"
-type = "columns_name_convention"
-description = "All column names must be {convention_name}."
-pattern = "{convention_name}""#
                 )
             }
             CatalogSpecificRuleConfig::ColumnsCanonicalName {
@@ -919,6 +899,24 @@ description = "All columns must have data types defined.""#
                 }
 
                 s
+            }
+            CatalogSpecificRuleConfig::ColumnsHaveDescription {} => {
+                format!(
+                    r#"[[{section}]]
+name = "all_columns_described"
+type = "columns_have_description"
+description = "All columns must have a description.""#
+                )
+            }
+            CatalogSpecificRuleConfig::ColumnsNameConvention { convention, .. } => {
+                let convention_name = convention.name();
+                format!(
+                    r#"[[{section}]]
+name = "column_names_{convention_name}"
+type = "columns_name_convention"
+description = "All column names must be {convention_name}."
+pattern = "{convention_name}""#
+                )
             }
         }
     }
@@ -2340,20 +2338,15 @@ mod tests {
         // Verify all rules are present
         assert_eq!(config.manifest_rules.len(), all_rules.len());
 
-        // Rules should be in the same order as EnumIter
-        // We can verify by checking the type of each rule matches the expected order
+        // Rules should be in the same order as EnumIter (alphabetical)
         assert!(matches!(
             config.manifest_rules[0],
-            ManifestSpecificRuleConfig::HasDescription {
-                min_length: None,
-                forbidden_substrings: None
-            }
+            ManifestSpecificRuleConfig::AllowedSubfolders { .. }
         ));
         assert!(matches!(
             config.manifest_rules[1],
-            ManifestSpecificRuleConfig::NameConvention { .. }
+            ManifestSpecificRuleConfig::CodeContainsRefs {}
         ));
-        // Add more if needed, but this verifies the ordering mechanism works
     }
 
     #[test]

@@ -13,16 +13,9 @@ use strum_macros::{AsRefStr, EnumIter, EnumString};
 #[strum(serialize_all = "snake_case")]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[allow(clippy::enum_variant_names)]
+#[remain::sorted]
 pub enum CatalogSpecificRuleConfig {
     ColumnsAllDocumented {},
-    ColumnsHaveDescription {},
-    ColumnsNameConvention {
-        #[serde(rename = "pattern")]
-        convention: NamingConvention,
-        data_types: Option<Vec<DataTypes>>,
-        #[serde(default = "default_use_database_columns")]
-        use_database_columns: bool,
-    },
     ColumnsCanonicalName {
         canonical: String,
         invalid_names: Vec<ColumnNamePattern>,
@@ -30,6 +23,14 @@ pub enum CatalogSpecificRuleConfig {
     },
     ColumnsHaveDataType {
         min_coverage: Option<u8>,
+    },
+    ColumnsHaveDescription {},
+    ColumnsNameConvention {
+        #[serde(rename = "pattern")]
+        convention: NamingConvention,
+        data_types: Option<Vec<DataTypes>>,
+        #[serde(default = "default_use_database_columns")]
+        use_database_columns: bool,
     },
 }
 
