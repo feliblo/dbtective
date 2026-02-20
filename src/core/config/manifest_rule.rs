@@ -19,44 +19,8 @@ use strum_macros::{AsRefStr, EnumIter, EnumString};
 #[derive(Debug, Clone, Deserialize, Serialize, EnumIter, AsRefStr, EnumString)]
 #[strum(serialize_all = "snake_case")]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[remain::sorted]
 pub enum ManifestSpecificRuleConfig {
-    HasDescription {
-        #[serde(default)]
-        min_length: Option<usize>,
-        #[serde(default)]
-        forbidden_substrings: Option<Vec<String>>,
-    },
-    NameConvention {
-        #[serde(rename = "pattern")]
-        convention: NamingConvention,
-    },
-    HasTags {
-        required_tags: Vec<String>,
-        #[serde(default)]
-        criteria: HasTagsCriteria,
-    },
-    IsNotOrphaned {
-        #[serde(default = "default_allowed_references")]
-        allowed_references: Vec<OrphanedReferenceType>,
-    },
-    HasUniqueTest {
-        #[serde(default = "default_allowed_test_names")]
-        allowed_test_names: Vec<String>,
-    },
-    HasContractEnforced {
-        #[serde(default)]
-        access_level: Option<AccessLevel>,
-    },
-    HasMetadataKeys {
-        required_keys: Vec<String>,
-        #[serde(default)]
-        custom_message: Option<String>,
-    },
-    HasRefs {},
-    MaxCodeLines {
-        #[serde(default = "default_max_code_lines")]
-        max_lines: usize,
-    },
     AllowedSubfolders {
         allowed_subfolders: Vec<String>,
         #[serde(default)]
@@ -64,12 +28,51 @@ pub enum ManifestSpecificRuleConfig {
         #[serde(default)]
         path_postfix: Option<String>,
     },
+    CodeContainsRefs {},
+    HasContractEnforced {
+        #[serde(default)]
+        access_level: Option<AccessLevel>,
+    },
+    HasDescription {
+        #[serde(default)]
+        min_length: Option<usize>,
+        #[serde(default)]
+        forbidden_substrings: Option<Vec<String>>,
+    },
     HasForbiddenCode {
         forbidden_patterns: Vec<String>,
         #[serde(default)]
         case_sensitive: bool,
     },
-    CodeContainsRefs {},
+    HasMetadataKeys {
+        required_keys: Vec<String>,
+        #[serde(default)]
+        custom_message: Option<String>,
+    },
+    HasRefs {},
+    HasTags {
+        required_tags: Vec<String>,
+        #[serde(default)]
+        criteria: HasTagsCriteria,
+    },
+    HasUniqueTest {
+        #[serde(default = "default_allowed_test_names")]
+        allowed_test_names: Vec<String>,
+    },
+    IsNotOrphaned {
+        #[serde(default = "default_allowed_references")]
+        allowed_references: Vec<OrphanedReferenceType>,
+    },
+    MaxCodeLines {
+        #[serde(default = "default_max_code_lines")]
+        max_lines: usize,
+    },
+    MaxDownstreamDependencies {
+        #[serde(default = "default_max_downstream")]
+        max_downstream: usize,
+        #[serde(default = "default_excluded_dependency_types")]
+        exclude_types: Vec<DependencyType>,
+    },
     MaxJoins {
         #[serde(default = "default_max_joins")]
         max_joins: usize,
@@ -80,14 +83,12 @@ pub enum ManifestSpecificRuleConfig {
         #[serde(default = "default_excluded_dependency_types")]
         exclude_types: Vec<DependencyType>,
     },
-    MaxDownstreamDependencies {
-        #[serde(default = "default_max_downstream")]
-        max_downstream: usize,
-        #[serde(default = "default_excluded_dependency_types")]
-        exclude_types: Vec<DependencyType>,
+    NameConvention {
+        #[serde(rename = "pattern")]
+        convention: NamingConvention,
     },
-    SourcesHaveLoader {},
     SourcesHaveFreshness {},
+    SourcesHaveLoader {},
 }
 
 // Compares only on variant discriminant, ignoring field values.
