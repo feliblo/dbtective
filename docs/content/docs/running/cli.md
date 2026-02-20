@@ -170,10 +170,9 @@ The generated config file is ready to use. You can edit it afterwards to fine-tu
 
 #### Options
 
-| Option              | Short | Default | Description                                                                                         |
-| ------------------- | ----- | ------- | --------------------------------------------------------------------------------------------------- |
-| `--location <PATH>` | `-l`  | `.`     | Directory where the config file will be created                                                     |
-| `--format <FORMAT>` | `-f`  | `yml`   | Config file format: `yml`, `yaml`, `toml`, or `pyproject`. Skips the format question when provided. |
+| Option              | Short | Default | Description                                     |
+| ------------------- | ----- | ------- | ----------------------------------------------- |
+| `--location <PATH>` | `-l`  | `.`     | Directory where the config file will be created |
 
 #### Examples
 

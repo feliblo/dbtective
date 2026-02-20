@@ -1,6 +1,6 @@
 use std::fmt::Write;
 
-use super::questionnaire::{DataModel, QuestionnaireResult};
+use super::questionnaire::{ConfigFormat, DataModel, QuestionnaireResult};
 use crate::core::config::catalog_rule::CatalogSpecificRuleConfig;
 use crate::core::config::check_config_options::HasTagsCriteria;
 use crate::core::config::manifest_rule::ManifestSpecificRuleConfig;
@@ -8,6 +8,7 @@ use strum::IntoEnumIterator;
 
 #[derive(Debug)]
 pub struct InitConfig {
+    pub format: ConfigFormat,
     pub manifest_rules: Vec<ManifestSpecificRuleConfig>,
     pub catalog_rules: Vec<CatalogSpecificRuleConfig>,
     pub data_model: DataModel,
@@ -20,6 +21,7 @@ impl InitConfig {
         let catalog_rules = Self::build_catalog_rules(result);
 
         Self {
+            format: result.format,
             manifest_rules,
             catalog_rules,
             data_model: result.data_model,

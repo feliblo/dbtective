@@ -31,10 +31,6 @@ pub struct InitOptions {
     /// Directory where the config file should be created
     #[arg(long, short = 'l', default_value = ".")]
     pub location: String,
-
-    /// Configuration format to generate (yml, toml, or pyproject)
-    #[arg(long, short = 'f', value_parser = ["yml", "yaml", "toml", "pyproject"], default_value = "yml")]
-    pub format: String,
 }
 
 /// Output format for the run command
@@ -109,7 +105,6 @@ mod tests {
     fn default_init_options() -> InitOptions {
         InitOptions {
             location: ".".to_string(),
-            format: "yml".to_string(),
         }
     }
 
@@ -119,26 +114,14 @@ mod tests {
         let debug_str = format!("{options:?}");
         assert!(debug_str.contains("InitOptions"));
         assert!(debug_str.contains("location"));
-        assert!(debug_str.contains("format"));
     }
 
     #[test]
     fn test_init_options_with_custom_values() {
         let options = InitOptions {
             location: "/custom/path".to_string(),
-            format: "toml".to_string(),
         };
         assert_eq!(options.location, "/custom/path");
-        assert_eq!(options.format, "toml");
-    }
-
-    #[test]
-    fn test_init_options_pyproject_format() {
-        let options = InitOptions {
-            location: ".".to_string(),
-            format: "pyproject".to_string(),
-        };
-        assert_eq!(options.format, "pyproject");
     }
 
     #[test]

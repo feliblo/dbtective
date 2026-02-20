@@ -15,17 +15,18 @@ use tempfile::TempDir;
 fn default_options(temp_dir: &TempDir) -> InitOptions {
     InitOptions {
         location: temp_dir.path().to_string_lossy().to_string(),
-        format: "yml".to_string(),
     }
 }
 
-fn create_default_init_config() -> dbtective::core::init::config_builder::InitConfig {
+fn create_default_init_config_with_format(
+    format: dbtective::core::init::questionnaire::ConfigFormat,
+) -> dbtective::core::init::config_builder::InitConfig {
     use dbtective::core::config::naming_convention::NamingConvention;
     use dbtective::core::init::config_builder::InitConfig;
     use dbtective::core::init::questionnaire::{DataModel, QuestionnaireResult};
 
     let questionnaire_result = QuestionnaireResult {
-        format: dbtective::core::init::questionnaire::ConfigFormat::Yaml,
+        format,
         naming_convention: NamingConvention::default(),
         data_model: DataModel::Common,
         manifest_rules: vec![
@@ -59,6 +60,10 @@ fn create_default_init_config() -> dbtective::core::init::config_builder::InitCo
     };
 
     InitConfig::from_questionnaire(&questionnaire_result)
+}
+
+fn create_default_init_config() -> dbtective::core::init::config_builder::InitConfig {
+    create_default_init_config_with_format(dbtective::core::init::questionnaire::ConfigFormat::Yaml)
 }
 
 #[test]
@@ -130,9 +135,8 @@ fn test_init_creates_toml_config() {
     let temp_dir = TempDir::new().unwrap();
     let options = InitOptions {
         location: temp_dir.path().to_string_lossy().to_string(),
-        format: "toml".to_string(),
     };
-    let config = create_default_init_config();
+    let config = create_default_init_config_with_format(ConfigFormat::Toml);
 
     let result = create_config(&options, &config, false);
     assert!(matches!(result, InitResult::Created(_)));
@@ -146,9 +150,8 @@ fn test_init_toml_is_valid_config() {
     let temp_dir = TempDir::new().unwrap();
     let options = InitOptions {
         location: temp_dir.path().to_string_lossy().to_string(),
-        format: "toml".to_string(),
     };
-    let init_config = create_default_init_config();
+    let init_config = create_default_init_config_with_format(ConfigFormat::Toml);
 
     create_config(&options, &init_config, false);
 
@@ -176,9 +179,8 @@ version = "0.1.0"
 
     let options = InitOptions {
         location: temp_dir.path().to_string_lossy().to_string(),
-        format: "pyproject".to_string(),
     };
-    let config = create_default_init_config();
+    let config = create_default_init_config_with_format(ConfigFormat::Pyproject);
 
     create_config(&options, &config, false);
 
@@ -204,9 +206,8 @@ requires = ["setuptools"]
 
     let options = InitOptions {
         location: temp_dir.path().to_string_lossy().to_string(),
-        format: "pyproject".to_string(),
     };
-    let config = create_default_init_config();
+    let config = create_default_init_config_with_format(ConfigFormat::Pyproject);
 
     let result = create_config(&options, &config, false);
     assert!(matches!(result, InitResult::PyprojectUpdated(_)));
@@ -241,9 +242,8 @@ name = "my-project"
 
     let options = InitOptions {
         location: temp_dir.path().to_string_lossy().to_string(),
-        format: "pyproject".to_string(),
     };
-    let config = create_default_init_config();
+    let config = create_default_init_config_with_format(ConfigFormat::Pyproject);
 
     let result = create_config(&options, &config, false);
     assert!(matches!(result, InitResult::PyprojectAlreadyConfigured(_)));
@@ -275,9 +275,8 @@ fn test_init_does_not_overwrite_existing_toml() {
 
     let options = InitOptions {
         location: temp_dir.path().to_string_lossy().to_string(),
-        format: "toml".to_string(),
     };
-    let config = create_default_init_config();
+    let config = create_default_init_config_with_format(ConfigFormat::Toml);
 
     let result = create_config(&options, &config, false);
     assert!(matches!(result, InitResult::AlreadyExists(_)));
@@ -289,7 +288,6 @@ fn test_init_does_not_overwrite_existing_toml() {
 fn test_init_fails_for_nonexistent_directory() {
     let options = InitOptions {
         location: "/nonexistent/path/that/does/not/exist".to_string(),
-        format: "yml".to_string(),
     };
     let config = create_default_init_config();
 
@@ -309,7 +307,6 @@ fn test_init_fails_when_path_is_file() {
 
     let options = InitOptions {
         location: file_path.to_string_lossy().to_string(),
-        format: "yml".to_string(),
     };
     let config = create_default_init_config();
 
@@ -328,7 +325,6 @@ fn test_init_yaml_alias_creates_yml_file() {
     let temp_dir = TempDir::new().unwrap();
     let options = InitOptions {
         location: temp_dir.path().to_string_lossy().to_string(),
-        format: "yaml".to_string(),
     };
     let config = create_default_init_config();
 
@@ -441,7 +437,6 @@ fn test_medallion_basic_generates_valid_yaml() {
     let temp_dir = TempDir::new().unwrap();
     let options = InitOptions {
         location: temp_dir.path().to_string_lossy().to_string(),
-        format: "yml".to_string(),
     };
 
     let questionnaire_result = create_full_questionnaire_result(
@@ -469,7 +464,6 @@ fn test_common_standard_generates_valid_toml() {
     let temp_dir = TempDir::new().unwrap();
     let options = InitOptions {
         location: temp_dir.path().to_string_lossy().to_string(),
-        format: "toml".to_string(),
     };
 
     let questionnaire_result = create_full_questionnaire_result(
@@ -497,7 +491,6 @@ fn test_none_strict_generates_valid_yaml() {
     let temp_dir = TempDir::new().unwrap();
     let options = InitOptions {
         location: temp_dir.path().to_string_lossy().to_string(),
-        format: "yml".to_string(),
     };
 
     let questionnaire_result = create_full_questionnaire_result(
@@ -526,7 +519,6 @@ fn test_basic_strictness_has_correct_rules() {
     let temp_dir = TempDir::new().unwrap();
     let options = InitOptions {
         location: temp_dir.path().to_string_lossy().to_string(),
-        format: "yml".to_string(),
     };
 
     let questionnaire_result = create_full_questionnaire_result(
@@ -551,7 +543,6 @@ fn test_standard_strictness_has_correct_rules() {
     let temp_dir = TempDir::new().unwrap();
     let options = InitOptions {
         location: temp_dir.path().to_string_lossy().to_string(),
-        format: "yml".to_string(),
     };
 
     let questionnaire_result = create_full_questionnaire_result(
@@ -578,7 +569,6 @@ fn test_strict_strictness_has_correct_rules() {
     let temp_dir = TempDir::new().unwrap();
     let options = InitOptions {
         location: temp_dir.path().to_string_lossy().to_string(),
-        format: "yml".to_string(),
     };
 
     let questionnaire_result = create_full_questionnaire_result(
@@ -608,7 +598,6 @@ fn test_snake_case_naming_convention() {
     let temp_dir = TempDir::new().unwrap();
     let options = InitOptions {
         location: temp_dir.path().to_string_lossy().to_string(),
-        format: "yml".to_string(),
     };
 
     let questionnaire_result = create_full_questionnaire_result(
@@ -632,7 +621,6 @@ fn test_kebab_case_naming_convention() {
     let temp_dir = TempDir::new().unwrap();
     let options = InitOptions {
         location: temp_dir.path().to_string_lossy().to_string(),
-        format: "yml".to_string(),
     };
 
     let questionnaire_result = create_full_questionnaire_result(
@@ -656,7 +644,6 @@ fn test_camel_case_naming_convention() {
     let temp_dir = TempDir::new().unwrap();
     let options = InitOptions {
         location: temp_dir.path().to_string_lossy().to_string(),
-        format: "yml".to_string(),
     };
 
     let questionnaire_result = create_full_questionnaire_result(
@@ -680,7 +667,6 @@ fn test_pascal_case_naming_convention() {
     let temp_dir = TempDir::new().unwrap();
     let options = InitOptions {
         location: temp_dir.path().to_string_lossy().to_string(),
-        format: "yml".to_string(),
     };
 
     let questionnaire_result = create_full_questionnaire_result(
@@ -708,7 +694,6 @@ fn test_yaml_format_generates_valid_file() {
     let temp_dir = TempDir::new().unwrap();
     let options = InitOptions {
         location: temp_dir.path().to_string_lossy().to_string(),
-        format: "yml".to_string(),
     };
 
     let questionnaire_result = create_full_questionnaire_result(
@@ -730,7 +715,6 @@ fn test_toml_format_generates_valid_file() {
     let temp_dir = TempDir::new().unwrap();
     let options = InitOptions {
         location: temp_dir.path().to_string_lossy().to_string(),
-        format: "toml".to_string(),
     };
 
     let questionnaire_result = create_full_questionnaire_result(
@@ -757,7 +741,6 @@ fn test_pyproject_format_generates_valid_file() {
 
     let options = InitOptions {
         location: temp_dir.path().to_string_lossy().to_string(),
-        format: "pyproject".to_string(),
     };
 
     let questionnaire_result = create_full_questionnaire_result(
@@ -786,7 +769,6 @@ fn test_all_data_models_with_strict() {
         let temp_dir = TempDir::new().unwrap();
         let options = InitOptions {
             location: temp_dir.path().to_string_lossy().to_string(),
-            format: "yml".to_string(),
         };
 
         let questionnaire_result = create_full_questionnaire_result(
@@ -812,7 +794,6 @@ fn test_all_naming_conventions_generate_valid_configs() {
         let temp_dir = TempDir::new().unwrap();
         let options = InitOptions {
             location: temp_dir.path().to_string_lossy().to_string(),
-            format: "yml".to_string(),
         };
 
         let naming_convention = NamingConvention::from_pattern(convention_str).unwrap();
@@ -830,20 +811,15 @@ fn test_all_naming_conventions_generate_valid_configs() {
 
 #[test]
 fn test_all_formats_generate_parseable_configs() {
-    let formats = vec![("yml", "dbtective.yml"), ("toml", "dbtective.toml")];
+    let formats = vec![
+        (ConfigFormat::Yaml, "dbtective.yml"),
+        (ConfigFormat::Toml, "dbtective.toml"),
+    ];
 
-    for (format_str, filename) in formats {
+    for (config_format, filename) in formats {
         let temp_dir = TempDir::new().unwrap();
         let options = InitOptions {
             location: temp_dir.path().to_string_lossy().to_string(),
-            format: format_str.to_string(),
-        };
-
-        #[allow(clippy::match_same_arms)]
-        let config_format = match format_str {
-            "yml" => ConfigFormat::Yaml,
-            "toml" => ConfigFormat::Toml,
-            _ => ConfigFormat::Yaml,
         };
 
         let questionnaire_result = create_full_questionnaire_result(
@@ -854,7 +830,7 @@ fn test_all_formats_generate_parseable_configs() {
         );
 
         let exit_code = init_with_result(&options, false, questionnaire_result);
-        assert_eq!(exit_code, 0, "Format {format_str} should succeed");
+        assert_eq!(exit_code, 0, "Format {config_format:?} should succeed");
 
         let config_path = temp_dir.path().join(filename);
         assert!(config_path.exists());
@@ -870,7 +846,6 @@ fn test_has_tags_rule_generates_correct_content() {
     let temp_dir = TempDir::new().unwrap();
     let options = InitOptions {
         location: temp_dir.path().to_string_lossy().to_string(),
-        format: "yml".to_string(),
     };
 
     let questionnaire_result = create_full_questionnaire_result(
@@ -899,7 +874,6 @@ fn test_has_metadata_keys_rule_generates_correct_content() {
     let temp_dir = TempDir::new().unwrap();
     let options = InitOptions {
         location: temp_dir.path().to_string_lossy().to_string(),
-        format: "yml".to_string(),
     };
 
     let questionnaire_result = create_full_questionnaire_result(
@@ -925,7 +899,6 @@ fn test_columns_canonical_name_rule_generates_correct_content() {
     let temp_dir = TempDir::new().unwrap();
     let options = InitOptions {
         location: temp_dir.path().to_string_lossy().to_string(),
-        format: "toml".to_string(),
     };
 
     // Add ColumnsCanonicalName explicitly
@@ -1045,7 +1018,6 @@ fn test_init_toml_contains_auto_parse_command_when_set() {
     let temp_dir = TempDir::new().unwrap();
     let options = InitOptions {
         location: temp_dir.path().to_string_lossy().to_string(),
-        format: "toml".to_string(),
     };
 
     let questionnaire_result = QuestionnaireResult {
@@ -1077,7 +1049,6 @@ fn test_init_toml_with_auto_parse_is_valid_parseable_config() {
     let temp_dir = TempDir::new().unwrap();
     let options = InitOptions {
         location: temp_dir.path().to_string_lossy().to_string(),
-        format: "toml".to_string(),
     };
 
     let questionnaire_result = QuestionnaireResult {
@@ -1116,7 +1087,6 @@ fn test_init_pyproject_contains_auto_parse_command_when_set() {
 
     let options = InitOptions {
         location: temp_dir.path().to_string_lossy().to_string(),
-        format: "pyproject".to_string(),
     };
 
     let questionnaire_result = QuestionnaireResult {
@@ -1159,4 +1129,128 @@ fn test_init_without_auto_parse_generates_backward_compatible_config() {
 
     let parsed = parsed.unwrap();
     assert_eq!(parsed.auto_parse_command(), None);
+}
+
+// ========================================================================
+// Questionnaire Format Choice Tests
+// ========================================================================
+
+#[test]
+fn test_questionnaire_toml_choice_creates_toml_file_not_yml() {
+    let temp_dir = TempDir::new().unwrap();
+    let options = InitOptions {
+        location: temp_dir.path().to_string_lossy().to_string(),
+    };
+
+    let questionnaire_result = create_full_questionnaire_result(
+        ConfigFormat::Toml,
+        NamingConvention::default(),
+        DataModel::Common,
+        Strictness::Standard,
+    );
+
+    let exit_code = init_with_result(&options, false, questionnaire_result);
+    assert_eq!(exit_code, 0);
+
+    // TOML file should exist
+    let toml_path = temp_dir.path().join("dbtective.toml");
+    assert!(
+        toml_path.exists(),
+        "Choosing TOML format should create dbtective.toml"
+    );
+
+    // YAML file should NOT exist
+    let yml_path = temp_dir.path().join("dbtective.yml");
+    assert!(
+        !yml_path.exists(),
+        "Choosing TOML format should NOT create dbtective.yml"
+    );
+
+    // Config should be parseable
+    let parsed = Config::from_file(&toml_path);
+    assert!(parsed.is_ok(), "Generated TOML config should be valid");
+
+    let parsed = parsed.unwrap();
+    let manifest_tests = parsed.manifest_tests.expect("manifest_tests should exist");
+    assert!(!manifest_tests.is_empty(), "Should have manifest rules");
+}
+
+#[test]
+fn test_questionnaire_yaml_choice_creates_yml_file_not_toml() {
+    let temp_dir = TempDir::new().unwrap();
+    let options = InitOptions {
+        location: temp_dir.path().to_string_lossy().to_string(),
+    };
+
+    let questionnaire_result = create_full_questionnaire_result(
+        ConfigFormat::Yaml,
+        NamingConvention::default(),
+        DataModel::Common,
+        Strictness::Standard,
+    );
+
+    let exit_code = init_with_result(&options, false, questionnaire_result);
+    assert_eq!(exit_code, 0);
+
+    // YAML file should exist
+    let yml_path = temp_dir.path().join("dbtective.yml");
+    assert!(
+        yml_path.exists(),
+        "Choosing YAML format should create dbtective.yml"
+    );
+
+    // TOML file should NOT exist
+    let toml_path = temp_dir.path().join("dbtective.toml");
+    assert!(
+        !toml_path.exists(),
+        "Choosing YAML format should NOT create dbtective.toml"
+    );
+
+    // Config should be parseable
+    let parsed = Config::from_file(&yml_path);
+    assert!(parsed.is_ok(), "Generated YAML config should be valid");
+}
+
+#[test]
+fn test_questionnaire_pyproject_choice_updates_pyproject_toml() {
+    let temp_dir = TempDir::new().unwrap();
+    let pyproject_path = temp_dir.path().join("pyproject.toml");
+    fs::write(&pyproject_path, "[project]\nname = \"test\"\n").unwrap();
+
+    let options = InitOptions {
+        location: temp_dir.path().to_string_lossy().to_string(),
+    };
+
+    let questionnaire_result = create_full_questionnaire_result(
+        ConfigFormat::Pyproject,
+        NamingConvention::default(),
+        DataModel::Common,
+        Strictness::Standard,
+    );
+
+    let exit_code = init_with_result(&options, false, questionnaire_result);
+    assert_eq!(exit_code, 0);
+
+    // pyproject.toml should contain dbtective section
+    let content = fs::read_to_string(&pyproject_path).unwrap();
+    assert!(
+        content.contains("[tool.dbtective]"),
+        "Should add dbtective section to pyproject.toml"
+    );
+    assert!(
+        content.contains("[[tool.dbtective.manifest_tests]]"),
+        "Should have manifest tests"
+    );
+
+    // No separate config files should be created
+    let yml_path = temp_dir.path().join("dbtective.yml");
+    let toml_path = temp_dir.path().join("dbtective.toml");
+    assert!(
+        !yml_path.exists(),
+        "Choosing pyproject format should NOT create dbtective.yml"
+    );
+    assert!(
+        !toml_path.exists(),
+        "Choosing pyproject format should NOT create dbtective.toml"
+    );
 }
