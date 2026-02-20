@@ -1,3 +1,23 @@
+## v0.2.9 (2026-02-20)
+
+### Feat
+
+- **rules**: add rule categories shown in structured output - ([051316c](https://github.com/feliblo/dbtective/commit/051316c715a0883b900c81f9e31f739b512a6ee0)) - feliblo
+- **performance**: add cargo bloat on pull-request - ([52e81e4](https://github.com/feliblo/dbtective/commit/52e81e4881fcb2d2407d92c3394874a6fdc1e845)) - feliblo
+
+### Fix
+
+- **init**: fix init output config format not working - ([3f4ec10](https://github.com/feliblo/dbtective/commit/3f4ec101ac0859264b5d2f08836c344fb1cb0e4c)) - feliblo
+- **ci**: fix codecov report - ([5f706ae](https://github.com/feliblo/dbtective/commit/5f706ae5e73187bcb0a178866046491469f6503c)) - feliblo
+
+### Refactor
+
+- **enums**: force sorting for specified enums using remain - ([e0ba7e8](https://github.com/feliblo/dbtective/commit/e0ba7e87643988da77c9b2bda7313c5da04eb69c)) - feliblo
+
+### Contributors
+
+[@feliblo](https://github.com/feliblo)
+
 ## v0.2.8 (2026-02-20)
 
 ### Feat
