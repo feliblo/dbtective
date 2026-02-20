@@ -89,25 +89,25 @@ You can override the default category for any rule by setting `category: "your_c
       <td style="font-size: 12px; color: #666;">references, upstream, dependencies, ref, source</td>
     </tr>
     <tr class="rule-item" data-keywords="code ref source references hardcoded sql lineage dependency raw_code" data-category="governance">
-      <td><a href="code" class="rule-name">code_contains_refs</a></td>
+      <td><a href="code#rule-code_contains_refs" class="rule-name">code_contains_refs</a></td>
       <td><span class="rule-category-badge badge-governance">Governance</span></td>
       <td>Check if SQL code contains <code>ref()</code> or <code>source()</code> function calls. Strips comments before checking. Case-insensitive.</td>
       <td style="font-size: 12px; color: #666;">code, ref, source, references, hardcoded, sql</td>
     </tr>
     <tr class="rule-item" data-keywords="code lines length size complexity maintainability modularity readability" data-category="performance">
-      <td><a href="code" class="rule-name">max_code_lines</a></td>
+      <td><a href="code#rule-max_code_lines" class="rule-name">max_code_lines</a></td>
       <td><span class="rule-category-badge badge-performance">Performance</span></td>
       <td>Enforce a maximum line count for code. </td>
       <td style="font-size: 12px; color: #666;">code, lines, length, size, complexity</td>
     </tr>
     <tr class="rule-item" data-keywords="forbidden code patterns jinja macros sql banned prohibited disallowed raw_code" data-category="performance">
-      <td><a href="code" class="rule-name">has_forbidden_code</a></td>
+      <td><a href="code#rule-has_forbidden_code" class="rule-name">has_forbidden_code</a></td>
       <td><span class="rule-category-badge badge-performance">Performance</span></td>
       <td>Check if code contains forbidden patterns, such direct selects <code>SELECT *</code></td>
       <td style="font-size: 12px; color: #666;">forbidden, code, patterns, jinja, macros</td>
     </tr>
     <tr class="rule-item" data-keywords="joins code complexity sql join count limit threshold raw_code" data-category="performance">
-      <td><a href="code" class="rule-name">max_joins</a></td>
+      <td><a href="code#rule-max_joins" class="rule-name">max_joins</a></td>
       <td><span class="rule-category-badge badge-performance">Performance</span></td>
       <td>Enforce a maximum number of JOINs in SQL code. Strips comments before counting. Helps reduce code complexity.</td>
       <td style="font-size: 12px; color: #666;">joins, code, complexity, sql, limit</td>
@@ -131,13 +131,13 @@ You can override the default category for any rule by setting `category: "your_c
       <td style="font-size: 12px; color: #666;">freshness, source, staleness, monitoring, data quality</td>
     </tr>
     <tr class="rule-item" data-keywords="upstream fan-in ref source consuming complexity limit threshold lineage dag" data-category="structure">
-      <td><a href="fan-in-fan-out" class="rule-name">max_upstream_dependencies</a></td>
+      <td><a href="fan-in-fan-out#rule-max_upstream_dependencies" class="rule-name">max_upstream_dependencies</a></td>
       <td><span class="rule-category-badge badge-structure">Structure</span></td>
       <td>Limit <b>fan-in</b>. How many other models a model can select from via ref() and source().</td>
       <td style="font-size: 12px; color: #666;">upstream, fan-in, ref, source, lineage</td>
     </tr>
     <tr class="rule-item" data-keywords="downstream fan-out bottleneck blast radius limit threshold lineage dag consumers" data-category="structure">
-      <td><a href="fan-in-fan-out" class="rule-name">max_downstream_dependencies</a></td>
+      <td><a href="fan-in-fan-out#rule-max_downstream_dependencies" class="rule-name">max_downstream_dependencies</a></td>
       <td><span class="rule-category-badge badge-structure">Structure</span></td>
       <td>Limit <b>fan-out</b>. How many other models can ref() a single model.</td>
       <td style="font-size: 12px; color: #666;">downstream, fan-out, bottleneck, blast radius, lineage</td>
@@ -174,31 +174,31 @@ See [Only Manifest Mode](../running/manifest-only) for full details.
   </thead>
   <tbody>
     <tr class="rule-item" data-keywords="columns catalog database schema yml yaml documentation undocumented missing docs column-level" data-category="documentation">
-      <td><a href="columns" class="rule-name">columns_all_documented</a></td>
+      <td><a href="columns#rule-columns_all_documented" class="rule-name">columns_all_documented</a></td>
       <td><span class="rule-category-badge badge-documentation">Documentation</span> <span class="rule-category-badge badge-catalog">Catalog</span></td>
       <td>Check if all SQL columns are documented in e.g. their yml file. Validates that database columns match documentation.</td>
       <td style="font-size: 12px; color: #666;">columns, catalog, database, schema, undocumented</td>
     </tr>
     <tr class="rule-item" data-keywords="columns descriptions documentation catalog database schema yml yaml column-level missing docs fallback manifest" data-category="documentation">
-      <td><a href="columns" class="rule-name">columns_have_description</a></td>
+      <td><a href="columns#rule-columns_have_description" class="rule-name">columns_have_description</a></td>
       <td><span class="rule-category-badge badge-documentation">Documentation</span> <span class="rule-category-badge badge-catalog">Catalog</span> <span class="rule-category-badge badge-manifest-fallback">Fallback</span></td>
       <td>Check if all documented columns have non-empty descriptions. Ensures column-level documentation is complete</td>
       <td style="font-size: 12px; color: #666;">columns, descriptions, documentation, catalog, database</td>
     </tr>
     <tr class="rule-item" data-keywords="columns naming pattern regex standards conventions prefixes suffixes name format fallback manifest" data-category="naming">
-      <td><a href="columns" class="rule-name">columns_name_convention</a></td>
+      <td><a href="columns#rule-columns_name_convention" class="rule-name">columns_name_convention</a></td>
       <td><span class="rule-category-badge badge-naming">Naming</span> <span class="rule-category-badge badge-catalog">Catalog</span> <span class="rule-category-badge badge-manifest-fallback">Fallback</span></td>
       <td>Check if column names follow casing (e.g.<code>snake_case</code>) or custom regex patterns. Enforces naming standards using configurable patterns.</td>
       <td style="font-size: 12px; color: #666;">columns, naming, pattern, regex, conventions</td>
     </tr>
     <tr class="rule-item" data-keywords="columns canonical naming standards conventions consistency aliases synonyms fallback manifest" data-category="naming">
-      <td><a href="columns" class="rule-name">columns_canonical_name</a></td>
+      <td><a href="columns#rule-columns_canonical_name" class="rule-name">columns_canonical_name</a></td>
       <td><span class="rule-category-badge badge-naming">Naming</span> <span class="rule-category-badge badge-catalog">Catalog</span> <span class="rule-category-badge badge-manifest-fallback">Fallback</span></td>
       <td>Enforce canonical column naming by flagging invalid name patterns. Supports exceptions for allowed variations.</td>
       <td style="font-size: 12px; color: #666;">columns, canonical, naming, standards, consistency</td>
     </tr>
     <tr class="rule-item" data-keywords="columns data types type coverage catalog database schema yml yaml column-level fallback manifest" data-category="documentation">
-      <td><a href="columns" class="rule-name">columns_have_data_type</a></td>
+      <td><a href="columns#rule-columns_have_data_type" class="rule-name">columns_have_data_type</a></td>
       <td><span class="rule-category-badge badge-documentation">Documentation</span> <span class="rule-category-badge badge-catalog">Catalog</span> <span class="rule-category-badge badge-manifest-fallback">Fallback</span></td>
       <td>Check if columns have data types defined. Supports coverage threshold (all or percentage).</td>
       <td style="font-size: 12px; color: #666;">columns, data types, coverage, catalog, database</td>
