@@ -5,9 +5,10 @@ use crate::core::rules::common_traits::Identifiable;
 use crate::core::rules::rule_config::allowed_subfolders::PathCheckable;
 use crate::core::rules::rule_config::has_description::Descriptable;
 use crate::core::rules::rule_config::has_metadata_keys::HasMetadata;
+use crate::core::rules::rule_config::has_tags::Tagable;
 use crate::core::rules::rule_config::max_code_lines::HasCode;
 use crate::core::rules::rule_config::name_convention::NameAble;
-use dbt_artifact_parser::manifest::dbt_objects::Meta;
+use dbt_artifact_parser::manifest::dbt_objects::{Meta, Tags};
 use dbt_artifact_parser::manifest::Macro;
 
 impl RuleTargetable for Macro {
@@ -19,6 +20,13 @@ impl RuleTargetable for Macro {
 impl IncludeExcludable for Macro {
     fn get_original_file_path(&self) -> &String {
         self.get_original_file_path()
+    }
+}
+
+impl Tagable for Macro {
+    // Macro's do not contain a tags field.
+    fn get_tags(&self) -> Option<&Tags> {
+        None
     }
 }
 

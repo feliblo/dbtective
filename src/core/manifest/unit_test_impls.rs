@@ -4,7 +4,9 @@ use crate::core::config::includes_excludes::IncludeExcludable;
 use crate::core::rules::common_traits::Identifiable;
 use crate::core::rules::rule_config::allowed_subfolders::PathCheckable;
 use crate::core::rules::rule_config::has_description::Descriptable;
+use crate::core::rules::rule_config::has_tags::Tagable;
 use crate::core::rules::rule_config::name_convention::NameAble;
+use dbt_artifact_parser::manifest::dbt_objects::Tags;
 use dbt_artifact_parser::manifest::UnitTest;
 
 impl RuleTargetable for UnitTest {
@@ -16,6 +18,13 @@ impl RuleTargetable for UnitTest {
 impl IncludeExcludable for UnitTest {
     fn get_original_file_path(&self) -> &String {
         self.get_original_file_path()
+    }
+}
+
+impl Tagable for UnitTest {
+    // Unit tests do not contain a tags field~
+    fn get_tags(&self) -> Option<&Tags> {
+        None
     }
 }
 

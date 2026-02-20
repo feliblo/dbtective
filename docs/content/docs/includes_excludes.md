@@ -1,10 +1,10 @@
 ---
 title: Includes & Excludes
-description: How to filter which dbt objects a rule applies to using file path patterns
+description: How to filter which dbt objects a rule applies to using path patterns, object names, or tags
 weight: 3
 ---
 
-Every rule supports `includes` and `excludes` to control which dbt objects it runs on. Patterns are matched against the `original_file_path` field from your dbt manifest.
+Every rule supports `includes` and `excludes` to control which dbt objects it runs on. Patterns can match against file paths, object names, or tags.
 
 ## Quick reference
 
@@ -17,16 +17,30 @@ Every rule supports `includes` and `excludes` to control which dbt objects it ru
 | Target by file extension                 | `".sql$"`                              |
 | Target paths starting with               | `"^models/staging/"`                   |
 | Exact path match                         | `"^models/staging/stg_orders.sql$"`    |
+| Target by object name                    | `"name:my_source"`                     |
+| Target by name pattern                   | `"name:stg_*"`                         |
+| Target by tag                            | `"tag:pii"`                            |
+| Target by tag pattern                    | `"tag:pii_*"`                          |
 
 {{< callout type="tip" >}}
-Patterns match against the `original_file_path` field in your `manifest.json`.
+Path patterns match against the `original_file_path` field in your `manifest.json`.
 
 If your dbt objects live in subfolders, paths may include a prefix like `dbt/models/...` instead of `models/...`. Check the actual `original_file_path` values in your manifest (located in the `target` folder of dbt) to see the exact paths your patterns will match against.
 {{< /callout >}}
 
 ## How it works
 
-Patterns are matched against the **full `original_file_path`** of each dbt object. This is the path dbt records in `manifest.json`, for example:
+Patterns are matched against different fields depending on their prefix:
+
+| Prefix   | Matches against                              | Example            |
+| -------- | -------------------------------------------- | ------------------ |
+| (none)   | `original_file_path` (file path)             | `"models/staging"` |
+| `name:`  | Object name (model name, source name, etc.)  | `"name:stg_orders"`|
+| `tag:`   | Object tags                                  | `"tag:pii"`        |
+
+### File paths
+
+By default (no prefix), patterns match against the **full `original_file_path`** of each dbt object. This is the path dbt records in `manifest.json`, for example:
 
 ```
 models/staging/stg_orders.sql
@@ -38,9 +52,35 @@ models/sources.yml                      ← sources use their YAML file path
 
 If your dbt project lives in a subdirectory (e.g. a monorepo), `original_file_path` may include a prefix like `dbt/`. Backslash paths (e.g. `models\raw\file.sql`) are automatically normalized to forward slashes before matching, so **always write patterns with forward slashes**.
 
-## Pattern types
+### Object names (`name:`)
 
-There are four ways to write a pattern, from simplest to most specific:
+The `name:` prefix matches against the object's name — the same name you see in dbt (model name, source name, macro name, etc.). This is especially useful for **sources**, where multiple sources share the same YAML file path and can't be distinguished by path alone.
+
+| Pattern              | Object name    | Match? |
+| -------------------- | -------------- | ------ |
+| `name:my_source`     | `my_source`    | Yes    |
+| `name:my_source`     | `other_source` | No     |
+| `name:stg_*`         | `stg_orders`   | Yes    |
+| `name:stg_*`         | `fct_orders`   | No     |
+
+### Object tags (`tag:`)
+
+The `tag:` prefix matches against the object's tags. If the object has **any** tag that matches the pattern, it's considered a match. Glob patterns (`*`, `**`) work with tag patterns too.
+
+| Pattern        | Object tags             | Match? |
+| -------------- | ----------------------- | ------ |
+| `tag:pii`      | `["pii", "finance"]`    | Yes    |
+| `tag:pii`      | `["finance"]`           | No     |
+| `tag:pii_*`    | `["pii_email"]`         | Yes    |
+| `tag:pii_*`    | `["finance"]`           | No     |
+
+{{< callout type="info" >}}
+Tag filtering works for object types that support tags in dbt: **models**, **sources**, and **exposures**. Objects without tags (macros, semantic models, unit tests) will never match a `tag:` pattern.
+{{< /callout >}}
+
+## Pattern types (path patterns)
+
+There are four ways to write a path pattern, from simplest to most specific:
 
 ### 1. Substring match (no special characters)
 
@@ -120,13 +160,13 @@ Anchors and globs can be used together:
 
 When both `includes` and `excludes` are specified, they are evaluated in this order:
 
-1. **Exact exclude** - if the full path exactly matches an exclude pattern, the object is excluded
-2. **Exact include** - if the full path exactly matches an include pattern, the object is included
+1. **Exact exclude** - if the pattern exactly matches (path, name, or tag), the object is excluded
+2. **Exact include** - if the pattern exactly matches, the object is included
 3. **Pattern exclude** - if any exclude glob/substring matches, the object is excluded
 4. **Pattern include** - if any include glob/substring matches, the object is included. If includes are specified but none match, the object is **excluded**
 5. **Default** - if no includes or excludes are specified, the object is included
 
-The key takeaway: **excludes always win over includes** at the same specificity level, and **exact matches beat pattern matches**.
+The key takeaway: **excludes always win over includes** at the same specificity level, and **exact matches beat pattern matches**. This applies across all pattern types — path, `name:`, and `tag:` patterns follow the same precedence rules.
 
 ## Examples
 
@@ -166,6 +206,70 @@ manifest_tests:
       - "models/marts"
     excludes:
       - "legacy_orders"
+```
+
+### Exclude a specific source by name
+
+```yaml
+manifest_tests:
+  - name: "sources_must_have_description"
+    type: "has_description"
+    severity: "error"
+    applies_to: ["sources"]
+    excludes:
+      - "name:my_legacy_source"
+```
+
+### Only run on sources matching a name pattern
+
+```yaml
+manifest_tests:
+  - name: "stg_sources_have_freshness"
+    type: "has_freshness"
+    severity: "warning"
+    applies_to: ["sources"]
+    includes:
+      - "name:stg_*"
+```
+
+### Exclude objects with a specific tag
+
+```yaml
+manifest_tests:
+  - name: "models_need_description"
+    type: "has_description"
+    severity: "error"
+    applies_to: ["models"]
+    excludes:
+      - "tag:deprecated"
+```
+
+### Only run on objects tagged as PII
+
+```yaml
+manifest_tests:
+  - name: "pii_models_need_owner"
+    type: "has_metadata_keys"
+    severity: "error"
+    applies_to: ["models"]
+    required_keys: ["owner"]
+    includes:
+      - "tag:pii"
+```
+
+### Mix path, name, and tag patterns
+
+```yaml
+manifest_tests:
+  - name: "marts_description"
+    type: "has_description"
+    severity: "error"
+    applies_to: ["models", "sources"]
+    includes:
+      - "models/marts"
+      - "name:important_source"
+    excludes:
+      - "tag:deprecated"
 ```
 
 ### Exclude multiple directories
