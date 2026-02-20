@@ -136,7 +136,8 @@ fn apply_source_rules<'a>(
                     | ManifestSpecificRuleConfig::MaxJoins { .. } => return Ok(acc),
                 };
 
-                if let Some(rule_row) = rule_row_result {
+                if let Some(mut rule_row) = rule_row_result {
+                    rule_row.category = rule.get_category().to_string();
                     acc.push((rule_row, &rule.severity));
                 }
 
@@ -405,7 +406,8 @@ fn apply_semantic_model_rules<'a>(
                     | ManifestSpecificRuleConfig::SourcesHaveFreshness {} => return Ok(acc),
                 };
 
-                if let Some(rule_row) = rule_row_result {
+                if let Some(mut rule_row) = rule_row_result {
+                    rule_row.category = rule.get_category().to_string();
                     acc.push((rule_row, &rule.severity));
                 }
 
@@ -479,7 +481,8 @@ fn apply_unit_test_rules<'a>(
                     | ManifestSpecificRuleConfig::SourcesHaveFreshness {} => return Ok(acc),
                 };
 
-                if let Some(rule_row) = rule_row_result {
+                if let Some(mut rule_row) = rule_row_result {
+                    rule_row.category = rule.get_category().to_string();
                     acc.push((rule_row, &rule.severity));
                 }
 

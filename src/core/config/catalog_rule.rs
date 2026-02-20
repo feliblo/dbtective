@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::core::config::applies_to::RuleTarget;
 use crate::core::config::check_config_options::ColumnNamePattern;
 use crate::core::config::naming_convention::NamingConvention;
+use crate::core::config::rule_category::RuleCategory;
 use crate::core::config::Materialization;
 use crate::core::config::{applies_to::AppliesTo, severity::Severity};
 use strum_macros::{AsRefStr, EnumIter, EnumString};
@@ -105,6 +106,20 @@ impl CatalogSpecificRuleConfig {
         self.as_ref()
     }
 
+    /// Returns the default category for this rule type.
+    /// Uses an exhaustive match so the compiler will error
+    /// if a new variant is added without assigning a category.
+    pub const fn default_category(&self) -> RuleCategory {
+        match self {
+            Self::ColumnsAllDocumented {}
+            | Self::ColumnsHaveDescription {}
+            | Self::ColumnsHaveDataType { .. } => RuleCategory::Documentation,
+            Self::ColumnsNameConvention { .. } | Self::ColumnsCanonicalName { .. } => {
+                RuleCategory::Naming
+            }
+        }
+    }
+
     pub const fn supports_manifest_fallback(&self) -> bool {
         match self {
             Self::ColumnsHaveDescription { .. }
@@ -131,6 +146,7 @@ pub struct CatalogRule {
     #[serde(default = "catalog_default_severity")]
     pub severity: Severity,
     pub description: Option<String>,
+    pub category: Option<String>,
     pub includes: Option<Vec<String>>,
     pub excludes: Option<Vec<String>>,
     pub applies_to: Option<AppliesTo>,
@@ -145,6 +161,13 @@ impl CatalogRule {
         self.name
             .as_ref()
             .map_or_else(|| self.rule.as_str().to_string(), Clone::clone)
+    }
+
+    /// Returns the user-configured category, or falls back to the default category for this rule type.
+    pub fn get_category(&self) -> &str {
+        self.category
+            .as_deref()
+            .unwrap_or_else(|| self.rule.default_category().as_str())
     }
 
     #[allow(dead_code)]
@@ -277,6 +300,7 @@ impl CatalogRule {
             includes: None,
             excludes: None,
             description: None,
+            category: None,
             model_materializations: None,
             rule,
         }

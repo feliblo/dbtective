@@ -118,7 +118,8 @@ pub fn apply_catalog_source_rules<'a>(
                 }
             };
 
-            if let Some(rule_row) = rule_row_result {
+            if let Some(mut rule_row) = rule_row_result {
+                rule_row.category = rule.get_category().to_string();
                 acc.push((rule_row, &rule.severity));
             }
 

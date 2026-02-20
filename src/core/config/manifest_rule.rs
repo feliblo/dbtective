@@ -12,6 +12,7 @@ use crate::core::config::check_config_options::{
     AccessLevel, DependencyType, HasTagsCriteria, OrphanedReferenceType,
 };
 use crate::core::config::naming_convention::NamingConvention;
+use crate::core::config::rule_category::RuleCategory;
 use crate::core::config::severity::Severity;
 use crate::core::config::Materialization;
 use strum_macros::{AsRefStr, EnumIter, EnumString};
@@ -112,6 +113,29 @@ impl ManifestSpecificRuleConfig {
     pub fn as_str(&self) -> &str {
         self.as_ref()
     }
+
+    /// Returns the default category for this rule type.
+    /// Uses an exhaustive match so the compiler will error
+    /// if a new variant is added without assigning a category.
+    pub const fn default_category(&self) -> RuleCategory {
+        match self {
+            Self::HasDescription { .. } | Self::SourcesHaveLoader {} => RuleCategory::Documentation,
+            Self::NameConvention { .. } | Self::AllowedSubfolders { .. } => RuleCategory::Naming,
+            Self::HasUniqueTest { .. } => RuleCategory::Testing,
+            Self::HasTags { .. }
+            | Self::HasContractEnforced { .. }
+            | Self::HasMetadataKeys { .. }
+            | Self::HasRefs {}
+            | Self::CodeContainsRefs {}
+            | Self::SourcesHaveFreshness {} => RuleCategory::Governance,
+            Self::IsNotOrphaned { .. }
+            | Self::MaxUpstreamDependencies { .. }
+            | Self::MaxDownstreamDependencies { .. } => RuleCategory::Structure,
+            Self::MaxCodeLines { .. } | Self::HasForbiddenCode { .. } | Self::MaxJoins { .. } => {
+                RuleCategory::Performance
+            }
+        }
+    }
 }
 
 const fn manifest_default_severity() -> Severity {
@@ -125,6 +149,7 @@ pub struct ManifestRule {
     pub severity: Severity,
     #[allow(dead_code)]
     pub description: Option<String>, // Human-readable description of the rule, not used in logic
+    pub category: Option<String>,
     pub applies_to: Option<AppliesTo>,
     pub includes: Option<Vec<String>>,
     pub excludes: Option<Vec<String>>,
@@ -154,6 +179,13 @@ impl ManifestRule {
         self.name
             .as_ref()
             .map_or_else(|| self.rule.as_str().to_string(), Clone::clone)
+    }
+
+    /// Returns the user-configured category, or falls back to the default category for this rule type.
+    pub fn get_category(&self) -> &str {
+        self.category
+            .as_deref()
+            .unwrap_or_else(|| self.rule.default_category().as_str())
     }
 
     pub fn normalize_includes_excludes(&mut self) {
@@ -505,6 +537,7 @@ impl ManifestRule {
             includes: None,
             excludes: None,
             description: None,
+            category: None,
             model_materializations: None,
             rule,
         }
