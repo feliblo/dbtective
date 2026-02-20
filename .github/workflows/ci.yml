@@ -104,3 +104,104 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: lcov.info
+
+  bloat-check:
+    name: 📦 Bloat Check
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: 📂 Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-bloat-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: 📦 Install cargo-bloat
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-bloat
+
+      - name: 🔨 Build head branch
+        run: cargo bloat --release | tee bloat_head.txt
+
+      - name: 🔀 Checkout base branch
+        run: git checkout ${{ github.event.pull_request.base.sha }}
+
+      - name: 🔨 Build base branch
+        run: cargo bloat --release | tee bloat_base.txt
+
+      - name: 📊 Compare bloat results
+        id: compare
+        shell: python3 {0}
+        run: |
+          import os, re
+          from pathlib import Path
+
+          def parse_size(text):
+              match = re.search(r'\.text section size.*?([\d.]+)\s*([KMGT]i?B)', text)
+              if not match:
+                  raise ValueError("Could not find .text section size")
+              value, unit = float(match.group(1)), match.group(2)
+              multipliers = {'B': 1, 'KiB': 1024, 'MiB': 1024**2, 'GiB': 1024**3}
+              return value * multipliers.get(unit, 1), f"{value} {unit}"
+
+          head_text = Path('bloat_head.txt').read_text()
+          base_text = Path('bloat_base.txt').read_text()
+
+          head_bytes, head_size = parse_size(head_text)
+          base_bytes, base_size = parse_size(base_text)
+
+          pct = ((head_bytes - base_bytes) / base_bytes) * 100
+
+          body = f"""\
+          ### 📦 Cargo Bloat Comparison
+          **Binary size change:** {pct:+.2f}% ({base_size} → {head_size})
+
+          <details>
+          <summary>Expand for cargo-bloat output</summary>
+
+          #### Head Branch
+          ```
+          {head_text.strip()}
+          ```
+
+          #### Base Branch
+          ```
+          {base_text.strip()}
+          ```
+
+          </details>
+          """
+
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write('body<<EOF\n')
+              f.write(body)
+              f.write('\nEOF\n')
+
+      - name: 🔍 Find existing comment
+        uses: peter-evans/find-comment@v3
+        id: fc
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: github-actions[bot]
+          body-includes: Cargo Bloat Comparison
+
+      - name: 💬 Comment on PR
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: ${{ steps.compare.outputs.body }}
+          edit-mode: replace
