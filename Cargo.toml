@@ -53,9 +53,21 @@ remain = "0.2.15"
 
 [dev-dependencies]
 tempfile = "3.23.0"
-dbt_artifact_parser = { path = "dbt_artifact_parser", features = ["test-helpers"] }
+dbt_artifact_parser = { path = "dbt_artifact_parser", features = [
+    "test-helpers",
+] }
 
-# The profile that 'dist' will build with
-[profile.dist]
+
+[profile.release]
+debug = 0
+strip = true
+
+[profile.minimal-size]
 inherits = "release"
-lto = "thin"
+lto = "fat"
+codegen-units = 1
+strip = true
+panic = "abort"
+
+[profile.dist]
+inherits = "minimal-size"
