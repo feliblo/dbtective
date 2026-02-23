@@ -8,7 +8,7 @@ pub trait HasCode: Identifiable {
 }
 
 // Models, Macros, Snapshots can all contain code.
-pub fn max_code_lines<T: HasCode>(
+pub fn code_max_lines<T: HasCode>(
     object_with_code: &T,
     rule: &ManifestRule,
     max_length: usize,
@@ -74,9 +74,9 @@ mod tests {
     }
 
     #[test]
-    fn test_max_code_lines() {
+    fn test_code_max_lines() {
         let rule = ManifestRule::from_specific_rule(
-            ManifestSpecificRuleConfig::MaxCodeLines { max_lines: 5 },
+            ManifestSpecificRuleConfig::CodeMaxLines { max_lines: 5 },
             Severity::Warning,
         );
 
@@ -87,18 +87,18 @@ mod tests {
         };
 
         // Test with max_length = 3 (should trigger the rule)
-        let result = max_code_lines(&test_node, &rule, 3);
+        let result = code_max_lines(&test_node, &rule, 3);
         assert!(result.is_some());
 
         // Test with max_length = 5 (should not trigger the rule)
-        let result = max_code_lines(&test_node, &rule, 5);
+        let result = code_max_lines(&test_node, &rule, 5);
         assert!(result.is_none());
     }
 
     #[test]
     fn test_max_code_lines_no_code() {
         let rule = ManifestRule::from_specific_rule(
-            ManifestSpecificRuleConfig::MaxCodeLines { max_lines: 5 },
+            ManifestSpecificRuleConfig::CodeMaxLines { max_lines: 5 },
             Severity::Warning,
         );
         let test_node = TestNode {
@@ -106,7 +106,7 @@ mod tests {
             code: None,
             relative_path: Some("models/test_model.sql".to_string()),
         };
-        let result = max_code_lines(&test_node, &rule, 5);
+        let result = code_max_lines(&test_node, &rule, 5);
         assert!(result.is_some());
         assert!(result.unwrap().message.contains("is empty"));
     }
@@ -114,7 +114,7 @@ mod tests {
     #[test]
     fn test_max_code_lines_empty_code() {
         let rule = ManifestRule::from_specific_rule(
-            ManifestSpecificRuleConfig::MaxCodeLines { max_lines: 5 },
+            ManifestSpecificRuleConfig::CodeMaxLines { max_lines: 5 },
             Severity::Warning,
         );
         let test_node = TestNode {
@@ -122,14 +122,14 @@ mod tests {
             code: Some(String::new()),
             relative_path: Some("models/test_model.sql".to_string()),
         };
-        let result = max_code_lines(&test_node, &rule, 5);
+        let result = code_max_lines(&test_node, &rule, 5);
         assert!(result.is_some());
         assert!(result.unwrap().message.contains("is empty"));
     }
     #[test]
     fn test_max_code_lines_below_limit() {
         let rule = ManifestRule::from_specific_rule(
-            ManifestSpecificRuleConfig::MaxCodeLines { max_lines: 5 },
+            ManifestSpecificRuleConfig::CodeMaxLines { max_lines: 5 },
             Severity::Warning,
         );
         let test_node = TestNode {
@@ -137,14 +137,14 @@ mod tests {
             code: Some("line1\nline2".to_string()),
             relative_path: Some("models/test_model.sql".to_string()),
         };
-        let result = max_code_lines(&test_node, &rule, 5);
+        let result = code_max_lines(&test_node, &rule, 5);
         assert!(result.is_none());
     }
 
     #[test]
     fn test_max_code_lines_exact_limit() {
         let rule = ManifestRule::from_specific_rule(
-            ManifestSpecificRuleConfig::MaxCodeLines { max_lines: 5 },
+            ManifestSpecificRuleConfig::CodeMaxLines { max_lines: 5 },
             Severity::Warning,
         );
         let test_node = TestNode {
@@ -152,14 +152,14 @@ mod tests {
             code: Some("line1\nline2\nline3\nline4\nline5   ".to_string()),
             relative_path: Some("models/test_model.sql".to_string()),
         };
-        let result = max_code_lines(&test_node, &rule, 5);
+        let result = code_max_lines(&test_node, &rule, 5);
         assert!(result.is_none());
     }
 
     #[test]
     fn test_max_code_lines_above_limit() {
         let rule = ManifestRule::from_specific_rule(
-            ManifestSpecificRuleConfig::MaxCodeLines { max_lines: 5 },
+            ManifestSpecificRuleConfig::CodeMaxLines { max_lines: 5 },
             Severity::Warning,
         );
         let test_node = TestNode {
@@ -167,7 +167,7 @@ mod tests {
             code: Some("line1\nline2\nline3\nline4\nline5\nline6".to_string()),
             relative_path: Some("models/test_model.sql".to_string()),
         };
-        let result = max_code_lines(&test_node, &rule, 5);
+        let result = code_max_lines(&test_node, &rule, 5);
         assert!(result.is_some());
         assert!(result
             .unwrap()

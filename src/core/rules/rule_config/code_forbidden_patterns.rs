@@ -2,9 +2,9 @@ use std::borrow::Cow;
 
 use crate::{cli::table::RuleResult, core::config::manifest_rule::ManifestRule};
 
-use super::max_code_lines::HasCode;
+use super::code_max_lines::HasCode;
 
-pub fn has_forbidden_code<T: HasCode>(
+pub fn code_forbidden_patterns<T: HasCode>(
     object_with_code: &T,
     rule: &ManifestRule,
     forbidden_patterns: &[String],
@@ -88,7 +88,7 @@ mod tests {
 
     fn create_test_rule() -> ManifestRule {
         ManifestRule::from_specific_rule(
-            ManifestSpecificRuleConfig::HasForbiddenCode {
+            ManifestSpecificRuleConfig::CodeForbiddenPatterns {
                 forbidden_patterns: vec!["{{".to_string(), "{%".to_string()],
                 case_sensitive: false,
             },
@@ -105,7 +105,8 @@ mod tests {
             relative_path: Some("models/my_model.sql".to_string()),
         };
 
-        let result = has_forbidden_code(&node, &rule, &["{{".to_string(), "{%".to_string()], false);
+        let result =
+            code_forbidden_patterns(&node, &rule, &["{{".to_string(), "{%".to_string()], false);
         assert!(result.is_some());
         let msg = result.unwrap().message;
         assert!(msg.contains("my_model"));
@@ -121,7 +122,8 @@ mod tests {
             relative_path: Some("models/clean_model.sql".to_string()),
         };
 
-        let result = has_forbidden_code(&node, &rule, &["{{".to_string(), "{%".to_string()], false);
+        let result =
+            code_forbidden_patterns(&node, &rule, &["{{".to_string(), "{%".to_string()], false);
         assert!(result.is_none());
     }
 
@@ -134,7 +136,8 @@ mod tests {
             relative_path: Some("models/jinja_model.sql".to_string()),
         };
 
-        let result = has_forbidden_code(&node, &rule, &["{{".to_string(), "{%".to_string()], false);
+        let result =
+            code_forbidden_patterns(&node, &rule, &["{{".to_string(), "{%".to_string()], false);
         assert!(result.is_some());
         let msg = result.unwrap().message;
         assert!(msg.contains("'{{'"));
@@ -150,7 +153,8 @@ mod tests {
             relative_path: Some("models/no_code_model.sql".to_string()),
         };
 
-        let result = has_forbidden_code(&node, &rule, &["{{".to_string(), "{%".to_string()], false);
+        let result =
+            code_forbidden_patterns(&node, &rule, &["{{".to_string(), "{%".to_string()], false);
         assert!(result.is_none());
     }
 
@@ -163,7 +167,7 @@ mod tests {
             relative_path: Some("models/any_model.sql".to_string()),
         };
 
-        let result = has_forbidden_code(&node, &rule, &[], false);
+        let result = code_forbidden_patterns(&node, &rule, &[], false);
         assert!(result.is_none());
     }
 
@@ -176,7 +180,7 @@ mod tests {
             relative_path: Some("models/star_model.sql".to_string()),
         };
 
-        let result = has_forbidden_code(&node, &rule, &["SELECT *".to_string()], false);
+        let result = code_forbidden_patterns(&node, &rule, &["SELECT *".to_string()], false);
         assert!(result.is_some());
         assert!(result.unwrap().message.contains("'SELECT *'"));
     }
@@ -190,7 +194,7 @@ mod tests {
             relative_path: Some("models/star_model.sql".to_string()),
         };
 
-        let result = has_forbidden_code(&node, &rule, &["SELECT *".to_string()], true);
+        let result = code_forbidden_patterns(&node, &rule, &["SELECT *".to_string()], true);
         assert!(result.is_none());
     }
 
@@ -203,7 +207,7 @@ mod tests {
             relative_path: Some("models/star_model.sql".to_string()),
         };
 
-        let result = has_forbidden_code(&node, &rule, &["SELECT *".to_string()], true);
+        let result = code_forbidden_patterns(&node, &rule, &["SELECT *".to_string()], true);
         assert!(result.is_some());
         assert!(result.unwrap().message.contains("'SELECT *'"));
     }

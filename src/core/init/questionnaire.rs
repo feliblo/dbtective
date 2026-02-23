@@ -91,16 +91,18 @@ impl Init for ManifestSpecificRuleConfig {
                 "has_metadata_keys - Require metadata keys (e.g., owner)"
             }
             Self::HasRefs { .. } => "has_refs - Require use of ref() function",
-            Self::MaxCodeLines { .. } => "max_code_lines - Limit code line count",
+            Self::CodeMaxLines { .. } => "code_max_lines - Limit code line count",
             Self::AllowedSubfolders { .. } => "allowed_subfolders - Restrict subfolder usage",
             Self::SourcesHaveLoader { .. } => "sources_have_loader - Require loader for sources",
-            Self::HasForbiddenCode { .. } => {
-                "has_forbidden_code - Check for forbidden code patterns"
+            Self::CodeForbiddenPatterns { .. } => {
+                "code_forbidden_patterns - Check for forbidden code patterns"
             }
             Self::CodeContainsRefs { .. } => {
                 "code_contains_refs - Require ref()/source() calls in SQL code"
             }
-            Self::MaxJoins { .. } => "max_joins - Limit JOIN count to reduce code complexity",
+            Self::CodeMaxJoins { .. } => {
+                "code_max_joins - Limit JOIN count to reduce code complexity"
+            }
             Self::MaxUpstreamDependencies { .. } => {
                 "max_upstream_dependencies - Limit how many objects a node depends on"
             }
@@ -284,12 +286,12 @@ pub fn run_questionnaire() -> Result<QuestionnaireResult, String> {
                 ManifestSpecificRuleConfig::HasUniqueTest {
                     allowed_test_names: vec![],
                 },
-                ManifestSpecificRuleConfig::HasForbiddenCode {
+                ManifestSpecificRuleConfig::CodeForbiddenPatterns {
                     forbidden_patterns: vec![],
                     case_sensitive: false,
                 },
                 ManifestSpecificRuleConfig::CodeContainsRefs {},
-                ManifestSpecificRuleConfig::MaxJoins { max_joins: 0 },
+                ManifestSpecificRuleConfig::CodeMaxJoins { max_joins: 0 },
                 ManifestSpecificRuleConfig::MaxUpstreamDependencies {
                     max_upstream: 0,
                     exclude_types: vec![],
@@ -331,9 +333,9 @@ pub fn run_questionnaire() -> Result<QuestionnaireResult, String> {
         // Add forbidden code patterns for direct schema references if not already present
         if !manifest_rules
             .iter()
-            .any(|r| matches!(r, ManifestSpecificRuleConfig::HasForbiddenCode { .. }))
+            .any(|r| matches!(r, ManifestSpecificRuleConfig::CodeForbiddenPatterns { .. }))
         {
-            manifest_rules.push(ManifestSpecificRuleConfig::HasForbiddenCode {
+            manifest_rules.push(ManifestSpecificRuleConfig::CodeForbiddenPatterns {
                 forbidden_patterns: vec![],
                 case_sensitive: false,
             });
@@ -524,7 +526,7 @@ mod tests {
         assert!(descriptions.contains(&"has_contract_enforced - Require enforced contracts"));
         assert!(descriptions.contains(&"has_metadata_keys - Require metadata keys (e.g., owner)"));
         assert!(descriptions.contains(&"has_refs - Require use of ref() function"));
-        assert!(descriptions.contains(&"max_code_lines - Limit code line count"));
+        assert!(descriptions.contains(&"code_max_lines - Limit code line count"));
         assert!(
             descriptions.contains(&"code_contains_refs - Require ref()/source() calls in SQL code")
         );

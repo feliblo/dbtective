@@ -3,9 +3,9 @@ use crate::core::config::applies_to::RuleTargetable;
 use crate::core::config::manifest_rule::ManifestSpecificRuleConfig;
 use crate::core::rules::rule_config::{
     check_allowed_subfolders, check_name_convention, child_map::is_not_orphaned,
-    code_contains_refs, has_contract_enforced, has_description, has_forbidden_code,
-    has_metadata_keys, has_refs, has_tags, has_unique_test, max_code_lines,
-    max_downstream_dependencies, max_joins, max_upstream_dependencies,
+    code_contains_refs, code_forbidden_patterns, code_max_joins, code_max_lines,
+    has_contract_enforced, has_description, has_metadata_keys, has_refs, has_tags, has_unique_test,
+    max_downstream_dependencies, max_upstream_dependencies,
 };
 
 use crate::core::config::severity::Severity;
@@ -73,20 +73,20 @@ pub fn apply_manifest_node_rules<'a>(
                         required_keys,
                         custom_message,
                     } => has_metadata_keys(node, rule, required_keys, custom_message.as_ref()),
-                    ManifestSpecificRuleConfig::MaxCodeLines { max_lines } => {
-                        max_code_lines(node, rule, *max_lines)
+                    ManifestSpecificRuleConfig::CodeMaxLines { max_lines } => {
+                        code_max_lines(node, rule, *max_lines)
                     }
-                    ManifestSpecificRuleConfig::HasForbiddenCode {
+                    ManifestSpecificRuleConfig::CodeForbiddenPatterns {
                         forbidden_patterns,
                         case_sensitive,
-                    } => has_forbidden_code(node, rule, forbidden_patterns, *case_sensitive),
+                    } => code_forbidden_patterns(node, rule, forbidden_patterns, *case_sensitive),
                     ManifestSpecificRuleConfig::HasRefs {} => has_refs(node, rule),
                     ManifestSpecificRuleConfig::CodeContainsRefs {} => {
                         code_contains_refs(node, rule)
                     }
-                    ManifestSpecificRuleConfig::MaxJoins {
+                    ManifestSpecificRuleConfig::CodeMaxJoins {
                         max_joins: max_joins_allowed,
-                    } => max_joins(node, rule, *max_joins_allowed),
+                    } => code_max_joins(node, rule, *max_joins_allowed),
                     ManifestSpecificRuleConfig::AllowedSubfolders {
                         allowed_subfolders,
                         path_prefix,

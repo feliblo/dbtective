@@ -1,8 +1,8 @@
 use crate::core::config::applies_to::RuleTargetable;
 use crate::core::rules::rule_config::{
-    check_allowed_subfolders, check_name_convention, code_contains_refs, has_description,
-    has_forbidden_code, has_freshness, has_loader, has_metadata_keys, has_refs, has_tags,
-    has_unique_test, is_not_orphaned, max_code_lines, max_downstream_dependencies, max_joins,
+    check_allowed_subfolders, check_name_convention, code_contains_refs, code_forbidden_patterns,
+    code_max_joins, code_max_lines, has_description, has_freshness, has_loader, has_metadata_keys,
+    has_refs, has_tags, has_unique_test, is_not_orphaned, max_downstream_dependencies,
     max_upstream_dependencies,
 };
 use crate::{
@@ -129,11 +129,11 @@ fn apply_source_rules<'a>(
 
                     // These can't be implemented for sources
                     ManifestSpecificRuleConfig::HasRefs {}
-                    | ManifestSpecificRuleConfig::MaxCodeLines { .. }
-                    | ManifestSpecificRuleConfig::HasForbiddenCode { .. }
+                    | ManifestSpecificRuleConfig::CodeMaxLines { .. }
+                    | ManifestSpecificRuleConfig::CodeForbiddenPatterns { .. }
                     | ManifestSpecificRuleConfig::HasContractEnforced { .. }
                     | ManifestSpecificRuleConfig::CodeContainsRefs {}
-                    | ManifestSpecificRuleConfig::MaxJoins { .. } => return Ok(acc),
+                    | ManifestSpecificRuleConfig::CodeMaxJoins { .. } => return Ok(acc),
                 };
 
                 if let Some(mut rule_row) = rule_row_result {
@@ -198,21 +198,24 @@ fn apply_macro_rules<'a>(
                             required_keys,
                             custom_message.as_ref(),
                         ),
-                        ManifestSpecificRuleConfig::MaxCodeLines { max_lines } => {
-                            max_code_lines(macro_obj, rule, *max_lines)
+                        ManifestSpecificRuleConfig::CodeMaxLines { max_lines } => {
+                            code_max_lines(macro_obj, rule, *max_lines)
                         }
-                        ManifestSpecificRuleConfig::HasForbiddenCode {
+                        ManifestSpecificRuleConfig::CodeForbiddenPatterns {
                             forbidden_patterns,
                             case_sensitive,
-                        } => {
-                            has_forbidden_code(macro_obj, rule, forbidden_patterns, *case_sensitive)
-                        }
+                        } => code_forbidden_patterns(
+                            macro_obj,
+                            rule,
+                            forbidden_patterns,
+                            *case_sensitive,
+                        ),
                         ManifestSpecificRuleConfig::CodeContainsRefs {} => {
                             code_contains_refs(macro_obj, rule)
                         }
-                        ManifestSpecificRuleConfig::MaxJoins {
-                            max_joins: max_joins_allowed,
-                        } => max_joins(macro_obj, rule, *max_joins_allowed),
+                        ManifestSpecificRuleConfig::CodeMaxJoins {
+                            max_joins: code_max_joins_allowed,
+                        } => code_max_joins(macro_obj, rule, *code_max_joins_allowed),
                         ManifestSpecificRuleConfig::AllowedSubfolders {
                             allowed_subfolders,
                             path_prefix,
@@ -316,12 +319,12 @@ fn apply_exposure_rules<'a>(
                         ),
                         // These can't be implemented for exposures
                         ManifestSpecificRuleConfig::IsNotOrphaned { .. }
-                        | ManifestSpecificRuleConfig::MaxCodeLines { .. }
-                        | ManifestSpecificRuleConfig::HasForbiddenCode { .. }
+                        | ManifestSpecificRuleConfig::CodeMaxLines { .. }
+                        | ManifestSpecificRuleConfig::CodeForbiddenPatterns { .. }
                         | ManifestSpecificRuleConfig::HasUniqueTest { .. }
                         | ManifestSpecificRuleConfig::HasContractEnforced { .. }
                         | ManifestSpecificRuleConfig::CodeContainsRefs {}
-                        | ManifestSpecificRuleConfig::MaxJoins { .. }
+                        | ManifestSpecificRuleConfig::CodeMaxJoins { .. }
                         | ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. }
                         | ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. }
                         | ManifestSpecificRuleConfig::SourcesHaveLoader {}
@@ -393,13 +396,13 @@ fn apply_semantic_model_rules<'a>(
                     ),
                     // These can't be implemented for semantic models
                     ManifestSpecificRuleConfig::HasTags { .. }
-                    | ManifestSpecificRuleConfig::MaxCodeLines { .. }
-                    | ManifestSpecificRuleConfig::HasForbiddenCode { .. }
+                    | ManifestSpecificRuleConfig::CodeMaxLines { .. }
+                    | ManifestSpecificRuleConfig::CodeForbiddenPatterns { .. }
                     | ManifestSpecificRuleConfig::IsNotOrphaned { .. }
                     | ManifestSpecificRuleConfig::HasUniqueTest { .. }
                     | ManifestSpecificRuleConfig::HasContractEnforced { .. }
                     | ManifestSpecificRuleConfig::CodeContainsRefs {}
-                    | ManifestSpecificRuleConfig::MaxJoins { .. }
+                    | ManifestSpecificRuleConfig::CodeMaxJoins { .. }
                     | ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. }
                     | ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. }
                     | ManifestSpecificRuleConfig::SourcesHaveLoader {}
@@ -465,8 +468,8 @@ fn apply_unit_test_rules<'a>(
                     ),
 
                     // Unit Tests do not implement the following rules
-                    ManifestSpecificRuleConfig::MaxCodeLines { .. }
-                    | ManifestSpecificRuleConfig::HasForbiddenCode { .. }
+                    ManifestSpecificRuleConfig::CodeMaxLines { .. }
+                    | ManifestSpecificRuleConfig::CodeForbiddenPatterns { .. }
                     | ManifestSpecificRuleConfig::HasTags { .. }
                     | ManifestSpecificRuleConfig::HasRefs {}
                     | ManifestSpecificRuleConfig::IsNotOrphaned { .. }
@@ -474,7 +477,7 @@ fn apply_unit_test_rules<'a>(
                     | ManifestSpecificRuleConfig::HasContractEnforced { .. }
                     | ManifestSpecificRuleConfig::HasMetadataKeys { .. }
                     | ManifestSpecificRuleConfig::CodeContainsRefs {}
-                    | ManifestSpecificRuleConfig::MaxJoins { .. }
+                    | ManifestSpecificRuleConfig::CodeMaxJoins { .. }
                     | ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. }
                     | ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. }
                     | ManifestSpecificRuleConfig::SourcesHaveLoader {}

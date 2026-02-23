@@ -79,7 +79,7 @@ impl InitConfig {
                     forbidden_substrings: None,
                 }
             }
-            ManifestSpecificRuleConfig::HasForbiddenCode { .. } => {
+            ManifestSpecificRuleConfig::CodeForbiddenPatterns { .. } => {
                 let mut patterns = vec!["SELECT *".to_string()];
                 match result.data_model {
                     DataModel::Medallion => {
@@ -98,7 +98,7 @@ impl InitConfig {
                     }
                     DataModel::None => {}
                 }
-                ManifestSpecificRuleConfig::HasForbiddenCode {
+                ManifestSpecificRuleConfig::CodeForbiddenPatterns {
                     forbidden_patterns: patterns,
                     case_sensitive: false,
                 }
@@ -129,8 +129,8 @@ impl InitConfig {
                     allowed_references: vec![],
                 }
             }
-            ManifestSpecificRuleConfig::MaxCodeLines { .. } => {
-                ManifestSpecificRuleConfig::MaxCodeLines { max_lines: 200 }
+            ManifestSpecificRuleConfig::CodeMaxLines { .. } => {
+                ManifestSpecificRuleConfig::CodeMaxLines { max_lines: 200 }
             }
             ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. } => {
                 ManifestSpecificRuleConfig::MaxDownstreamDependencies {
@@ -138,8 +138,8 @@ impl InitConfig {
                     exclude_types: vec![],
                 }
             }
-            ManifestSpecificRuleConfig::MaxJoins { .. } => {
-                ManifestSpecificRuleConfig::MaxJoins { max_joins: 5 }
+            ManifestSpecificRuleConfig::CodeMaxJoins { .. } => {
+                ManifestSpecificRuleConfig::CodeMaxJoins { max_joins: 5 }
             }
             ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. } => {
                 ManifestSpecificRuleConfig::MaxUpstreamDependencies {
@@ -361,7 +361,7 @@ impl InitConfig {
     type: "has_description"
 "#
             .to_string(),
-            ManifestSpecificRuleConfig::HasForbiddenCode {
+            ManifestSpecificRuleConfig::CodeForbiddenPatterns {
                 forbidden_patterns,
                 case_sensitive,
             } => {
@@ -371,8 +371,8 @@ impl InitConfig {
                     .collect::<Vec<_>>()
                     .join(", ");
                 let mut s = format!(
-                    r#"  - name: "has_forbidden_code"
-    type: "has_forbidden_code"
+                    r#"  - name: "code_forbidden_patterns"
+    type: "code_forbidden_patterns"
     forbidden_patterns: [{patterns_str}]"#
                 );
                 if *case_sensitive {
@@ -440,10 +440,10 @@ impl InitConfig {
     type: "is_not_orphaned""#
                     .to_string(),
             },
-            ManifestSpecificRuleConfig::MaxCodeLines { max_lines } => {
+            ManifestSpecificRuleConfig::CodeMaxLines { max_lines } => {
                 format!(
-                    r#"  - name: "max_code_lines"
-    type: "max_code_lines"
+                    r#"  - name: "code_max_lines"
+    type: "code_max_lines"
     max_lines: {max_lines}"#
                 )
             }
@@ -462,11 +462,11 @@ impl InitConfig {
     applies_to: ["sources"]"#
                 )
             }
-            ManifestSpecificRuleConfig::MaxJoins { max_joins } => {
+            ManifestSpecificRuleConfig::CodeMaxJoins { max_joins } => {
                 format!(
-                    r#"  - name: "max_joins"
+                    r#"  - name: "code_max_joins"
     description: "Reduce model complexity"
-    type: "max_joins"
+    type: "code_max_joins"
     max_joins: {max_joins}"#
                 )
             }
@@ -666,7 +666,7 @@ type = "has_description"
 "#
                 )
             }
-            ManifestSpecificRuleConfig::HasForbiddenCode {
+            ManifestSpecificRuleConfig::CodeForbiddenPatterns {
                 forbidden_patterns,
                 case_sensitive,
             } => {
@@ -677,8 +677,8 @@ type = "has_description"
                     .join(", ");
                 let mut s = format!(
                     r#"[[{section}]]
-name = "has_forbidden_code"
-type = "has_forbidden_code"
+name = "code_forbidden_patterns"
+type = "code_forbidden_patterns"
 forbidden_patterns = [{patterns_str}]"#
                 );
                 if *case_sensitive {
@@ -767,11 +767,11 @@ type = "is_not_orphaned""#
                     )
                 }
             },
-            ManifestSpecificRuleConfig::MaxCodeLines { max_lines } => {
+            ManifestSpecificRuleConfig::CodeMaxLines { max_lines } => {
                 format!(
                     r#"[[{section}]]
-name = "max_code_lines"
-type = "max_code_lines"
+name = "code_max_lines"
+type = "code_max_lines"
 max_lines = {max_lines}"#
                 )
             }
@@ -792,12 +792,12 @@ max_downstream = 1
 applies_to = ["sources"]"#
                 )
             }
-            ManifestSpecificRuleConfig::MaxJoins { max_joins } => {
+            ManifestSpecificRuleConfig::CodeMaxJoins { max_joins } => {
                 format!(
                     r#"[[{section}]]
-name = "max_joins"
+name = "code_max_joins"
 description = "Reduce model complexity"
-type = "max_joins"
+type = "code_max_joins"
 max_joins = {max_joins}"#
                 )
             }
@@ -1222,7 +1222,7 @@ mod tests {
     fn test_create_manifest_rule_max_code_lines() {
         let result = create_questionnaire_result(
             DataModel::None,
-            vec![ManifestSpecificRuleConfig::MaxCodeLines { max_lines: 0 }],
+            vec![ManifestSpecificRuleConfig::CodeMaxLines { max_lines: 0 }],
             Vec::new(),
             NamingConvention::default(),
         );
@@ -1230,10 +1230,10 @@ mod tests {
         let config = InitConfig::from_questionnaire(&result);
         assert_eq!(config.manifest_rules.len(), 1);
         match &config.manifest_rules[0] {
-            ManifestSpecificRuleConfig::MaxCodeLines { max_lines } => {
+            ManifestSpecificRuleConfig::CodeMaxLines { max_lines } => {
                 assert_eq!(*max_lines, 200);
             }
-            _ => panic!("Expected MaxCodeLines rule"),
+            _ => panic!("Expected CodeMaxLines rule"),
         }
     }
 
@@ -1505,11 +1505,11 @@ mod tests {
                     allowed_test_names: vec![],
                 },
                 ManifestSpecificRuleConfig::HasContractEnforced { access_level: None },
-                ManifestSpecificRuleConfig::HasForbiddenCode {
+                ManifestSpecificRuleConfig::CodeForbiddenPatterns {
                     forbidden_patterns: vec![],
                     case_sensitive: false,
                 },
-                ManifestSpecificRuleConfig::MaxJoins { max_joins: 0 },
+                ManifestSpecificRuleConfig::CodeMaxJoins { max_joins: 0 },
                 ManifestSpecificRuleConfig::SourcesHaveLoader {},
                 ManifestSpecificRuleConfig::SourcesHaveFreshness {},
             ],
@@ -1838,14 +1838,14 @@ mod tests {
     }
 
     // ========================================================================
-    // HasForbiddenCode Init Tests - Data Model Patterns
+    // CodeForbiddenPatterns Init Tests - Data Model Patterns
     // ========================================================================
 
     #[test]
     fn test_forbidden_code_medallion_patterns() {
         let result = create_questionnaire_result(
             DataModel::Medallion,
-            vec![ManifestSpecificRuleConfig::HasForbiddenCode {
+            vec![ManifestSpecificRuleConfig::CodeForbiddenPatterns {
                 forbidden_patterns: vec![],
                 case_sensitive: false,
             }],
@@ -1855,7 +1855,7 @@ mod tests {
 
         let config = InitConfig::from_questionnaire(&result);
         match &config.manifest_rules[0] {
-            ManifestSpecificRuleConfig::HasForbiddenCode {
+            ManifestSpecificRuleConfig::CodeForbiddenPatterns {
                 forbidden_patterns, ..
             } => {
                 assert!(forbidden_patterns.contains(&"SELECT *".to_string()));
@@ -1864,7 +1864,7 @@ mod tests {
                 assert!(forbidden_patterns.contains(&"gold.".to_string()));
                 assert_eq!(forbidden_patterns.len(), 4);
             }
-            _ => panic!("Expected HasForbiddenCode rule"),
+            _ => panic!("Expected CodeForbiddenPatterns rule"),
         }
     }
 
@@ -1872,7 +1872,7 @@ mod tests {
     fn test_forbidden_code_common_patterns() {
         let result = create_questionnaire_result(
             DataModel::Common,
-            vec![ManifestSpecificRuleConfig::HasForbiddenCode {
+            vec![ManifestSpecificRuleConfig::CodeForbiddenPatterns {
                 forbidden_patterns: vec![],
                 case_sensitive: false,
             }],
@@ -1882,7 +1882,7 @@ mod tests {
 
         let config = InitConfig::from_questionnaire(&result);
         match &config.manifest_rules[0] {
-            ManifestSpecificRuleConfig::HasForbiddenCode {
+            ManifestSpecificRuleConfig::CodeForbiddenPatterns {
                 forbidden_patterns, ..
             } => {
                 assert!(forbidden_patterns.contains(&"SELECT *".to_string()));
@@ -1891,7 +1891,7 @@ mod tests {
                 assert!(forbidden_patterns.contains(&"marts.".to_string()));
                 assert_eq!(forbidden_patterns.len(), 4);
             }
-            _ => panic!("Expected HasForbiddenCode rule"),
+            _ => panic!("Expected CodeForbiddenPatterns rule"),
         }
     }
 
@@ -1899,7 +1899,7 @@ mod tests {
     fn test_forbidden_code_none_no_schema_patterns() {
         let result = create_questionnaire_result(
             DataModel::None,
-            vec![ManifestSpecificRuleConfig::HasForbiddenCode {
+            vec![ManifestSpecificRuleConfig::CodeForbiddenPatterns {
                 forbidden_patterns: vec![],
                 case_sensitive: false,
             }],
@@ -1909,13 +1909,13 @@ mod tests {
 
         let config = InitConfig::from_questionnaire(&result);
         match &config.manifest_rules[0] {
-            ManifestSpecificRuleConfig::HasForbiddenCode {
+            ManifestSpecificRuleConfig::CodeForbiddenPatterns {
                 forbidden_patterns, ..
             } => {
                 assert!(forbidden_patterns.contains(&"SELECT *".to_string()));
                 assert_eq!(forbidden_patterns.len(), 1);
             }
-            _ => panic!("Expected HasForbiddenCode rule"),
+            _ => panic!("Expected CodeForbiddenPatterns rule"),
         }
     }
 
@@ -1923,7 +1923,7 @@ mod tests {
     fn test_forbidden_code_medallion_yaml_output() {
         let result = create_questionnaire_result(
             DataModel::Medallion,
-            vec![ManifestSpecificRuleConfig::HasForbiddenCode {
+            vec![ManifestSpecificRuleConfig::CodeForbiddenPatterns {
                 forbidden_patterns: vec![],
                 case_sensitive: false,
             }],
@@ -1934,7 +1934,7 @@ mod tests {
         let config = InitConfig::from_questionnaire(&result);
         let yaml = config.to_yaml();
 
-        assert!(yaml.contains(r#"type: "has_forbidden_code""#));
+        assert!(yaml.contains(r#"type: "code_forbidden_patterns""#));
         assert!(yaml.contains(r#""bronze.""#));
         assert!(yaml.contains(r#""silver.""#));
         assert!(yaml.contains(r#""gold.""#));
@@ -1944,7 +1944,7 @@ mod tests {
     fn test_forbidden_code_common_toml_output() {
         let result = create_questionnaire_result(
             DataModel::Common,
-            vec![ManifestSpecificRuleConfig::HasForbiddenCode {
+            vec![ManifestSpecificRuleConfig::CodeForbiddenPatterns {
                 forbidden_patterns: vec![],
                 case_sensitive: false,
             }],
@@ -1955,7 +1955,7 @@ mod tests {
         let config = InitConfig::from_questionnaire(&result);
         let toml = config.to_toml();
 
-        assert!(toml.contains(r#"type = "has_forbidden_code""#));
+        assert!(toml.contains(r#"type = "code_forbidden_patterns""#));
         assert!(toml.contains(r#""staging.""#));
         assert!(toml.contains(r#""intermediate.""#));
         assert!(toml.contains(r#""marts.""#));

@@ -1,6 +1,6 @@
 use crate::{cli::table::RuleResult, core::config::manifest_rule::ManifestRule};
 
-use super::max_code_lines::HasCode;
+use super::code_max_lines::HasCode;
 use super::utils::strip_sql_comments;
 
 /// Check if code contains `ref()` or `source()` function calls.

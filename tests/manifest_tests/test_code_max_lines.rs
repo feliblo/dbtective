@@ -2,7 +2,7 @@ use crate::common::TestEnvironment;
 
 #[test]
 #[allow(clippy::too_many_lines)]
-fn test_max_code_lines_models() {
+fn test_code_max_lines_models() {
     let manifest = r#"{
   "metadata": {
     "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
@@ -98,7 +98,7 @@ fn test_max_code_lines_models() {
     let max_lines_config = r#"
 manifest_tests:
   - name: "models_max_5_lines"
-    type: max_code_lines
+    type: code_max_lines
     severity: "error"
     max_lines: 5
     applies_to:
@@ -134,7 +134,7 @@ manifest_tests:
     let strict_config = r#"
 manifest_tests:
   - name: "models_max_1_line"
-    type: max_code_lines
+    type: code_max_lines
     severity: "warning"
     max_lines: 1
     applies_to:
@@ -155,7 +155,7 @@ manifest_tests:
     let lenient_config = r#"
 manifest_tests:
   - name: "models_max_10_lines"
-    type: max_code_lines
+    type: code_max_lines
     severity: "error"
     max_lines: 10
     applies_to:
@@ -173,7 +173,7 @@ manifest_tests:
     let exact_limit_config = r#"
 manifest_tests:
   - name: "models_max_2_lines"
-    type: max_code_lines
+    type: code_max_lines
     severity: "error"
     max_lines: 2
     applies_to:
@@ -193,7 +193,7 @@ manifest_tests:
 
 #[test]
 #[allow(clippy::too_many_lines)]
-fn test_max_code_lines_snapshots() {
+fn test_code_max_lines_snapshots() {
     let manifest = r#"{
   "metadata": {
     "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
@@ -268,7 +268,7 @@ fn test_max_code_lines_snapshots() {
     let max_lines_config = r#"
 manifest_tests:
   - name: "snapshots_max_3_lines"
-    type: max_code_lines
+    type: code_max_lines
     severity: "warning"
     max_lines: 3
     applies_to:
@@ -292,7 +292,7 @@ manifest_tests:
     let lenient_config = r#"
 manifest_tests:
   - name: "snapshots_max_10_lines"
-    type: max_code_lines
+    type: code_max_lines
     severity: "error"
     max_lines: 10
     applies_to:
@@ -308,7 +308,7 @@ manifest_tests:
     let strict_config = r#"
 manifest_tests:
   - name: "snapshots_max_1_line"
-    type: max_code_lines
+    type: code_max_lines
     severity: "error"
     max_lines: 1
     applies_to:
@@ -329,7 +329,7 @@ manifest_tests:
     let exact_config = r#"
 manifest_tests:
   - name: "snapshots_max_2_lines"
-    type: max_code_lines
+    type: code_max_lines
     severity: "error"
     max_lines: 2
     applies_to:
@@ -346,7 +346,7 @@ manifest_tests:
 
 #[test]
 #[allow(clippy::too_many_lines)]
-fn test_max_code_lines_macros() {
+fn test_code_max_lines_macros() {
     let manifest = r#"{
   "metadata": {
     "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
@@ -417,7 +417,7 @@ fn test_max_code_lines_macros() {
     let max_lines_config = r#"
 manifest_tests:
   - name: "macros_max_5_lines"
-    type: max_code_lines
+    type: code_max_lines
     severity: "error"
     max_lines: 5
     applies_to:
@@ -441,7 +441,7 @@ manifest_tests:
     let lenient_config = r#"
 manifest_tests:
   - name: "macros_max_10_lines"
-    type: max_code_lines
+    type: code_max_lines
     severity: "error"
     max_lines: 10
     applies_to:
@@ -457,7 +457,7 @@ manifest_tests:
     let exact_config = r#"
 manifest_tests:
   - name: "macros_max_8_lines"
-    type: max_code_lines
+    type: code_max_lines
     severity: "warning"
     max_lines: 8
     applies_to:
@@ -474,7 +474,7 @@ manifest_tests:
     let below_limit_config = r#"
 manifest_tests:
   - name: "macros_max_7_lines"
-    type: max_code_lines
+    type: code_max_lines
     severity: "error"
     max_lines: 7
     applies_to:
@@ -492,7 +492,7 @@ manifest_tests:
     let strict_config = r#"
 manifest_tests:
   - name: "macros_max_2_lines"
-    type: max_code_lines
+    type: code_max_lines
     severity: "error"
     max_lines: 2
     applies_to:
@@ -511,7 +511,7 @@ manifest_tests:
 
 #[test]
 #[allow(clippy::too_many_lines)]
-fn test_max_code_lines_all_types() {
+fn test_code_max_lines_all_types() {
     let manifest = r#"{
   "metadata": {
     "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
@@ -627,7 +627,7 @@ fn test_max_code_lines_all_types() {
     let max_lines_config = r#"
 manifest_tests:
   - name: "all_objects_max_3_lines"
-    type: max_code_lines
+    type: code_max_lines
     severity: "error"
     max_lines: 3
     applies_to:
@@ -661,7 +661,7 @@ manifest_tests:
     let lenient_config = r#"
 manifest_tests:
   - name: "all_objects_max_10_lines"
-    type: max_code_lines
+    type: code_max_lines
     severity: "warning"
     max_lines: 10
     applies_to:
@@ -679,7 +679,7 @@ manifest_tests:
     let partial_config = r#"
 manifest_tests:
   - name: "models_and_snapshots_max_5_lines"
-    type: max_code_lines
+    type: code_max_lines
     severity: "error"
     max_lines: 5
     applies_to:
@@ -703,7 +703,7 @@ manifest_tests:
     let strict_config = r#"
 manifest_tests:
   - name: "all_objects_max_1_line"
-    type: max_code_lines
+    type: code_max_lines
     severity: "warning"
     max_lines: 1
     applies_to:

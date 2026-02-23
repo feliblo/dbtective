@@ -63,11 +63,11 @@ pub fn default_allowed_test_names() -> Vec<String> {
     ]
 }
 
-pub const fn default_max_code_lines() -> usize {
+pub const fn default_code_max_lines() -> usize {
     150
 }
 
-pub const fn default_max_joins() -> usize {
+pub const fn default_code_max_joins() -> usize {
     5
 }
 
