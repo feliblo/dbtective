@@ -1,7 +1,9 @@
 mod test_code_contains_refs;
+mod test_code_forbidden_patterns;
+mod test_code_max_joins;
+mod test_code_max_lines;
 mod test_has_contract_enforced;
 mod test_has_description;
-mod test_has_forbidden_code;
 mod test_has_freshness;
 mod test_has_loader;
 mod test_has_metadata_keys;
@@ -9,6 +11,4 @@ mod test_has_refs;
 mod test_has_tags;
 mod test_has_unique_tests;
 mod test_is_not_orphaned;
-mod test_max_code_lines;
-mod test_max_joins;
 mod test_naming_convention;

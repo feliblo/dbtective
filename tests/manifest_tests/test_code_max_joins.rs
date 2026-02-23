@@ -1,7 +1,7 @@
 use crate::common::TestEnvironment;
 
 #[test]
-fn test_has_forbidden_code_models() {
+fn test_code_max_joins_within_limit_passes() {
     let manifest = r#"{
   "metadata": {
     "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
@@ -14,115 +14,24 @@ fn test_has_forbidden_code_models() {
     "quoting": {}
   },
   "nodes": {
-    "model.test.clean_model": {
+    "model.test.simple_model": {
       "database": "db",
       "schema": "public",
-      "name": "clean_model",
+      "name": "simple_model",
       "resource_type": "model",
       "package_name": "test_project",
-      "path": "clean_model.sql",
-      "original_file_path": "models/clean_model.sql",
-      "unique_id": "model.test.clean_model",
-      "fqn": ["test", "clean_model"],
-      "alias": "clean_model",
+      "path": "simple_model.sql",
+      "original_file_path": "models/simple_model.sql",
+      "unique_id": "model.test.simple_model",
+      "fqn": ["test", "simple_model"],
+      "alias": "simple_model",
       "depends_on": { "nodes": [] },
       "checksum": {"name": "sha256", "checksum": "abc"},
       "tags": [],
-      "description": "Clean model without jinja",
+      "description": "Simple model",
       "columns": {},
       "meta": {},
-      "raw_code": "SELECT id, name\nFROM users\nWHERE active = true"
-    },
-    "model.test.jinja_model": {
-      "database": "db",
-      "schema": "public",
-      "name": "jinja_model",
-      "resource_type": "model",
-      "package_name": "test_project",
-      "path": "jinja_model.sql",
-      "original_file_path": "models/jinja_model.sql",
-      "unique_id": "model.test.jinja_model",
-      "fqn": ["test", "jinja_model"],
-      "alias": "jinja_model",
-      "depends_on": { "nodes": [] },
-      "checksum": {"name": "sha256", "checksum": "def"},
-      "tags": [],
-      "description": "Model with jinja patterns",
-      "columns": {},
-      "meta": {},
-      "raw_code": "SELECT {{ ref('other_model') }}\nFROM {% if target.name == 'prod' %}prod_table{% endif %}"
-    }
-  },
-  "sources": {},
-  "macros": {},
-  "exposures": {},
-  "metrics": {},
-  "groups": {},
-  "selectors": {},
-  "disabled": {},
-  "parent_map": {},
-  "child_map": {},
-  "group_map": {},
-  "saved_queries": {},
-  "semantic_models": {},
-  "unit_tests": {}
-}"#;
-
-    // Config: forbid {{ and {% in models
-    let config = r#"
-manifest_tests:
-  - name: "no_jinja_in_models"
-    type: has_forbidden_code
-    severity: "error"
-    forbidden_patterns: ["{{", "{%"]
-    applies_to:
-      - "models"
-"#;
-
-    let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_manifest_rules(false);
-
-    // Only jinja_model should have violations
-    assert_eq!(findings.len(), 1);
-    assert_eq!(findings[0].0.severity, "FAIL");
-    assert_eq!(findings[0].0.object_type, "Model");
-    assert_eq!(findings[0].0.rule_name, "no_jinja_in_models");
-    assert!(findings[0].0.message.contains("jinja_model"));
-    assert!(findings[0].0.message.contains("forbidden code pattern"));
-}
-
-#[test]
-fn test_has_forbidden_code_no_violations() {
-    let manifest = r#"{
-  "metadata": {
-    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
-    "dbt_version": "1.10.0",
-    "generated_at": "2025-01-01T00:00:00.000000Z",
-    "invocation_id": "test-invocation",
-    "env": {},
-    "project_name": "test_project",
-    "adapter_type": "postgres",
-    "quoting": {}
-  },
-  "nodes": {
-    "model.test.pure_sql_model": {
-      "database": "db",
-      "schema": "public",
-      "name": "pure_sql_model",
-      "resource_type": "model",
-      "package_name": "test_project",
-      "path": "pure_sql_model.sql",
-      "original_file_path": "models/pure_sql_model.sql",
-      "unique_id": "model.test.pure_sql_model",
-      "fqn": ["test", "pure_sql_model"],
-      "alias": "pure_sql_model",
-      "depends_on": { "nodes": [] },
-      "checksum": {"name": "sha256", "checksum": "abc"},
-      "tags": [],
-      "description": "Pure SQL model",
-      "columns": {},
-      "meta": {},
-      "raw_code": "SELECT id, name FROM users"
+      "raw_code": "SELECT a.id, b.name FROM {{ ref('users') }} a JOIN {{ ref('orders') }} b ON a.id = b.user_id"
     }
   },
   "sources": {},
@@ -142,22 +51,21 @@ fn test_has_forbidden_code_no_violations() {
 
     let config = r#"
 manifest_tests:
-  - name: "no_jinja"
-    type: has_forbidden_code
+  - name: "code_max_joins_check"
+    type: code_max_joins
     severity: "error"
-    forbidden_patterns: ["{{", "{%"]
+    max_joins: 2
     applies_to:
       - "models"
 "#;
 
     let env = TestEnvironment::new(manifest, config);
     let findings = env.run_manifest_rules(false);
-
     assert_eq!(findings.len(), 0);
 }
 
 #[test]
-fn test_has_forbidden_code_macros() {
+fn test_code_max_joins_exceeds_limit_fails() {
     let manifest = r#"{
   "metadata": {
     "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
@@ -169,25 +77,29 @@ fn test_has_forbidden_code_macros() {
     "adapter_type": "postgres",
     "quoting": {}
   },
-  "nodes": {},
-  "sources": {},
-  "macros": {
-    "macro.test.bad_macro": {
-      "name": "bad_macro",
-      "resource_type": "macro",
+  "nodes": {
+    "model.test.complex_model": {
+      "database": "db",
+      "schema": "public",
+      "name": "complex_model",
+      "resource_type": "model",
       "package_name": "test_project",
-      "path": "macros/bad_macro.sql",
-      "original_file_path": "macros/bad_macro.sql",
-      "unique_id": "macro.test.bad_macro",
-      "macro_sql": "{% macro bad_macro() %}\n  SELECT * FROM {{ source('raw', 'users') }}\n{% endmacro %}",
-      "depends_on": { "macros": [] },
-      "description": "Bad macro",
+      "path": "complex_model.sql",
+      "original_file_path": "models/complex_model.sql",
+      "unique_id": "model.test.complex_model",
+      "fqn": ["test", "complex_model"],
+      "alias": "complex_model",
+      "depends_on": { "nodes": [] },
+      "checksum": {"name": "sha256", "checksum": "abc"},
+      "tags": [],
+      "description": "Complex model with many joins",
+      "columns": {},
       "meta": {},
-      "docs": { "show": true },
-      "patch_path": null,
-      "arguments": []
+      "raw_code": "SELECT a.id FROM {{ ref('users') }} a JOIN {{ ref('orders') }} b ON a.id = b.user_id JOIN {{ ref('products') }} c ON b.product_id = c.id JOIN {{ ref('categories') }} d ON c.cat_id = d.id"
     }
   },
+  "sources": {},
+  "macros": {},
   "exposures": {},
   "metrics": {},
   "groups": {},
@@ -203,12 +115,149 @@ fn test_has_forbidden_code_macros() {
 
     let config = r#"
 manifest_tests:
-  - name: "no_select_star_in_macros"
-    type: has_forbidden_code
-    severity: "warning"
-    forbidden_patterns: ["SELECT *"]
+  - name: "code_max_joins_check"
+    type: code_max_joins
+    severity: "error"
+    max_joins: 2
     applies_to:
-      - "macros"
+      - "models"
+"#;
+
+    let env = TestEnvironment::new(manifest, config);
+    let findings = env.run_manifest_rules(false);
+
+    assert_eq!(findings.len(), 1);
+    assert_eq!(findings[0].0.severity, "FAIL");
+    assert_eq!(findings[0].0.object_type, "Model");
+    assert_eq!(findings[0].0.rule_name, "code_max_joins_check");
+    assert!(findings[0].0.message.contains("complex_model"));
+    assert!(findings[0].0.message.contains("3 JOIN(s)"));
+    assert!(findings[0].0.message.contains("maximum allowed of 2"));
+}
+
+#[test]
+fn test_code_max_joins_commented_joins_not_counted() {
+    let manifest = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "invocation_id": "test-invocation",
+    "env": {},
+    "project_name": "test_project",
+    "adapter_type": "postgres",
+    "quoting": {}
+  },
+  "nodes": {
+    "model.test.commented_model": {
+      "database": "db",
+      "schema": "public",
+      "name": "commented_model",
+      "resource_type": "model",
+      "package_name": "test_project",
+      "path": "commented_model.sql",
+      "original_file_path": "models/commented_model.sql",
+      "unique_id": "model.test.commented_model",
+      "fqn": ["test", "commented_model"],
+      "alias": "commented_model",
+      "depends_on": { "nodes": [] },
+      "checksum": {"name": "sha256", "checksum": "abc"},
+      "tags": [],
+      "description": "Model with commented out joins",
+      "columns": {},
+      "meta": {},
+      "raw_code": "-- JOIN old_table ON ...\n/* LEFT JOIN another_table ON ... */\nSELECT a.id FROM {{ ref('users') }} a JOIN {{ ref('orders') }} b ON a.id = b.user_id"
+    }
+  },
+  "sources": {},
+  "macros": {},
+  "exposures": {},
+  "metrics": {},
+  "groups": {},
+  "selectors": {},
+  "disabled": {},
+  "parent_map": {},
+  "child_map": {},
+  "group_map": {},
+  "saved_queries": {},
+  "semantic_models": {},
+  "unit_tests": {}
+}"#;
+
+    let config = r#"
+manifest_tests:
+  - name: "code_max_joins_check"
+    type: code_max_joins
+    severity: "error"
+    max_joins: 1
+    applies_to:
+      - "models"
+"#;
+
+    let env = TestEnvironment::new(manifest, config);
+    let findings = env.run_manifest_rules(false);
+
+    // Only 1 real JOIN (the commented ones should not count)
+    assert_eq!(findings.len(), 0);
+}
+
+#[test]
+fn test_code_max_joins_case_insensitive() {
+    let manifest = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "invocation_id": "test-invocation",
+    "env": {},
+    "project_name": "test_project",
+    "adapter_type": "postgres",
+    "quoting": {}
+  },
+  "nodes": {
+    "model.test.mixed_case_model": {
+      "database": "db",
+      "schema": "public",
+      "name": "mixed_case_model",
+      "resource_type": "model",
+      "package_name": "test_project",
+      "path": "mixed_case_model.sql",
+      "original_file_path": "models/mixed_case_model.sql",
+      "unique_id": "model.test.mixed_case_model",
+      "fqn": ["test", "mixed_case_model"],
+      "alias": "mixed_case_model",
+      "depends_on": { "nodes": [] },
+      "checksum": {"name": "sha256", "checksum": "abc"},
+      "tags": [],
+      "description": "Model with mixed case joins",
+      "columns": {},
+      "meta": {},
+      "raw_code": "SELECT a.id FROM {{ ref('users') }} a join {{ ref('orders') }} b ON a.id = b.user_id LEFT JOIN {{ ref('products') }} c ON b.product_id = c.id"
+    }
+  },
+  "sources": {},
+  "macros": {},
+  "exposures": {},
+  "metrics": {},
+  "groups": {},
+  "selectors": {},
+  "disabled": {},
+  "parent_map": {},
+  "child_map": {},
+  "group_map": {},
+  "saved_queries": {},
+  "semantic_models": {},
+  "unit_tests": {}
+}"#;
+
+    let config = r#"
+manifest_tests:
+  - name: "code_max_joins_check"
+    type: code_max_joins
+    severity: "warning"
+    max_joins: 1
+    applies_to:
+      - "models"
 "#;
 
     let env = TestEnvironment::new(manifest, config);
@@ -216,14 +265,11 @@ manifest_tests:
 
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].0.severity, "WARN");
-    assert_eq!(findings[0].0.object_type, "Macro");
-    assert_eq!(findings[0].0.rule_name, "no_select_star_in_macros");
-    assert!(findings[0].0.message.contains("bad_macro"));
-    assert!(findings[0].0.message.contains("'SELECT *'"));
+    assert!(findings[0].0.message.contains("2 JOIN(s)"));
 }
 
 #[test]
-fn test_has_forbidden_code_case_insensitive_default() {
+fn test_code_max_joins_mixed_models() {
     let manifest = r#"{
   "metadata": {
     "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
@@ -236,24 +282,43 @@ fn test_has_forbidden_code_case_insensitive_default() {
     "quoting": {}
   },
   "nodes": {
-    "model.test.lower_model": {
+    "model.test.good_model": {
       "database": "db",
       "schema": "public",
-      "name": "lower_model",
+      "name": "good_model",
       "resource_type": "model",
       "package_name": "test_project",
-      "path": "lower_model.sql",
-      "original_file_path": "models/lower_model.sql",
-      "unique_id": "model.test.lower_model",
-      "fqn": ["test", "lower_model"],
-      "alias": "lower_model",
+      "path": "good_model.sql",
+      "original_file_path": "models/good_model.sql",
+      "unique_id": "model.test.good_model",
+      "fqn": ["test", "good_model"],
+      "alias": "good_model",
       "depends_on": { "nodes": [] },
       "checksum": {"name": "sha256", "checksum": "abc"},
       "tags": [],
-      "description": "Model with lowercase select star",
+      "description": "Good model",
       "columns": {},
       "meta": {},
-      "raw_code": "select * from users"
+      "raw_code": "SELECT a.id FROM {{ ref('users') }} a JOIN {{ ref('orders') }} b ON a.id = b.user_id"
+    },
+    "model.test.bad_model": {
+      "database": "db",
+      "schema": "public",
+      "name": "bad_model",
+      "resource_type": "model",
+      "package_name": "test_project",
+      "path": "bad_model.sql",
+      "original_file_path": "models/bad_model.sql",
+      "unique_id": "model.test.bad_model",
+      "fqn": ["test", "bad_model"],
+      "alias": "bad_model",
+      "depends_on": { "nodes": [] },
+      "checksum": {"name": "sha256", "checksum": "def"},
+      "tags": [],
+      "description": "Bad model with too many joins",
+      "columns": {},
+      "meta": {},
+      "raw_code": "SELECT a.id FROM users a JOIN orders b ON a.id = b.user_id JOIN products c ON b.product_id = c.id JOIN categories d ON c.cat_id = d.id JOIN suppliers e ON d.sup_id = e.id"
     }
   },
   "sources": {},
@@ -271,13 +336,12 @@ fn test_has_forbidden_code_case_insensitive_default() {
   "unit_tests": {}
 }"#;
 
-    // Default (no case_sensitive) should be case-insensitive
     let config = r#"
 manifest_tests:
-  - name: "no_select_star"
-    type: has_forbidden_code
+  - name: "code_max_joins_check"
+    type: code_max_joins
     severity: "error"
-    forbidden_patterns: ["SELECT *"]
+    max_joins: 2
     applies_to:
       - "models"
 "#;
@@ -285,14 +349,13 @@ manifest_tests:
     let env = TestEnvironment::new(manifest, config);
     let findings = env.run_manifest_rules(false);
 
-    // "select *" should match "SELECT *" case-insensitively
+    // Only bad_model should fail (4 joins > 2 limit)
     assert_eq!(findings.len(), 1);
-    assert_eq!(findings[0].0.rule_name, "no_select_star");
-    assert!(findings[0].0.message.contains("lower_model"));
+    assert!(findings[0].0.message.contains("bad_model"));
 }
 
 #[test]
-fn test_has_forbidden_code_case_sensitive_no_match() {
+fn test_code_max_joins_default_threshold() {
     let manifest = r#"{
   "metadata": {
     "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
@@ -305,24 +368,24 @@ fn test_has_forbidden_code_case_sensitive_no_match() {
     "quoting": {}
   },
   "nodes": {
-    "model.test.lower_model": {
+    "model.test.ok_model": {
       "database": "db",
       "schema": "public",
-      "name": "lower_model",
+      "name": "ok_model",
       "resource_type": "model",
       "package_name": "test_project",
-      "path": "lower_model.sql",
-      "original_file_path": "models/lower_model.sql",
-      "unique_id": "model.test.lower_model",
-      "fqn": ["test", "lower_model"],
-      "alias": "lower_model",
+      "path": "ok_model.sql",
+      "original_file_path": "models/ok_model.sql",
+      "unique_id": "model.test.ok_model",
+      "fqn": ["test", "ok_model"],
+      "alias": "ok_model",
       "depends_on": { "nodes": [] },
       "checksum": {"name": "sha256", "checksum": "abc"},
       "tags": [],
-      "description": "Model with lowercase select star",
+      "description": "Model with 6 joins (should fail with default of 5)",
       "columns": {},
       "meta": {},
-      "raw_code": "select * from users"
+      "raw_code": "SELECT a.id FROM t1 a JOIN t2 b ON a.id=b.id JOIN t3 c ON b.id=c.id JOIN t4 d ON c.id=d.id JOIN t5 e ON d.id=e.id JOIN t6 f ON e.id=f.id JOIN t7 g ON f.id=g.id"
     }
   },
   "sources": {},
@@ -340,14 +403,12 @@ fn test_has_forbidden_code_case_sensitive_no_match() {
   "unit_tests": {}
 }"#;
 
-    // case_sensitive: true means "SELECT *" should NOT match "select *"
+    // No code_max_joins specified — should use default of 5
     let config = r#"
 manifest_tests:
-  - name: "no_select_star_exact"
-    type: has_forbidden_code
+  - name: "code_max_joins_default"
+    type: code_max_joins
     severity: "error"
-    forbidden_patterns: ["SELECT *"]
-    case_sensitive: true
     applies_to:
       - "models"
 "#;
@@ -355,74 +416,72 @@ manifest_tests:
     let env = TestEnvironment::new(manifest, config);
     let findings = env.run_manifest_rules(false);
 
+    // 6 joins > default 5, should fail
+    assert_eq!(findings.len(), 1);
+    assert!(findings[0].0.message.contains("ok_model"));
+}
+
+#[test]
+fn test_code_max_joins_no_code_skips() {
+    let manifest = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "invocation_id": "test-invocation",
+    "env": {},
+    "project_name": "test_project",
+    "adapter_type": "postgres",
+    "quoting": {}
+  },
+  "nodes": {
+    "model.test.no_code_model": {
+      "database": "db",
+      "schema": "public",
+      "name": "no_code_model",
+      "resource_type": "model",
+      "package_name": "test_project",
+      "path": "no_code_model.sql",
+      "original_file_path": "models/no_code_model.sql",
+      "unique_id": "model.test.no_code_model",
+      "fqn": ["test", "no_code_model"],
+      "alias": "no_code_model",
+      "depends_on": { "nodes": [] },
+      "checksum": {"name": "sha256", "checksum": "abc"},
+      "tags": [],
+      "description": "Model without code",
+      "columns": {},
+      "meta": {}
+    }
+  },
+  "sources": {},
+  "macros": {},
+  "exposures": {},
+  "metrics": {},
+  "groups": {},
+  "selectors": {},
+  "disabled": {},
+  "parent_map": {},
+  "child_map": {},
+  "group_map": {},
+  "saved_queries": {},
+  "semantic_models": {},
+  "unit_tests": {}
+}"#;
+
+    let config = r#"
+manifest_tests:
+  - name: "code_max_joins_check"
+    type: code_max_joins
+    severity: "error"
+    max_joins: 1
+    applies_to:
+      - "models"
+"#;
+
+    let env = TestEnvironment::new(manifest, config);
+    let findings = env.run_manifest_rules(false);
+
+    // No code = skip gracefully
     assert_eq!(findings.len(), 0);
-}
-
-#[test]
-fn test_has_forbidden_code_case_sensitive_exact_match() {
-    let manifest = r#"{
-  "metadata": {
-    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
-    "dbt_version": "1.10.0",
-    "generated_at": "2025-01-01T00:00:00.000000Z",
-    "invocation_id": "test-invocation",
-    "env": {},
-    "project_name": "test_project",
-    "adapter_type": "postgres",
-    "quoting": {}
-  },
-  "nodes": {
-    "model.test.upper_model": {
-      "database": "db",
-      "schema": "public",
-      "name": "upper_model",
-      "resource_type": "model",
-      "package_name": "test_project",
-      "path": "upper_model.sql",
-      "original_file_path": "models/upper_model.sql",
-      "unique_id": "model.test.upper_model",
-      "fqn": ["test", "upper_model"],
-      "alias": "upper_model",
-      "depends_on": { "nodes": [] },
-      "checksum": {"name": "sha256", "checksum": "abc"},
-      "tags": [],
-      "description": "Model with uppercase SELECT star",
-      "columns": {},
-      "meta": {},
-      "raw_code": "SELECT * FROM users"
-    }
-  },
-  "sources": {},
-  "macros": {},
-  "exposures": {},
-  "metrics": {},
-  "groups": {},
-  "selectors": {},
-  "disabled": {},
-  "parent_map": {},
-  "child_map": {},
-  "group_map": {},
-  "saved_queries": {},
-  "semantic_models": {},
-  "unit_tests": {}
-}"#;
-
-    // case_sensitive: true, exact case matches
-    let config = r#"
-manifest_tests:
-  - name: "no_select_star_exact"
-    type: has_forbidden_code
-    severity: "error"
-    forbidden_patterns: ["SELECT *"]
-    case_sensitive: true
-    applies_to:
-      - "models"
-"#;
-
-    let env = TestEnvironment::new(manifest, config);
-    let findings = env.run_manifest_rules(false);
-
-    assert_eq!(findings.len(), 1);
-    assert_eq!(findings[0].0.rule_name, "no_select_star_exact");
-    assert!(findings[0].0.message.contains("upper_model"));
 }

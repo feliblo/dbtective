@@ -7,9 +7,9 @@ use serde::{Deserialize, Serialize};
 use crate::core::config::applies_to::AppliesTo;
 use crate::core::config::applies_to::RuleTarget;
 use crate::core::config::check_config_options::{
-    default_allowed_references, default_allowed_test_names, default_excluded_dependency_types,
-    default_max_code_lines, default_max_downstream, default_max_joins, default_max_upstream,
-    AccessLevel, DependencyType, HasTagsCriteria, OrphanedReferenceType,
+    default_allowed_references, default_allowed_test_names, default_code_max_joins,
+    default_code_max_lines, default_excluded_dependency_types, default_max_downstream,
+    default_max_upstream, AccessLevel, DependencyType, HasTagsCriteria, OrphanedReferenceType,
 };
 use crate::core::config::naming_convention::NamingConvention;
 use crate::core::config::rule_category::RuleCategory;
@@ -30,6 +30,19 @@ pub enum ManifestSpecificRuleConfig {
         path_postfix: Option<String>,
     },
     CodeContainsRefs {},
+    CodeForbiddenPatterns {
+        forbidden_patterns: Vec<String>,
+        #[serde(default)]
+        case_sensitive: bool,
+    },
+    CodeMaxJoins {
+        #[serde(default = "default_code_max_joins")]
+        max_joins: usize,
+    },
+    CodeMaxLines {
+        #[serde(default = "default_code_max_lines")]
+        max_lines: usize,
+    },
     HasContractEnforced {
         #[serde(default)]
         access_level: Option<AccessLevel>,
@@ -39,11 +52,6 @@ pub enum ManifestSpecificRuleConfig {
         min_length: Option<usize>,
         #[serde(default)]
         forbidden_substrings: Option<Vec<String>>,
-    },
-    HasForbiddenCode {
-        forbidden_patterns: Vec<String>,
-        #[serde(default)]
-        case_sensitive: bool,
     },
     HasMetadataKeys {
         required_keys: Vec<String>,
@@ -64,19 +72,11 @@ pub enum ManifestSpecificRuleConfig {
         #[serde(default = "default_allowed_references")]
         allowed_references: Vec<OrphanedReferenceType>,
     },
-    MaxCodeLines {
-        #[serde(default = "default_max_code_lines")]
-        max_lines: usize,
-    },
     MaxDownstreamDependencies {
         #[serde(default = "default_max_downstream")]
         max_downstream: usize,
         #[serde(default = "default_excluded_dependency_types")]
         exclude_types: Vec<DependencyType>,
-    },
-    MaxJoins {
-        #[serde(default = "default_max_joins")]
-        max_joins: usize,
     },
     MaxUpstreamDependencies {
         #[serde(default = "default_max_upstream")]
@@ -131,9 +131,9 @@ impl ManifestSpecificRuleConfig {
             Self::IsNotOrphaned { .. }
             | Self::MaxUpstreamDependencies { .. }
             | Self::MaxDownstreamDependencies { .. } => RuleCategory::Structure,
-            Self::MaxCodeLines { .. } | Self::HasForbiddenCode { .. } | Self::MaxJoins { .. } => {
-                RuleCategory::Performance
-            }
+            Self::CodeMaxLines { .. }
+            | Self::CodeForbiddenPatterns { .. }
+            | Self::CodeMaxJoins { .. } => RuleCategory::Performance,
         }
     }
 }
@@ -338,9 +338,9 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             semantic_model_objects: vec![],
             custom_objects: vec![],
         },
-        ManifestSpecificRuleConfig::MaxCodeLines { .. }
-        | ManifestSpecificRuleConfig::HasForbiddenCode { .. }
-        | ManifestSpecificRuleConfig::MaxJoins { .. } => AppliesTo {
+        ManifestSpecificRuleConfig::CodeMaxLines { .. }
+        | ManifestSpecificRuleConfig::CodeForbiddenPatterns { .. }
+        | ManifestSpecificRuleConfig::CodeMaxJoins { .. } => AppliesTo {
             node_objects: vec![RuleTarget::Models, RuleTarget::Snapshots],
             source_objects: vec![],
             unit_test_objects: vec![],
@@ -469,10 +469,10 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
             semantic_model_objects: vec![RuleTarget::SemanticModels],
             custom_objects: vec![],
         },
-        ManifestSpecificRuleConfig::MaxCodeLines { .. }
-        | ManifestSpecificRuleConfig::HasForbiddenCode { .. }
+        ManifestSpecificRuleConfig::CodeMaxLines { .. }
+        | ManifestSpecificRuleConfig::CodeForbiddenPatterns { .. }
         | ManifestSpecificRuleConfig::CodeContainsRefs {}
-        | ManifestSpecificRuleConfig::MaxJoins { .. } => AppliesTo {
+        | ManifestSpecificRuleConfig::CodeMaxJoins { .. } => AppliesTo {
             node_objects: vec![RuleTarget::Models, RuleTarget::Snapshots],
             source_objects: vec![],
             unit_test_objects: vec![],

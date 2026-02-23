@@ -1,6 +1,6 @@
 use crate::{cli::table::RuleResult, core::config::manifest_rule::ManifestRule};
 
-use super::max_code_lines::HasCode;
+use super::code_max_lines::HasCode;
 use super::utils::strip_sql_comments;
 
 /// Count the number of JOIN keywords in SQL code (case-insensitive).
@@ -18,7 +18,7 @@ fn count_joins(code: &str) -> usize {
 /// Returns `None` if the code has no JOINs or is within the limit (pass).
 /// Returns `Some(RuleResult)` if the code exceeds the limit (fail).
 /// Gracefully skips objects with no code (returns `None`).
-pub fn max_joins<T: HasCode>(
+pub fn code_max_joins<T: HasCode>(
     object_with_code: &T,
     rule: &ManifestRule,
     max_joins_allowed: usize,
@@ -87,7 +87,7 @@ mod tests {
 
     fn create_test_rule(max: usize) -> ManifestRule {
         ManifestRule::from_specific_rule(
-            ManifestSpecificRuleConfig::MaxJoins { max_joins: max },
+            ManifestSpecificRuleConfig::CodeMaxJoins { max_joins: max },
             Severity::Warning,
         )
     }
@@ -101,7 +101,7 @@ mod tests {
             relative_path: Some("models/simple_model.sql".to_string()),
         };
 
-        let result = max_joins(&node, &rule, 3);
+        let result = code_max_joins(&node, &rule, 3);
         assert!(result.is_none());
     }
 
@@ -116,7 +116,7 @@ mod tests {
             relative_path: Some("models/join_model.sql".to_string()),
         };
 
-        let result = max_joins(&node, &rule, 3);
+        let result = code_max_joins(&node, &rule, 3);
         assert!(result.is_none());
     }
 
@@ -131,7 +131,7 @@ mod tests {
             relative_path: Some("models/complex_model.sql".to_string()),
         };
 
-        let result = max_joins(&node, &rule, 2);
+        let result = code_max_joins(&node, &rule, 2);
         assert!(result.is_some());
         let msg = result.unwrap().message;
         assert!(msg.contains("complex_model"));
@@ -150,7 +150,7 @@ mod tests {
             relative_path: Some("models/mixed_case_model.sql".to_string()),
         };
 
-        let result = max_joins(&node, &rule, 1);
+        let result = code_max_joins(&node, &rule, 1);
         assert!(result.is_some());
         let msg = result.unwrap().message;
         assert!(msg.contains("2 JOIN(s)"));
@@ -167,7 +167,7 @@ mod tests {
             relative_path: Some("models/commented_model.sql".to_string()),
         };
 
-        let result = max_joins(&node, &rule, 1);
+        let result = code_max_joins(&node, &rule, 1);
         assert!(result.is_none());
     }
 
@@ -182,7 +182,7 @@ mod tests {
             relative_path: Some("models/block_commented_model.sql".to_string()),
         };
 
-        let result = max_joins(&node, &rule, 1);
+        let result = code_max_joins(&node, &rule, 1);
         assert!(result.is_none());
     }
 
@@ -195,7 +195,7 @@ mod tests {
             relative_path: Some("models/no_code_model.sql".to_string()),
         };
 
-        let result = max_joins(&node, &rule, 3);
+        let result = code_max_joins(&node, &rule, 3);
         assert!(result.is_none());
     }
 
@@ -210,7 +210,7 @@ mod tests {
             relative_path: Some("models/left_join_model.sql".to_string()),
         };
 
-        let result = max_joins(&node, &rule, 0);
+        let result = code_max_joins(&node, &rule, 0);
         assert!(result.is_some());
         let msg = result.unwrap().message;
         assert!(msg.contains("1 JOIN(s)"));
@@ -225,7 +225,7 @@ mod tests {
             relative_path: Some("models/cross_join_model.sql".to_string()),
         };
 
-        let result = max_joins(&node, &rule, 0);
+        let result = code_max_joins(&node, &rule, 0);
         assert!(result.is_some());
     }
 
@@ -240,7 +240,7 @@ mod tests {
             relative_path: Some("models/exact_limit_model.sql".to_string()),
         };
 
-        let result = max_joins(&node, &rule, 2);
+        let result = code_max_joins(&node, &rule, 2);
         assert!(result.is_none());
     }
 
@@ -253,12 +253,12 @@ mod tests {
             relative_path: Some("models/test_model.sql".to_string()),
         };
 
-        let result = max_joins(&node, &rule, 0);
+        let result = code_max_joins(&node, &rule, 0);
         assert!(result.is_some());
         let rule_result = result.unwrap();
         assert_eq!(rule_result.severity, "WARN");
         assert_eq!(rule_result.object_type, "Model");
-        assert_eq!(rule_result.rule_name, "max_joins");
+        assert_eq!(rule_result.rule_name, "code_max_joins");
         assert_eq!(
             rule_result.relative_path,
             Some("models/test_model.sql".to_string())
