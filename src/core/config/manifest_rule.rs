@@ -43,6 +43,7 @@ pub enum ManifestSpecificRuleConfig {
         #[serde(default = "default_code_max_lines")]
         max_lines: usize,
     },
+    CodeNoHardcodedRefs {},
     HasContractEnforced {
         #[serde(default)]
         access_level: Option<AccessLevel>,
@@ -133,7 +134,8 @@ impl ManifestSpecificRuleConfig {
             | Self::MaxDownstreamDependencies { .. } => RuleCategory::Structure,
             Self::CodeMaxLines { .. }
             | Self::CodeForbiddenPatterns { .. }
-            | Self::CodeMaxJoins { .. } => RuleCategory::Performance,
+            | Self::CodeMaxJoins { .. }
+            | Self::CodeNoHardcodedRefs {} => RuleCategory::Performance,
         }
     }
 }
@@ -340,7 +342,8 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
         },
         ManifestSpecificRuleConfig::CodeMaxLines { .. }
         | ManifestSpecificRuleConfig::CodeForbiddenPatterns { .. }
-        | ManifestSpecificRuleConfig::CodeMaxJoins { .. } => AppliesTo {
+        | ManifestSpecificRuleConfig::CodeMaxJoins { .. }
+        | ManifestSpecificRuleConfig::CodeNoHardcodedRefs {} => AppliesTo {
             node_objects: vec![RuleTarget::Models, RuleTarget::Snapshots],
             source_objects: vec![],
             unit_test_objects: vec![],
@@ -472,7 +475,8 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
         ManifestSpecificRuleConfig::CodeMaxLines { .. }
         | ManifestSpecificRuleConfig::CodeForbiddenPatterns { .. }
         | ManifestSpecificRuleConfig::CodeContainsRefs {}
-        | ManifestSpecificRuleConfig::CodeMaxJoins { .. } => AppliesTo {
+        | ManifestSpecificRuleConfig::CodeMaxJoins { .. }
+        | ManifestSpecificRuleConfig::CodeNoHardcodedRefs {} => AppliesTo {
             node_objects: vec![RuleTarget::Models, RuleTarget::Snapshots],
             source_objects: vec![],
             unit_test_objects: vec![],

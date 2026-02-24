@@ -1,5 +1,5 @@
 ---
-title: code (4)
+title: code (5)
 type: docs
 prev: docs/rules
 sidebar:
@@ -460,6 +460,133 @@ JOIN {{ ref('suppliers') }} e ON d.sup_id = e.id
 SELECT a.id
 FROM {{ ref('users') }} a
 JOIN {{ ref('orders') }} b ON a.id = b.user_id
+```
+
+</details>
+
+</details>
+
+<hr style="border: 2px solid #444; margin: 2em 0;">
+
+### Rule: `code_no_hardcoded_refs`
+
+<span class="rule-category-badge badge-manifest">Manifest Rule</span>
+
+<details open>
+<summary>code_no_hardcoded_refs details</summary>
+<br>
+This rule detects hardcoded table references in raw SQL code — i.e. <code>schema.table</code> patterns after <code>FROM</code> or <code>JOIN</code> keywords. These should be replaced with <code>ref()</code> or <code>source()</code> calls to maintain dbt lineage tracking.
+
+The rule uses regex-based detection (no SQL parsing) and supports:
+- Two-part references: `schema.table`
+- Three-part references: `db.schema.table`
+- Quoted identifiers: `"schema"."table"`, `` `schema`.`table` ``, `[schema].[table]`
+- Multiline: `FROM` or `JOIN` on one line, table reference on the next
+- All JOIN types: `JOIN`, `LEFT JOIN`, `INNER JOIN`, `CROSS JOIN`, etc.
+
+The rule does **not** trigger on:
+- CTE references (single unqualified names like `FROM my_cte`)
+- Column selects (e.g. `a.column_name` in SELECT)
+- Commented-out code (SQL comments are stripped before checking)
+
+Detection is case-insensitive.
+
+---
+
+**Configuration**
+
+- **type**: Must be `code_no_hardcoded_refs`.
+- **applies_to**: _(optional)_ List of dbt object types to include.
+  - Default: `["models", "snapshots"]`
+  - Options: `models`, `snapshots`, `macros`
+
+{{< include-markdown "content/snippets/common_rule_config.md" >}}
+
+**Example Config**
+
+{{< tabs items="dbtective.yml,dbtective.toml,pyproject.toml" >}}
+
+{{< tab >}}
+
+```yaml
+manifest_tests:
+  - name: "no_hardcoded_refs"
+    type: "code_no_hardcoded_refs"
+    description: "SQL code must not contain hardcoded table references."
+    # severity: "error"  (optional)
+    # applies_to: ['models', 'snapshots']  (optional)
+    # includes: ["models/staging/*"]
+    # excludes: ["models/base/*"]
+```
+
+{{< /tab >}}
+
+{{< tab >}}
+
+```toml
+[[manifest_tests]]
+name = "no_hardcoded_refs"
+type = "code_no_hardcoded_refs"
+description = "SQL code must not contain hardcoded table references."
+# severity = "error"  # (optional)
+# applies_to = ["models", "snapshots"]  # (optional)
+# includes = ["models/staging/*"]
+# excludes = ["models/base/*"]
+```
+
+{{< /tab >}}
+
+{{< tab >}}
+
+```toml
+[[tool.dbtective.manifest_tests]]
+name = "no_hardcoded_refs"
+type = "code_no_hardcoded_refs"
+description = "SQL code must not contain hardcoded table references."
+# severity = "error"  # (optional)
+# applies_to = ["models", "snapshots"]  # (optional)
+# includes = ["models/staging/*"]
+# excludes = ["models/base/*"]
+```
+
+{{< /tab >}}
+
+{{< /tabs >}}
+
+<details closed>
+<summary>Relevant dbt code</summary>
+
+```sql
+-- models/good_model.sql (PASS - uses ref())
+SELECT a.id, b.name
+FROM {{ ref('users') }} a
+JOIN {{ ref('orders') }} b ON a.id = b.user_id
+
+-- models/bad_model.sql (FAIL - hardcoded schema.table)
+SELECT id, name
+FROM analytics.orders
+WHERE active = true
+
+-- models/bad_join.sql (FAIL - hardcoded JOIN target)
+SELECT a.id
+FROM {{ ref('users') }} a
+JOIN raw.customers b ON a.id = b.customer_id
+
+-- models/bad_quoted.sql (FAIL - quoted identifiers)
+SELECT id FROM "analytics"."orders"
+
+-- models/bad_three_part.sql (FAIL - three-part reference)
+SELECT id FROM db.analytics.orders
+
+-- models/multiline.sql (FAIL - FROM on separate line)
+SELECT id
+FROM
+  analytics.orders
+WHERE 1=1
+
+-- models/commented_ok.sql (PASS - hardcoded ref is in a comment)
+-- FROM analytics.orders
+SELECT id FROM {{ ref('orders') }}
 ```
 
 </details>

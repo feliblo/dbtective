@@ -103,6 +103,9 @@ impl Init for ManifestSpecificRuleConfig {
             Self::CodeMaxJoins { .. } => {
                 "code_max_joins - Limit JOIN count to reduce code complexity"
             }
+            Self::CodeNoHardcodedRefs { .. } => {
+                "code_no_hardcoded_refs - Detect hardcoded table references (use ref()/source() instead)"
+            }
             Self::MaxUpstreamDependencies { .. } => {
                 "max_upstream_dependencies - Limit how many objects a node depends on"
             }
@@ -233,6 +236,7 @@ pub fn run_questionnaire() -> Result<QuestionnaireResult, String> {
                     convention: NamingConvention::default(),
                 },
                 ManifestSpecificRuleConfig::CodeContainsRefs {},
+                ManifestSpecificRuleConfig::CodeNoHardcodedRefs {},
             ],
             vec![CatalogSpecificRuleConfig::ColumnsNameConvention {
                 convention: NamingConvention::default(),
@@ -255,6 +259,7 @@ pub fn run_questionnaire() -> Result<QuestionnaireResult, String> {
                 },
                 ManifestSpecificRuleConfig::HasRefs {},
                 ManifestSpecificRuleConfig::CodeContainsRefs {},
+                ManifestSpecificRuleConfig::CodeNoHardcodedRefs {},
             ],
             vec![
                 CatalogSpecificRuleConfig::ColumnsNameConvention {
@@ -291,6 +296,7 @@ pub fn run_questionnaire() -> Result<QuestionnaireResult, String> {
                     case_sensitive: false,
                 },
                 ManifestSpecificRuleConfig::CodeContainsRefs {},
+                ManifestSpecificRuleConfig::CodeNoHardcodedRefs {},
                 ManifestSpecificRuleConfig::CodeMaxJoins { max_joins: 0 },
                 ManifestSpecificRuleConfig::MaxUpstreamDependencies {
                     max_upstream: 0,
@@ -556,7 +562,7 @@ mod tests {
 
     #[test]
     fn test_manifest_rule_iter_count() {
-        assert_eq!(ManifestSpecificRuleConfig::iter().count(), 17);
+        assert_eq!(ManifestSpecificRuleConfig::iter().count(), 18);
     }
 
     #[test]

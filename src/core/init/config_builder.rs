@@ -141,6 +141,9 @@ impl InitConfig {
             ManifestSpecificRuleConfig::CodeMaxJoins { .. } => {
                 ManifestSpecificRuleConfig::CodeMaxJoins { max_joins: 5 }
             }
+            ManifestSpecificRuleConfig::CodeNoHardcodedRefs { .. } => {
+                ManifestSpecificRuleConfig::CodeNoHardcodedRefs {}
+            }
             ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. } => {
                 ManifestSpecificRuleConfig::MaxUpstreamDependencies {
                     max_upstream: 5,
@@ -469,6 +472,12 @@ impl InitConfig {
     type: "code_max_joins"
     max_joins: {max_joins}"#
                 )
+            }
+            ManifestSpecificRuleConfig::CodeNoHardcodedRefs {} => {
+                r#"  - name: "code_no_hardcoded_refs"
+    description: "Detect hardcoded table references (schema.table) in SQL code"
+    type: "code_no_hardcoded_refs""#
+                    .to_string()
             }
             ManifestSpecificRuleConfig::MaxUpstreamDependencies { max_upstream, .. } => {
                 format!(
@@ -799,6 +808,14 @@ name = "code_max_joins"
 description = "Reduce model complexity"
 type = "code_max_joins"
 max_joins = {max_joins}"#
+                )
+            }
+            ManifestSpecificRuleConfig::CodeNoHardcodedRefs {} => {
+                format!(
+                    r#"[[{section}]]
+name = "code_no_hardcoded_refs"
+description = "Detect hardcoded table references (schema.table) in SQL code"
+type = "code_no_hardcoded_refs""#
                 )
             }
             ManifestSpecificRuleConfig::MaxUpstreamDependencies { max_upstream, .. } => {
@@ -2425,7 +2442,7 @@ mod tests {
         );
 
         let config = InitConfig::from_questionnaire(&result);
-        assert_eq!(config.manifest_rules.len(), 17); // All 17 manifest rules
+        assert_eq!(config.manifest_rules.len(), 18); // All 18 manifest rules
     }
 
     #[test]
