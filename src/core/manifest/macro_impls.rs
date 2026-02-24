@@ -77,3 +77,120 @@ impl PathCheckable for Macro {
         self.ruletarget()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::{Map, Value};
+
+    fn make_macro(
+        patch_path: Option<&str>,
+        description: Option<&str>,
+        meta: Option<Meta>,
+    ) -> Macro {
+        Macro {
+            name: "my_macro".to_string(),
+            package_name: "my_project".to_string(),
+            original_file_path: "macros/my_macro.sql".to_string(),
+            patch_path: patch_path.map(String::from),
+            macro_sql: "{% macro my_macro() %}\nSELECT 1\n{% endmacro %}".to_string(),
+            description: description.map(String::from),
+            meta,
+        }
+    }
+
+    #[test]
+    fn test_ruletarget() {
+        let m = make_macro(None, None, None);
+        assert_eq!(m.ruletarget(), RuleTarget::Macros);
+    }
+
+    #[test]
+    fn test_include_excludable() {
+        let m = make_macro(None, None, None);
+        assert_eq!(
+            IncludeExcludable::get_original_file_path(&m),
+            "macros/my_macro.sql"
+        );
+    }
+
+    #[test]
+    fn test_tags_always_none() {
+        let m = make_macro(None, None, None);
+        assert!(m.get_tags().is_none());
+    }
+
+    #[test]
+    fn test_identifiable_object_type() {
+        let m = make_macro(None, None, None);
+        assert_eq!(Identifiable::get_object_type(&m), "Macro");
+    }
+
+    #[test]
+    fn test_identifiable_object_string() {
+        let m = make_macro(None, None, None);
+        assert_eq!(m.get_object_string(), "my_macro");
+    }
+
+    #[test]
+    fn test_problematic_path_prefer_sql() {
+        let m = make_macro(Some("proj://patches/macro.yml"), None, None);
+        assert_eq!(m.get_problematic_path(true), Some("macros/my_macro.sql"));
+    }
+
+    #[test]
+    fn test_problematic_path_with_patch() {
+        let m = make_macro(Some("proj://patches/macro.yml"), None, None);
+        assert_eq!(m.get_problematic_path(false), Some("patches/macro.yml"));
+    }
+
+    #[test]
+    fn test_problematic_path_without_patch() {
+        let m = make_macro(None, None, None);
+        assert_eq!(m.get_problematic_path(false), Some("macros/my_macro.sql"));
+    }
+
+    #[test]
+    fn test_description_some() {
+        let m = make_macro(None, Some("A macro"), None);
+        assert_eq!(m.description().unwrap(), "A macro");
+    }
+
+    #[test]
+    fn test_description_none() {
+        let m = make_macro(None, None, None);
+        assert!(m.description().is_none());
+    }
+
+    #[test]
+    fn test_name() {
+        let m = make_macro(None, None, None);
+        assert_eq!(NameAble::name(&m), "my_macro");
+    }
+
+    #[test]
+    fn test_metadata_some() {
+        let meta = Meta(Value::Object(Map::default()));
+        let m = make_macro(None, None, Some(meta));
+        assert!(m.get_metadata().is_some());
+    }
+
+    #[test]
+    fn test_metadata_none() {
+        let m = make_macro(None, None, None);
+        assert!(m.get_metadata().is_none());
+    }
+
+    #[test]
+    fn test_has_code() {
+        let m = make_macro(None, None, None);
+        let code = m.get_raw_code().unwrap();
+        assert!(code.contains("SELECT 1"));
+    }
+
+    #[test]
+    fn test_path_checkable() {
+        let m = make_macro(None, None, None);
+        assert_eq!(m.get_rule_target(), RuleTarget::Macros);
+    }
+}
