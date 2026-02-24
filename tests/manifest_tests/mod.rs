@@ -2,6 +2,7 @@ mod test_code_contains_refs;
 mod test_code_forbidden_patterns;
 mod test_code_max_joins;
 mod test_code_max_lines;
+mod test_code_no_hardcoded_refs;
 mod test_has_contract_enforced;
 mod test_has_description;
 mod test_has_freshness;

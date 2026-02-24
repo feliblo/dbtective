@@ -1,9 +1,9 @@
 use crate::core::config::applies_to::RuleTargetable;
 use crate::core::rules::rule_config::{
     check_allowed_subfolders, check_name_convention, code_contains_refs, code_forbidden_patterns,
-    code_max_joins, code_max_lines, has_description, has_freshness, has_loader, has_metadata_keys,
-    has_refs, has_tags, has_unique_test, is_not_orphaned, max_downstream_dependencies,
-    max_upstream_dependencies,
+    code_max_joins, code_max_lines, code_no_hardcoded_refs, has_description, has_freshness,
+    has_loader, has_metadata_keys, has_refs, has_tags, has_unique_test, is_not_orphaned,
+    max_downstream_dependencies, max_upstream_dependencies,
 };
 use crate::{
     cli::table::RuleResult,
@@ -133,7 +133,8 @@ fn apply_source_rules<'a>(
                     | ManifestSpecificRuleConfig::CodeForbiddenPatterns { .. }
                     | ManifestSpecificRuleConfig::HasContractEnforced { .. }
                     | ManifestSpecificRuleConfig::CodeContainsRefs {}
-                    | ManifestSpecificRuleConfig::CodeMaxJoins { .. } => return Ok(acc),
+                    | ManifestSpecificRuleConfig::CodeMaxJoins { .. }
+                    | ManifestSpecificRuleConfig::CodeNoHardcodedRefs {} => return Ok(acc),
                 };
 
                 if let Some(mut rule_row) = rule_row_result {
@@ -216,6 +217,9 @@ fn apply_macro_rules<'a>(
                         ManifestSpecificRuleConfig::CodeMaxJoins {
                             max_joins: code_max_joins_allowed,
                         } => code_max_joins(macro_obj, rule, *code_max_joins_allowed),
+                        ManifestSpecificRuleConfig::CodeNoHardcodedRefs {} => {
+                            code_no_hardcoded_refs(macro_obj, rule)
+                        }
                         ManifestSpecificRuleConfig::AllowedSubfolders {
                             allowed_subfolders,
                             path_prefix,
@@ -325,6 +329,7 @@ fn apply_exposure_rules<'a>(
                         | ManifestSpecificRuleConfig::HasContractEnforced { .. }
                         | ManifestSpecificRuleConfig::CodeContainsRefs {}
                         | ManifestSpecificRuleConfig::CodeMaxJoins { .. }
+                        | ManifestSpecificRuleConfig::CodeNoHardcodedRefs {}
                         | ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. }
                         | ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. }
                         | ManifestSpecificRuleConfig::SourcesHaveLoader {}
@@ -403,6 +408,7 @@ fn apply_semantic_model_rules<'a>(
                     | ManifestSpecificRuleConfig::HasContractEnforced { .. }
                     | ManifestSpecificRuleConfig::CodeContainsRefs {}
                     | ManifestSpecificRuleConfig::CodeMaxJoins { .. }
+                    | ManifestSpecificRuleConfig::CodeNoHardcodedRefs {}
                     | ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. }
                     | ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. }
                     | ManifestSpecificRuleConfig::SourcesHaveLoader {}
@@ -478,6 +484,7 @@ fn apply_unit_test_rules<'a>(
                     | ManifestSpecificRuleConfig::HasMetadataKeys { .. }
                     | ManifestSpecificRuleConfig::CodeContainsRefs {}
                     | ManifestSpecificRuleConfig::CodeMaxJoins { .. }
+                    | ManifestSpecificRuleConfig::CodeNoHardcodedRefs {}
                     | ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. }
                     | ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. }
                     | ManifestSpecificRuleConfig::SourcesHaveLoader {}
