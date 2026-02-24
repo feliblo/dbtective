@@ -63,3 +63,100 @@ impl PathCheckable for UnitTest {
         self.ruletarget()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn make_unit_test(patch_path: Option<&str>, description: Option<&str>) -> UnitTest {
+        UnitTest {
+            name: "test_orders_valid".to_string(),
+            model: "orders".to_string(),
+            package_name: "my_project".to_string(),
+            original_file_path: "models/staging/_unit_tests.yml".to_string(),
+            patch_path: patch_path.map(String::from),
+            description: description.map(String::from),
+        }
+    }
+
+    #[test]
+    fn test_ruletarget() {
+        let ut = make_unit_test(None, None);
+        assert_eq!(ut.ruletarget(), RuleTarget::UnitTests);
+    }
+
+    #[test]
+    fn test_include_excludable() {
+        let ut = make_unit_test(None, None);
+        assert_eq!(
+            IncludeExcludable::get_original_file_path(&ut),
+            "models/staging/_unit_tests.yml"
+        );
+    }
+
+    #[test]
+    fn test_tags_always_none() {
+        let ut = make_unit_test(None, None);
+        assert!(ut.get_tags().is_none());
+    }
+
+    #[test]
+    fn test_identifiable_object_type() {
+        let ut = make_unit_test(None, None);
+        assert_eq!(Identifiable::get_object_type(&ut), "UnitTest");
+    }
+
+    #[test]
+    fn test_identifiable_object_string() {
+        let ut = make_unit_test(None, None);
+        assert_eq!(ut.get_object_string(), "test_orders_valid");
+    }
+
+    #[test]
+    fn test_problematic_path_prefer_sql() {
+        let ut = make_unit_test(Some("proj://patches/tests.yml"), None);
+        assert_eq!(
+            ut.get_problematic_path(true),
+            Some("models/staging/_unit_tests.yml")
+        );
+    }
+
+    #[test]
+    fn test_problematic_path_with_patch() {
+        let ut = make_unit_test(Some("proj://patches/tests.yml"), None);
+        assert_eq!(ut.get_problematic_path(false), Some("patches/tests.yml"));
+    }
+
+    #[test]
+    fn test_problematic_path_without_patch() {
+        let ut = make_unit_test(None, None);
+        assert_eq!(
+            ut.get_problematic_path(false),
+            Some("models/staging/_unit_tests.yml")
+        );
+    }
+
+    #[test]
+    fn test_description_some() {
+        let ut = make_unit_test(None, Some("Test that orders are valid"));
+        assert_eq!(ut.description().unwrap(), "Test that orders are valid");
+    }
+
+    #[test]
+    fn test_description_none() {
+        let ut = make_unit_test(None, None);
+        assert!(ut.description().is_none());
+    }
+
+    #[test]
+    fn test_name() {
+        let ut = make_unit_test(None, None);
+        assert_eq!(NameAble::name(&ut), "test_orders_valid");
+    }
+
+    #[test]
+    fn test_path_checkable() {
+        let ut = make_unit_test(None, None);
+        assert_eq!(ut.get_rule_target(), RuleTarget::UnitTests);
+    }
+}

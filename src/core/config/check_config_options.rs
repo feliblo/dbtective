@@ -156,3 +156,114 @@ impl Serialize for ColumnNamePattern {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // OrphanedReferenceType tests
+    #[test]
+    fn test_orphaned_reference_type_matches() {
+        assert!(OrphanedReferenceType::Models.matches("model"));
+        assert!(!OrphanedReferenceType::Models.matches("snapshot"));
+        assert!(OrphanedReferenceType::Snapshots.matches("snapshot"));
+        assert!(OrphanedReferenceType::Exposures.matches("exposure"));
+        assert!(OrphanedReferenceType::UnitTests.matches("unit_test"));
+        assert!(!OrphanedReferenceType::UnitTests.matches("model"));
+    }
+
+    #[test]
+    fn test_default_allowed_references() {
+        let refs = default_allowed_references();
+        assert_eq!(refs.len(), 1);
+        assert!(refs[0].matches("model"));
+    }
+
+    // DependencyType tests
+    #[test]
+    fn test_dependency_type_matches() {
+        assert!(DependencyType::Models.matches("model"));
+        assert!(DependencyType::Seeds.matches("seed"));
+        assert!(DependencyType::Sources.matches("source"));
+        assert!(DependencyType::Snapshots.matches("snapshot"));
+        assert!(DependencyType::Tests.matches("test"));
+        assert!(DependencyType::Macros.matches("macro"));
+        assert!(DependencyType::Exposures.matches("exposure"));
+        assert!(!DependencyType::Models.matches("source"));
+    }
+
+    #[test]
+    fn test_default_excluded_dependency_types() {
+        let excluded = default_excluded_dependency_types();
+        assert_eq!(excluded.len(), 1);
+        assert!(excluded[0].matches("test"));
+    }
+
+    // ColumnNamePattern tests
+    #[test]
+    fn test_literal_pattern_matches_case_insensitive() {
+        let pattern = ColumnNamePattern::Literal("user_id".to_string());
+        assert!(pattern.matches("user_id"));
+        assert!(pattern.matches("USER_ID"));
+        assert!(pattern.matches("User_Id"));
+        assert!(!pattern.matches("user_name"));
+    }
+
+    #[test]
+    fn test_regex_pattern_matches() {
+        let pattern = ColumnNamePattern::Regex(Regex::new("^id_.*").unwrap());
+        assert!(pattern.matches("id_user"));
+        assert!(pattern.matches("id_order"));
+        assert!(!pattern.matches("user_id"));
+    }
+
+    #[test]
+    fn test_deserialize_literal() {
+        let pattern: ColumnNamePattern = serde_json::from_str(r#""user_id""#).unwrap();
+        assert!(matches!(pattern, ColumnNamePattern::Literal(_)));
+        assert!(pattern.matches("user_id"));
+    }
+
+    #[test]
+    fn test_deserialize_regex_caret() {
+        let pattern: ColumnNamePattern = serde_json::from_str(r#""^id_.*""#).unwrap();
+        assert!(matches!(pattern, ColumnNamePattern::Regex(_)));
+        assert!(pattern.matches("id_user"));
+    }
+
+    #[test]
+    fn test_deserialize_regex_dollar() {
+        let pattern: ColumnNamePattern = serde_json::from_str(r#""_id$""#).unwrap();
+        assert!(matches!(pattern, ColumnNamePattern::Regex(_)));
+        assert!(pattern.matches("user_id"));
+    }
+
+    #[test]
+    fn test_deserialize_regex_dot_star() {
+        let pattern: ColumnNamePattern = serde_json::from_str(r#""user.*name""#).unwrap();
+        assert!(matches!(pattern, ColumnNamePattern::Regex(_)));
+        assert!(pattern.matches("user_full_name"));
+    }
+
+    #[test]
+    fn test_deserialize_regex_dot_plus() {
+        let pattern: ColumnNamePattern = serde_json::from_str(r#""id_.+""#).unwrap();
+        assert!(matches!(pattern, ColumnNamePattern::Regex(_)));
+        assert!(pattern.matches("id_user"));
+        assert!(!pattern.matches("id_"));
+    }
+
+    #[test]
+    fn test_serialize_literal() {
+        let pattern = ColumnNamePattern::Literal("user_id".to_string());
+        let json = serde_json::to_string(&pattern).unwrap();
+        assert_eq!(json, r#""user_id""#);
+    }
+
+    #[test]
+    fn test_serialize_regex() {
+        let pattern = ColumnNamePattern::Regex(Regex::new("^id_.*").unwrap());
+        let json = serde_json::to_string(&pattern).unwrap();
+        assert_eq!(json, r#""^id_.*""#);
+    }
+}

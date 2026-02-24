@@ -569,4 +569,55 @@ mod tests {
     fn test_catalog_rule_iter_count() {
         assert_eq!(CatalogSpecificRuleConfig::iter().count(), 5);
     }
+
+    // ========================================================================
+    // ConfigFormat::as_str Tests
+    // ========================================================================
+
+    #[test]
+    fn test_config_format_as_str() {
+        assert_eq!(ConfigFormat::Yaml.as_str(), "yml");
+        assert_eq!(ConfigFormat::Toml.as_str(), "toml");
+        assert_eq!(ConfigFormat::Pyproject.as_str(), "pyproject");
+    }
+
+    // ========================================================================
+    // Display delegates to init_description Tests
+    // ========================================================================
+
+    #[test]
+    fn test_manifest_rule_display_matches_init_description() {
+        for rule in ManifestSpecificRuleConfig::iter() {
+            assert_eq!(rule.to_string(), rule.init_description());
+        }
+    }
+
+    #[test]
+    fn test_catalog_rule_display_matches_init_description() {
+        for rule in CatalogSpecificRuleConfig::iter() {
+            assert_eq!(rule.to_string(), rule.init_description());
+        }
+    }
+
+    // ========================================================================
+    // Enum equality tests
+    // ========================================================================
+
+    #[test]
+    fn test_config_format_equality() {
+        assert_eq!(ConfigFormat::Yaml, ConfigFormat::Yaml);
+        assert_ne!(ConfigFormat::Yaml, ConfigFormat::Toml);
+    }
+
+    #[test]
+    fn test_data_model_equality() {
+        assert_eq!(DataModel::Medallion, DataModel::Medallion);
+        assert_ne!(DataModel::Common, DataModel::None);
+    }
+
+    #[test]
+    fn test_strictness_equality() {
+        assert_eq!(Strictness::Basic, Strictness::Basic);
+        assert_ne!(Strictness::Basic, Strictness::Strict);
+    }
 }
