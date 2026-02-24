@@ -663,6 +663,7 @@ manifest_tests:
 }
 
 #[test]
+#[allow(clippy::too_many_lines)]
 fn test_code_no_hardcoded_refs_combination_three_part_and_quoted() {
     let manifest = r#"{
   "metadata": {
