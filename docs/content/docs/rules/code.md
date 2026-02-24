@@ -114,12 +114,12 @@ SELECT id FROM raw_schema.users
 
 <hr style="border: 2px solid #444; margin: 2em 0;">
 
-### Rule: `has_forbidden_code`
+### Rule: `code_forbidden_patterns`
 
 <span class="rule-category-badge badge-manifest">Manifest Rule</span>
 
 <details open>
-<summary>has_forbidden_code details</summary>
+<summary>code_forbidden_patterns details</summary>
 <br>
 This rule checks if code contains forbidden patterns. Use it to enforce coding standards by flagging undesired patterns such as `SELECT *` statements, hardcoded references, or any other string patterns that should not appear in your dbt code.
 
@@ -127,7 +127,7 @@ This rule checks if code contains forbidden patterns. Use it to enforce coding s
 
 **Configuration**
 
-- **type**: Must be `has_forbidden_code`.
+- **type**: Must be `code_forbidden_patterns`.
 - **forbidden_patterns**: List of string patterns that are not allowed in the code. Each pattern is matched as a substring.
 - **case_sensitive**: _(optional)_ Whether pattern matching should be case-sensitive. Defaults to `false` (case-insensitive).
 - **applies_to**: _(optional)_ List of dbt object types to check.
@@ -146,7 +146,7 @@ This rule checks if code contains forbidden patterns. Use it to enforce coding s
 manifest_tests:
   # Forbid SELECT * in models (case-insensitive by default)
   - name: "no_select_star"
-    type: "has_forbidden_code"
+    type: "code_forbidden_patterns"
     forbidden_patterns: ["SELECT *"]
     description: "Models should not use SELECT *."
     # case_sensitive: false  (optional, default)
@@ -157,7 +157,7 @@ manifest_tests:
 
   # Case-sensitive match for exact patterns
   - name: "no_hardcoded_schema"
-    type: "has_forbidden_code"
+    type: "code_forbidden_patterns"
     forbidden_patterns: ["raw_prod.", "analytics_prod."]
     case_sensitive: true
     severity: "warning"
@@ -172,7 +172,7 @@ manifest_tests:
 # Forbid SELECT * in models (case-insensitive by default)
 [[manifest_tests]]
 name = "no_select_star"
-type = "has_forbidden_code"
+type = "code_forbidden_patterns"
 forbidden_patterns = ["SELECT *"]
 description = "Models should not use SELECT *."
 # case_sensitive = false  # (optional, default)
@@ -184,7 +184,7 @@ description = "Models should not use SELECT *."
 # Case-sensitive match for exact patterns
 [[manifest_tests]]
 name = "no_hardcoded_schema"
-type = "has_forbidden_code"
+type = "code_forbidden_patterns"
 forbidden_patterns = ["raw_prod.", "analytics_prod."]
 case_sensitive = true
 severity = "warning"
@@ -199,7 +199,7 @@ description = "Use dbt selectors"
 # Forbid SELECT * in models (case-insensitive by default)
 [[tool.dbtective.manifest_tests]]
 name = "no_select_star"
-type = "has_forbidden_code"
+type = "code_forbidden_patterns"
 forbidden_patterns = ["SELECT *"]
 description = "Models should not use SELECT *."
 # case_sensitive = false  # (optional, default)
@@ -211,7 +211,7 @@ description = "Models should not use SELECT *."
 # Case-sensitive match for exact patterns
 [[tool.dbtective.manifest_tests]]
 name = "no_hardcoded_schema"
-type = "has_forbidden_code"
+type = "code_forbidden_patterns"
 forbidden_patterns = ["raw_prod.", "analytics_prod."]
 case_sensitive = true
 severity = "warning"
@@ -244,12 +244,12 @@ SELECT * FROM users
 
 <hr style="border: 2px solid #444; margin: 2em 0;">
 
-### Rule: `max_code_lines`
+### Rule: `code_max_lines`
 
 <span class="rule-category-badge badge-manifest">Manifest Rule</span>
 
 <details open>
-<summary>max_code_lines details</summary>
+<summary>code_max_lines details</summary>
 <br>
 This rule enforces a maximum line count for dbt code objects, helping to maintain code readability and encourage modular design. Objects with empty code will also be flagged by this rule.
 
@@ -257,7 +257,7 @@ This rule enforces a maximum line count for dbt code objects, helping to maintai
 
 **Configuration**
 
-- **type**: Must be `max_code_lines`.
+- **type**: Must be `code_max_lines`.
 - **max_lines**: _(optional)_ The maximum number of lines allowed for the code. Defaults to `150`.
 - **applies_to**: _(optional)_ List of dbt object types to include.
   - Default: `["models", "snapshots", "macros"]`
@@ -274,7 +274,7 @@ This rule enforces a maximum line count for dbt code objects, helping to maintai
 ```yaml
 manifest_tests:
   - name: "models_max_100_lines"
-    type: "max_code_lines"
+    type: "code_max_lines"
     max_lines: 100
     description: "Models should not exceed 100 lines of code."
     # severity: "warning"  (optional)
@@ -290,7 +290,7 @@ manifest_tests:
 ```toml
 [[manifest_tests]]
 name = "models_max_100_lines"
-type = "max_code_lines"
+type = "code_max_lines"
 max_lines = 100
 description = "Models should not exceed 100 lines of code."
 # severity = "warning"  # (optional)
@@ -306,7 +306,7 @@ description = "Models should not exceed 100 lines of code."
 ```toml
 [[tool.dbtective.manifest_tests]]
 name = "models_max_100_lines"
-type = "max_code_lines"
+type = "code_max_lines"
 max_lines = 100
 description = "Models should not exceed 100 lines of code."
 # severity = "warning"  # (optional)
@@ -360,12 +360,12 @@ FROM users
 
 <hr style="border: 2px solid #444; margin: 2em 0;">
 
-### Rule: `max_joins`
+### Rule: `code_max_joins`
 
 <span class="rule-category-badge badge-manifest">Manifest Rule</span>
 
 <details open>
-<summary>max_joins details</summary>
+<summary>code_max_joins details</summary>
 <br>
 This rule enforces a maximum number of JOINs in raw SQL code, helping to reduce code complexity and encourage modular design. SQL comments (single-line `--` and multi-line `/* */`) are stripped before counting, so commented-out JOINs are not counted. Detection is case-insensitive.
 
@@ -373,7 +373,7 @@ This rule enforces a maximum number of JOINs in raw SQL code, helping to reduce 
 
 **Configuration**
 
-- **type**: Must be `max_joins`.
+- **type**: Must be `code_max_joins`.
 - **max_joins**: _(optional)_ The maximum number of JOINs allowed. Defaults to `5`.
 - **applies_to**: _(optional)_ List of dbt object types to include.
   - Default: `["models", "snapshots"]`
@@ -390,7 +390,7 @@ This rule enforces a maximum number of JOINs in raw SQL code, helping to reduce 
 ```yaml
 manifest_tests:
   - name: "limit_joins"
-    type: "max_joins"
+    type: "code_max_joins"
     max_joins: 3
     description: "Models should not exceed 3 JOINs."
     # severity: "warning"  (optional)
@@ -406,7 +406,7 @@ manifest_tests:
 ```toml
 [[manifest_tests]]
 name = "limit_joins"
-type = "max_joins"
+type = "code_max_joins"
 max_joins = 3
 description = "Models should not exceed 3 JOINs."
 # severity = "warning"  # (optional)
@@ -422,7 +422,7 @@ description = "Models should not exceed 3 JOINs."
 ```toml
 [[tool.dbtective.manifest_tests]]
 name = "limit_joins"
-type = "max_joins"
+type = "code_max_joins"
 max_joins = 3
 description = "Models should not exceed 3 JOINs."
 # severity = "warning"  # (optional)
@@ -477,7 +477,8 @@ JOIN {{ ref('orders') }} b ON a.id = b.user_id
 <br>
 This rule detects hardcoded table references in raw SQL code — i.e. <code>schema.table</code> patterns after <code>FROM</code> or <code>JOIN</code> keywords. These should be replaced with <code>ref()</code> or <code>source()</code> calls to maintain dbt lineage tracking.
 
-The rule uses regex-based detection (no SQL parsing) and supports:
+The rule supports:
+
 - Two-part references: `schema.table`
 - Three-part references: `db.schema.table`
 - Quoted identifiers: `"schema"."table"`, `` `schema`.`table` ``, `[schema].[table]`
@@ -485,11 +486,10 @@ The rule uses regex-based detection (no SQL parsing) and supports:
 - All JOIN types: `JOIN`, `LEFT JOIN`, `INNER JOIN`, `CROSS JOIN`, etc.
 
 The rule does **not** trigger on:
+
 - CTE references (single unqualified names like `FROM my_cte`)
 - Column selects (e.g. `a.column_name` in SELECT)
 - Commented-out code (SQL comments are stripped before checking)
-
-Detection is case-insensitive.
 
 ---
 
