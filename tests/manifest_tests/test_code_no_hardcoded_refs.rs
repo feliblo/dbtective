@@ -661,3 +661,200 @@ manifest_tests:
     let findings = env.run_manifest_rules(false);
     assert_eq!(findings.len(), 1);
 }
+
+#[test]
+fn test_code_no_hardcoded_refs_combination_three_part_and_quoted() {
+    let manifest = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "invocation_id": "test-invocation",
+    "env": {},
+    "project_name": "test_project",
+    "adapter_type": "postgres",
+    "quoting": {}
+  },
+  "nodes": {
+    "model.test.bracket_quoted": {
+      "database": "db",
+      "schema": "public",
+      "name": "bracket_quoted",
+      "resource_type": "model",
+      "package_name": "test_project",
+      "path": "bracket_quoted.sql",
+      "original_file_path": "models/bracket_quoted.sql",
+      "unique_id": "model.test.bracket_quoted",
+      "fqn": ["test", "bracket_quoted"],
+      "alias": "bracket_quoted",
+      "depends_on": { "nodes": [] },
+      "checksum": {"name": "sha256", "checksum": "aaa"},
+      "tags": [],
+      "description": "Bracket-quoted identifiers",
+      "columns": {},
+      "meta": {},
+      "raw_code": "SELECT id FROM [analytics].[orders] WHERE 1=1"
+    },
+    "model.test.backtick_quoted": {
+      "database": "db",
+      "schema": "public",
+      "name": "backtick_quoted",
+      "resource_type": "model",
+      "package_name": "test_project",
+      "path": "backtick_quoted.sql",
+      "original_file_path": "models/backtick_quoted.sql",
+      "unique_id": "model.test.backtick_quoted",
+      "fqn": ["test", "backtick_quoted"],
+      "alias": "backtick_quoted",
+      "depends_on": { "nodes": [] },
+      "checksum": {"name": "sha256", "checksum": "bbb"},
+      "tags": [],
+      "description": "Backtick-quoted identifiers",
+      "columns": {},
+      "meta": {},
+      "raw_code": "SELECT id FROM `analytics`.`orders` WHERE 1=1"
+    },
+    "model.test.three_part_quoted": {
+      "database": "db",
+      "schema": "public",
+      "name": "three_part_quoted",
+      "resource_type": "model",
+      "package_name": "test_project",
+      "path": "three_part_quoted.sql",
+      "original_file_path": "models/three_part_quoted.sql",
+      "unique_id": "model.test.three_part_quoted",
+      "fqn": ["test", "three_part_quoted"],
+      "alias": "three_part_quoted",
+      "depends_on": { "nodes": [] },
+      "checksum": {"name": "sha256", "checksum": "ccc"},
+      "tags": [],
+      "description": "Three-part quoted identifiers",
+      "columns": {},
+      "meta": {},
+      "raw_code": "SELECT id FROM \"mydb\".\"analytics\".\"orders\" WHERE 1=1"
+    },
+    "model.test.three_part_join": {
+      "database": "db",
+      "schema": "public",
+      "name": "three_part_join",
+      "resource_type": "model",
+      "package_name": "test_project",
+      "path": "three_part_join.sql",
+      "original_file_path": "models/three_part_join.sql",
+      "unique_id": "model.test.three_part_join",
+      "fqn": ["test", "three_part_join"],
+      "alias": "three_part_join",
+      "depends_on": { "nodes": [] },
+      "checksum": {"name": "sha256", "checksum": "ddd"},
+      "tags": [],
+      "description": "Three-part ref in a JOIN",
+      "columns": {},
+      "meta": {},
+      "raw_code": "SELECT a.id FROM {{ ref('users') }} a LEFT JOIN prod.raw.customers c ON a.id = c.user_id"
+    }
+  },
+  "sources": {},
+  "macros": {},
+  "exposures": {},
+  "metrics": {},
+  "groups": {},
+  "selectors": {},
+  "disabled": {},
+  "parent_map": {},
+  "child_map": {},
+  "group_map": {},
+  "saved_queries": {},
+  "semantic_models": {},
+  "unit_tests": {}
+}"#;
+
+    let config = r#"
+manifest_tests:
+  - name: "no_hardcoded_refs"
+    type: code_no_hardcoded_refs
+    severity: "error"
+    applies_to:
+      - "models"
+"#;
+
+    let env = TestEnvironment::new(manifest, config);
+    let findings = env.run_manifest_rules(false);
+
+    // All 4 models should fail
+    assert_eq!(findings.len(), 4);
+
+    let messages: Vec<&str> = findings.iter().map(|f| f.0.message.as_str()).collect();
+    assert!(messages.iter().any(|m| m.contains("[analytics].[orders]")));
+    assert!(messages.iter().any(|m| m.contains("`analytics`.`orders`")));
+    assert!(messages
+        .iter()
+        .any(|m| m.contains("\"mydb\".\"analytics\".\"orders\"")));
+    assert!(messages.iter().any(|m| m.contains("prod.raw.customers")));
+}
+
+#[test]
+fn test_code_no_hardcoded_refs_bracket_three_part_fails() {
+    let manifest = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "invocation_id": "test-invocation",
+    "env": {},
+    "project_name": "test_project",
+    "adapter_type": "postgres",
+    "quoting": {}
+  },
+  "nodes": {
+    "model.test.bracket_three_part": {
+      "database": "db",
+      "schema": "public",
+      "name": "bracket_three_part",
+      "resource_type": "model",
+      "package_name": "test_project",
+      "path": "bracket_three_part.sql",
+      "original_file_path": "models/bracket_three_part.sql",
+      "unique_id": "model.test.bracket_three_part",
+      "fqn": ["test", "bracket_three_part"],
+      "alias": "bracket_three_part",
+      "depends_on": { "nodes": [] },
+      "checksum": {"name": "sha256", "checksum": "abc"},
+      "tags": [],
+      "description": "Bracket-quoted three-part ref",
+      "columns": {},
+      "meta": {},
+      "raw_code": "SELECT id FROM [mydb].[analytics].[orders] WHERE 1=1"
+    }
+  },
+  "sources": {},
+  "macros": {},
+  "exposures": {},
+  "metrics": {},
+  "groups": {},
+  "selectors": {},
+  "disabled": {},
+  "parent_map": {},
+  "child_map": {},
+  "group_map": {},
+  "saved_queries": {},
+  "semantic_models": {},
+  "unit_tests": {}
+}"#;
+
+    let config = r#"
+manifest_tests:
+  - name: "no_hardcoded_refs"
+    type: code_no_hardcoded_refs
+    severity: "error"
+    applies_to:
+      - "models"
+"#;
+
+    let env = TestEnvironment::new(manifest, config);
+    let findings = env.run_manifest_rules(false);
+    assert_eq!(findings.len(), 1);
+    assert!(findings[0]
+        .0
+        .message
+        .contains("[mydb].[analytics].[orders]"));
+}
