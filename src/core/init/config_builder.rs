@@ -1,9 +1,12 @@
 use std::fmt::Write;
 
-use super::questionnaire::{ConfigFormat, DataModel, QuestionnaireResult};
+use super::questionnaire::{
+    ConfigFormat, DataModelMethodology, LayeringStrategy, QuestionnaireResult,
+};
 use crate::core::config::catalog_rule::CatalogSpecificRuleConfig;
 use crate::core::config::check_config_options::HasTagsCriteria;
 use crate::core::config::manifest_rule::ManifestSpecificRuleConfig;
+use crate::core::config::rule_category::RuleCategory;
 use strum::IntoEnumIterator;
 
 #[derive(Debug)]
@@ -11,7 +14,8 @@ pub struct InitConfig {
     pub format: ConfigFormat,
     pub manifest_rules: Vec<ManifestSpecificRuleConfig>,
     pub catalog_rules: Vec<CatalogSpecificRuleConfig>,
-    pub data_model: DataModel,
+    pub layering_strategy: LayeringStrategy,
+    pub methodology: DataModelMethodology,
     pub auto_parse_command: Option<String>,
 }
 
@@ -24,7 +28,8 @@ impl InitConfig {
             format: result.format,
             manifest_rules,
             catalog_rules,
-            data_model: result.data_model,
+            layering_strategy: result.layering_strategy,
+            methodology: result.methodology,
             auto_parse_command: result.auto_parse_command.clone(),
         }
     }
@@ -48,18 +53,18 @@ impl InitConfig {
     ) -> ManifestSpecificRuleConfig {
         match rule {
             ManifestSpecificRuleConfig::AllowedSubfolders { .. } => {
-                let subfolders = match result.data_model {
-                    DataModel::Medallion => vec![
+                let subfolders = match result.layering_strategy {
+                    LayeringStrategy::Medallion => vec![
                         "bronze".to_string(),
                         "silver".to_string(),
                         "gold".to_string(),
                     ],
-                    DataModel::Common => vec![
+                    LayeringStrategy::Common => vec![
                         "staging".to_string(),
                         "marts".to_string(),
                         "intermediate".to_string(),
                     ],
-                    DataModel::None => vec![],
+                    LayeringStrategy::None => vec![],
                 };
                 ManifestSpecificRuleConfig::AllowedSubfolders {
                     allowed_subfolders: subfolders,
@@ -81,22 +86,22 @@ impl InitConfig {
             }
             ManifestSpecificRuleConfig::CodeForbiddenPatterns { .. } => {
                 let mut patterns = vec!["SELECT *".to_string()];
-                match result.data_model {
-                    DataModel::Medallion => {
+                match result.layering_strategy {
+                    LayeringStrategy::Medallion => {
                         patterns.extend([
                             "bronze.".to_string(),
                             "silver.".to_string(),
                             "gold.".to_string(),
                         ]);
                     }
-                    DataModel::Common => {
+                    LayeringStrategy::Common => {
                         patterns.extend([
                             "staging.".to_string(),
                             "intermediate.".to_string(),
                             "marts.".to_string(),
                         ]);
                     }
-                    DataModel::None => {}
+                    LayeringStrategy::None => {}
                 }
                 ManifestSpecificRuleConfig::CodeForbiddenPatterns {
                     forbidden_patterns: patterns,
@@ -214,6 +219,353 @@ impl InitConfig {
         }
     }
 
+    /// Returns (`final_layer`, `middle_layer`) names based on layering strategy
+    const fn layer_names(&self) -> (&str, &str) {
+        match self.layering_strategy {
+            LayeringStrategy::Medallion => ("gold", "silver"),
+            LayeringStrategy::Common | LayeringStrategy::None => ("marts", "intermediate"),
+        }
+    }
+
+    /// Category order for manifest rule section banners in generated config files
+    const MANIFEST_CATEGORIES_ORDER: &'static [RuleCategory] = &[
+        RuleCategory::Documentation,
+        RuleCategory::Naming,
+        RuleCategory::Governance,
+        RuleCategory::Testing,
+        RuleCategory::Structure,
+        RuleCategory::Performance,
+    ];
+
+    /// Category order for catalog rule section banners in generated config files
+    const CATALOG_CATEGORIES_ORDER: &'static [RuleCategory] =
+        &[RuleCategory::Documentation, RuleCategory::Naming];
+
+    /// Generate a section banner comment
+    fn section_banner(name: &str, indent: &str) -> String {
+        let inner = format!("## {name} ##");
+        let border = "#".repeat(inner.len());
+        format!("{indent}{border}\n{indent}{inner}\n{indent}{border}\n")
+    }
+
+    /// Generate methodology-specific YAML rule blocks
+    fn methodology_rules_yaml(&self) -> Vec<String> {
+        match self.methodology {
+            DataModelMethodology::Kimball => self.kimball_rules_yaml(),
+            DataModelMethodology::Inmon => self.inmon_rules_yaml(),
+            DataModelMethodology::DataVault => self.data_vault_rules_yaml(),
+            DataModelMethodology::None => vec![],
+        }
+    }
+
+    fn kimball_rules_yaml(&self) -> Vec<String> {
+        let (final_layer, _) = self.layer_names();
+        vec![
+            format!(
+                r#"  - name: "{final_layer}_subfolders"
+    type: "allowed_subfolders"
+    allowed_subfolders: ["dimensions", "facts"]
+    includes: ["models/{final_layer}"]
+    description: "The {final_layer} layer must only contain dimensions and facts subfolders""#
+            ),
+            format!(
+                r#"  - name: "dimension_naming"
+    type: "name_convention"
+    pattern: "^dim_"
+    includes: ["models/{final_layer}/dimensions"]
+    description: "Dimension models must start with dim_""#
+            ),
+            format!(
+                r#"  - name: "fact_naming"
+    type: "name_convention"
+    pattern: "^fact_"
+    includes: ["models/{final_layer}/facts"]
+    description: "Fact models must start with fact_""#
+            ),
+        ]
+    }
+
+    fn inmon_rules_yaml(&self) -> Vec<String> {
+        let (final_layer, middle_layer) = self.layer_names();
+        vec![
+            format!(
+                r#"  - name: "{middle_layer}_subfolders"
+    type: "allowed_subfolders"
+    allowed_subfolders: ["core", "reference", "bridge"]
+    includes: ["models/{middle_layer}"]
+    description: "The {middle_layer} layer must contain normalized enterprise model components""#
+            ),
+            format!(
+                r#"  - name: "{final_layer}_subfolders"
+    type: "allowed_subfolders"
+    allowed_subfolders: ["finance", "marketing", "operations"]
+    includes: ["models/{final_layer}"]
+    description: "The {final_layer} layer contains departmental data marts (customize these)""#
+            ),
+            format!(
+                r#"  - name: "enterprise_model_contracts"
+    type: "has_contract_enforced"
+    includes: ["models/{middle_layer}"]
+    description: "Normalized enterprise model tables must have enforced contracts""#
+            ),
+            format!(
+                r#"  - name: "enterprise_model_unique_keys"
+    type: "has_unique_test"
+    includes: ["models/{middle_layer}"]
+    description: "All normalized tables must have primary key uniqueness tests""#
+            ),
+        ]
+    }
+
+    #[allow(clippy::too_many_lines)]
+    fn data_vault_rules_yaml(&self) -> Vec<String> {
+        let (final_layer, middle_layer) = self.layer_names();
+        vec![
+            format!(
+                r#"  - name: "{middle_layer}_vault_subfolders"
+    type: "allowed_subfolders"
+    allowed_subfolders: ["hubs", "links", "satellites", "t_links"]
+    includes: ["models/{middle_layer}"]
+    description: "The {middle_layer} layer must contain Data Vault components""#
+            ),
+            format!(
+                r#"  - name: "{final_layer}_subfolders"
+    type: "allowed_subfolders"
+    allowed_subfolders: ["business_vault", "information_mart"]
+    includes: ["models/{final_layer}"]
+    description: "The {final_layer} layer contains business vault and information marts""#
+            ),
+            format!(
+                r#"  - name: "hub_naming"
+    type: "name_convention"
+    pattern: "^hub_"
+    includes: ["models/{middle_layer}/hubs"]
+    description: "Hub models must start with hub_""#
+            ),
+            format!(
+                r#"  - name: "link_naming"
+    type: "name_convention"
+    pattern: "^lnk_"
+    includes: ["models/{middle_layer}/links"]
+    description: "Link models must start with lnk_""#
+            ),
+            format!(
+                r#"  - name: "satellite_naming"
+    type: "name_convention"
+    pattern: "^sat_"
+    includes: ["models/{middle_layer}/satellites"]
+    description: "Satellite models must start with sat_""#
+            ),
+            format!(
+                r#"  - name: "t_link_naming"
+    type: "name_convention"
+    pattern: "^t_lnk_"
+    includes: ["models/{middle_layer}/t_links"]
+    description: "Transactional link models must start with t_lnk_""#
+            ),
+            format!(
+                r#"  - name: "vault_contracts"
+    type: "has_contract_enforced"
+    includes: ["models/{middle_layer}"]
+    description: "All vault tables must have enforced contracts""#
+            ),
+            format!(
+                r#"  - name: "hub_unique_keys"
+    type: "has_unique_test"
+    includes: ["models/{middle_layer}/hubs"]
+    description: "All hubs must have a uniqueness test on the hash key""#
+            ),
+            format!(
+                r#"  - name: "link_unique_keys"
+    type: "has_unique_test"
+    includes: ["models/{middle_layer}/links"]
+    description: "All links must have a uniqueness test on the hash key""#
+            ),
+            format!(
+                r#"  - name: "info_mart_dim_naming"
+    type: "name_convention"
+    pattern: "^dim_"
+    includes: ["models/{final_layer}/information_mart"]
+    description: "Information mart dimension models must start with dim_""#
+            ),
+            format!(
+                r#"  - name: "info_mart_fact_naming"
+    type: "name_convention"
+    pattern: "^fact_"
+    includes: ["models/{final_layer}/information_mart"]
+    description: "Information mart fact models must start with fact_""#
+            ),
+        ]
+    }
+
+    /// Generate methodology-specific TOML rule blocks
+    fn methodology_rules_toml(&self, section: &str) -> Vec<String> {
+        match self.methodology {
+            DataModelMethodology::Kimball => self.kimball_rules_toml(section),
+            DataModelMethodology::Inmon => self.inmon_rules_toml(section),
+            DataModelMethodology::DataVault => self.data_vault_rules_toml(section),
+            DataModelMethodology::None => vec![],
+        }
+    }
+
+    fn kimball_rules_toml(&self, section: &str) -> Vec<String> {
+        let (final_layer, _) = self.layer_names();
+        vec![
+            format!(
+                r#"[[{section}]]
+name = "{final_layer}_subfolders"
+type = "allowed_subfolders"
+allowed_subfolders = ["dimensions", "facts"]
+includes = ["models/{final_layer}"]
+description = "The {final_layer} layer must only contain dimensions and facts subfolders""#
+            ),
+            format!(
+                r#"[[{section}]]
+name = "dimension_naming"
+type = "name_convention"
+pattern = "^dim_"
+includes = ["models/{final_layer}/dimensions"]
+description = "Dimension models must start with dim_""#
+            ),
+            format!(
+                r#"[[{section}]]
+name = "fact_naming"
+type = "name_convention"
+pattern = "^fact_"
+includes = ["models/{final_layer}/facts"]
+description = "Fact models must start with fact_""#
+            ),
+        ]
+    }
+
+    fn inmon_rules_toml(&self, section: &str) -> Vec<String> {
+        let (final_layer, middle_layer) = self.layer_names();
+        vec![
+            format!(
+                r#"[[{section}]]
+name = "{middle_layer}_subfolders"
+type = "allowed_subfolders"
+allowed_subfolders = ["core", "reference", "bridge"]
+includes = ["models/{middle_layer}"]
+description = "The {middle_layer} layer must contain normalized enterprise model components""#
+            ),
+            format!(
+                r#"[[{section}]]
+name = "{final_layer}_subfolders"
+type = "allowed_subfolders"
+allowed_subfolders = ["finance", "marketing", "operations"]
+includes = ["models/{final_layer}"]
+description = "The {final_layer} layer contains departmental data marts (customize these)""#
+            ),
+            format!(
+                r#"[[{section}]]
+name = "enterprise_model_contracts"
+type = "has_contract_enforced"
+includes = ["models/{middle_layer}"]
+description = "Normalized enterprise model tables must have enforced contracts""#
+            ),
+            format!(
+                r#"[[{section}]]
+name = "enterprise_model_unique_keys"
+type = "has_unique_test"
+includes = ["models/{middle_layer}"]
+description = "All normalized tables must have primary key uniqueness tests""#
+            ),
+        ]
+    }
+
+    #[allow(clippy::too_many_lines)]
+    fn data_vault_rules_toml(&self, section: &str) -> Vec<String> {
+        let (final_layer, middle_layer) = self.layer_names();
+        vec![
+            format!(
+                r#"[[{section}]]
+name = "{middle_layer}_vault_subfolders"
+type = "allowed_subfolders"
+allowed_subfolders = ["hubs", "links", "satellites", "t_links"]
+includes = ["models/{middle_layer}"]
+description = "The {middle_layer} layer must contain Data Vault components""#
+            ),
+            format!(
+                r#"[[{section}]]
+name = "{final_layer}_subfolders"
+type = "allowed_subfolders"
+allowed_subfolders = ["business_vault", "information_mart"]
+includes = ["models/{final_layer}"]
+description = "The {final_layer} layer contains business vault and information marts""#
+            ),
+            format!(
+                r#"[[{section}]]
+name = "hub_naming"
+type = "name_convention"
+pattern = "^hub_"
+includes = ["models/{middle_layer}/hubs"]
+description = "Hub models must start with hub_""#
+            ),
+            format!(
+                r#"[[{section}]]
+name = "link_naming"
+type = "name_convention"
+pattern = "^lnk_"
+includes = ["models/{middle_layer}/links"]
+description = "Link models must start with lnk_""#
+            ),
+            format!(
+                r#"[[{section}]]
+name = "satellite_naming"
+type = "name_convention"
+pattern = "^sat_"
+includes = ["models/{middle_layer}/satellites"]
+description = "Satellite models must start with sat_""#
+            ),
+            format!(
+                r#"[[{section}]]
+name = "t_link_naming"
+type = "name_convention"
+pattern = "^t_lnk_"
+includes = ["models/{middle_layer}/t_links"]
+description = "Transactional link models must start with t_lnk_""#
+            ),
+            format!(
+                r#"[[{section}]]
+name = "vault_contracts"
+type = "has_contract_enforced"
+includes = ["models/{middle_layer}"]
+description = "All vault tables must have enforced contracts""#
+            ),
+            format!(
+                r#"[[{section}]]
+name = "hub_unique_keys"
+type = "has_unique_test"
+includes = ["models/{middle_layer}/hubs"]
+description = "All hubs must have a uniqueness test on the hash key""#
+            ),
+            format!(
+                r#"[[{section}]]
+name = "link_unique_keys"
+type = "has_unique_test"
+includes = ["models/{middle_layer}/links"]
+description = "All links must have a uniqueness test on the hash key""#
+            ),
+            format!(
+                r#"[[{section}]]
+name = "info_mart_dim_naming"
+type = "name_convention"
+pattern = "^dim_"
+includes = ["models/{final_layer}/information_mart"]
+description = "Information mart dimension models must start with dim_""#
+            ),
+            format!(
+                r#"[[{section}]]
+name = "info_mart_fact_naming"
+type = "name_convention"
+pattern = "^fact_"
+includes = ["models/{final_layer}/information_mart"]
+description = "Information mart fact models must start with fact_""#
+            ),
+        ]
+    }
+
     pub fn to_yaml(&self) -> String {
         let mut content = String::from(
             "# dbtective configuration file\n\
@@ -230,21 +582,55 @@ impl InitConfig {
 
         content.push_str("manifest_tests:\n");
 
-        for rule in &self.manifest_rules {
-            content.push_str(&self.manifest_rule_to_yaml(rule));
-            content.push_str("\n\n");
+        // Emit manifest rules grouped by category
+        for category in Self::MANIFEST_CATEGORIES_ORDER {
+            let rules: Vec<_> = self
+                .manifest_rules
+                .iter()
+                .filter(|r| &r.default_category() == category)
+                .collect();
+            if rules.is_empty() {
+                continue;
+            }
+            content.push_str(&Self::section_banner(category.as_str(), "  "));
+            for rule in rules {
+                content.push_str(&self.manifest_rule_to_yaml(rule));
+                content.push_str("\n\n");
+            }
         }
 
-        if let Some(extra) = self.marts_exposure_rule_yaml() {
-            content.push_str(&extra);
-            content.push_str("\n\n");
+        // Data Modeling section (methodology + layering rules)
+        let methodology_rules = self.methodology_rules_yaml();
+        let marts_rule = self.marts_exposure_rule_yaml();
+        if !methodology_rules.is_empty() || marts_rule.is_some() {
+            content.push_str(&Self::section_banner("Data Model/Layering Specific", "  "));
+            for rule_yaml in methodology_rules {
+                content.push_str(&rule_yaml);
+                content.push_str("\n\n");
+            }
+            if let Some(extra) = marts_rule {
+                content.push_str(&extra);
+                content.push_str("\n\n");
+            }
         }
 
         content.push_str("catalog_tests:\n");
 
-        for rule in &self.catalog_rules {
-            content.push_str(&self.catalog_rule_to_yaml(rule));
-            content.push_str("\n\n");
+        // Emit catalog rules grouped by category
+        for category in Self::CATALOG_CATEGORIES_ORDER {
+            let rules: Vec<_> = self
+                .catalog_rules
+                .iter()
+                .filter(|r| &r.default_category() == category)
+                .collect();
+            if rules.is_empty() {
+                continue;
+            }
+            content.push_str(&Self::section_banner(category.as_str(), "  "));
+            for rule in rules {
+                content.push_str(&self.catalog_rule_to_yaml(rule));
+                content.push_str("\n\n");
+            }
         }
 
         content.trim_end().to_string()
@@ -264,19 +650,53 @@ impl InitConfig {
             content.push_str("# [config]\n# auto_parse_command = \"dbt parse\"\n\n");
         }
 
-        for rule in &self.manifest_rules {
-            content.push_str(&self.manifest_rule_to_toml(rule, "manifest_tests"));
-            content.push_str("\n\n");
+        // Emit manifest rules grouped by category
+        for category in Self::MANIFEST_CATEGORIES_ORDER {
+            let rules: Vec<_> = self
+                .manifest_rules
+                .iter()
+                .filter(|r| &r.default_category() == category)
+                .collect();
+            if rules.is_empty() {
+                continue;
+            }
+            content.push_str(&Self::section_banner(category.as_str(), ""));
+            for rule in rules {
+                content.push_str(&self.manifest_rule_to_toml(rule, "manifest_tests"));
+                content.push_str("\n\n");
+            }
         }
 
-        if let Some(extra) = self.marts_exposure_rule_toml("manifest_tests") {
-            content.push_str(&extra);
-            content.push_str("\n\n");
+        // Data Modeling section (methodology + layering rules)
+        let methodology_rules = self.methodology_rules_toml("manifest_tests");
+        let marts_rule = self.marts_exposure_rule_toml("manifest_tests");
+        if !methodology_rules.is_empty() || marts_rule.is_some() {
+            content.push_str(&Self::section_banner("Data Model/Layering Specific", ""));
+            for rule_toml in methodology_rules {
+                content.push_str(&rule_toml);
+                content.push_str("\n\n");
+            }
+            if let Some(extra) = marts_rule {
+                content.push_str(&extra);
+                content.push_str("\n\n");
+            }
         }
 
-        for rule in &self.catalog_rules {
-            content.push_str(&self.catalog_rule_to_toml(rule, "catalog_tests"));
-            content.push_str("\n\n");
+        // Emit catalog rules grouped by category
+        for category in Self::CATALOG_CATEGORIES_ORDER {
+            let rules: Vec<_> = self
+                .catalog_rules
+                .iter()
+                .filter(|r| &r.default_category() == category)
+                .collect();
+            if rules.is_empty() {
+                continue;
+            }
+            content.push_str(&Self::section_banner(category.as_str(), ""));
+            for rule in rules {
+                content.push_str(&self.catalog_rule_to_toml(rule, "catalog_tests"));
+                content.push_str("\n\n");
+            }
         }
 
         content.trim_end().to_string()
@@ -300,19 +720,54 @@ impl InitConfig {
             content.push_str("# [tool.dbtective.config]\n# auto_parse_command = \"dbt parse\"\n\n");
         }
 
-        for rule in &self.manifest_rules {
-            content.push_str(&self.manifest_rule_to_toml(rule, "tool.dbtective.manifest_tests"));
-            content.push_str("\n\n");
+        // Emit manifest rules grouped by category
+        for category in Self::MANIFEST_CATEGORIES_ORDER {
+            let rules: Vec<_> = self
+                .manifest_rules
+                .iter()
+                .filter(|r| &r.default_category() == category)
+                .collect();
+            if rules.is_empty() {
+                continue;
+            }
+            content.push_str(&Self::section_banner(category.as_str(), ""));
+            for rule in rules {
+                content
+                    .push_str(&self.manifest_rule_to_toml(rule, "tool.dbtective.manifest_tests"));
+                content.push_str("\n\n");
+            }
         }
 
-        if let Some(extra) = self.marts_exposure_rule_toml("tool.dbtective.manifest_tests") {
-            content.push_str(&extra);
-            content.push_str("\n\n");
+        // Data Modeling section (methodology + layering rules)
+        let methodology_rules = self.methodology_rules_toml("tool.dbtective.manifest_tests");
+        let marts_rule = self.marts_exposure_rule_toml("tool.dbtective.manifest_tests");
+        if !methodology_rules.is_empty() || marts_rule.is_some() {
+            content.push_str(&Self::section_banner("Data Model/Layering Specific", ""));
+            for rule_toml in methodology_rules {
+                content.push_str(&rule_toml);
+                content.push_str("\n\n");
+            }
+            if let Some(extra) = marts_rule {
+                content.push_str(&extra);
+                content.push_str("\n\n");
+            }
         }
 
-        for rule in &self.catalog_rules {
-            content.push_str(&self.catalog_rule_to_toml(rule, "tool.dbtective.catalog_tests"));
-            content.push_str("\n\n");
+        // Emit catalog rules grouped by category
+        for category in Self::CATALOG_CATEGORIES_ORDER {
+            let rules: Vec<_> = self
+                .catalog_rules
+                .iter()
+                .filter(|r| &r.default_category() == category)
+                .collect();
+            if rules.is_empty() {
+                continue;
+            }
+            content.push_str(&Self::section_banner(category.as_str(), ""));
+            for rule in rules {
+                content.push_str(&self.catalog_rule_to_toml(rule, "tool.dbtective.catalog_tests"));
+                content.push_str("\n\n");
+            }
         }
 
         content.trim_end().to_string()
@@ -339,10 +794,10 @@ impl InitConfig {
     type: "code_contains_refs""#
                 .to_string(),
             ManifestSpecificRuleConfig::HasContractEnforced { .. } => {
-                let includes = match self.data_model {
-                    DataModel::Medallion => Some(vec!["models/silver", "models/gold"]),
-                    DataModel::Common => Some(vec!["models/marts", "models/intermediate"]),
-                    DataModel::None => return String::new(),
+                let includes = match self.layering_strategy {
+                    LayeringStrategy::Medallion => Some(vec!["models/silver", "models/gold"]),
+                    LayeringStrategy::Common => Some(vec!["models/marts", "models/intermediate"]),
+                    LayeringStrategy::None => return String::new(),
                 };
 
                 let mut s = r#"  - name: "has_contract_enforced"
@@ -424,25 +879,33 @@ impl InitConfig {
             ManifestSpecificRuleConfig::HasUniqueTest { .. } => r#"  - name: "has_unique_test"
     type: "has_unique_test""#
                 .to_string(),
-            ManifestSpecificRuleConfig::IsNotOrphaned { .. } => match self.data_model {
-                DataModel::Medallion => r#"  - name: "all_gold_models_are_exposed"
-    type: "is_not_orphaned"
-    description: "All gold models should be referenced by at least one exposure."
-    applies_to: ["models"]
-    includes: ["models/gold"]
-    allowed_references: ["exposures"]"#
-                    .to_string(),
-                DataModel::Common => r#"  - name: "all_marts_are_exposed"
-    type: "is_not_orphaned"
-    description: "All mart models should be referenced by at least one exposure."
-    applies_to: ["models"]
-    includes: ["models/marts"]
-    allowed_references: ["exposures"]"#
-                    .to_string(),
-                DataModel::None => r#"  - name: "is_not_orphaned"
+            ManifestSpecificRuleConfig::IsNotOrphaned { .. } => {
+                let (final_layer, _) = self.layer_names();
+                let include_path = match (&self.layering_strategy, &self.methodology) {
+                    (LayeringStrategy::None, _) => {
+                        return r#"  - name: "is_not_orphaned"
     type: "is_not_orphaned""#
-                    .to_string(),
-            },
+                            .to_string();
+                    }
+                    (_, DataModelMethodology::Kimball) => format!("models/{final_layer}/facts"),
+                    (_, DataModelMethodology::DataVault) => {
+                        format!("models/{final_layer}/information_mart")
+                    }
+                    _ => format!("models/{final_layer}"),
+                };
+                let rule_name = match self.layering_strategy {
+                    LayeringStrategy::Medallion => "all_gold_models_are_exposed",
+                    LayeringStrategy::Common | LayeringStrategy::None => "all_marts_are_exposed",
+                };
+                format!(
+                    r#"  - name: "{rule_name}"
+    type: "is_not_orphaned"
+    description: "All {final_layer} models should be referenced by at least one exposure."
+    applies_to: ["models"]
+    includes: ["{include_path}"]
+    allowed_references: ["exposures"]"#
+                )
+            }
             ManifestSpecificRuleConfig::CodeMaxLines { max_lines } => {
                 format!(
                     r#"  - name: "code_max_lines"
@@ -509,10 +972,18 @@ impl InitConfig {
     }
 
     fn marts_exposure_rule_yaml(&self) -> Option<String> {
-        let (name, folder) = match self.data_model {
-            DataModel::Common => ("all_marts_are_exposed", "models/marts"),
-            DataModel::Medallion => ("all_gold_models_are_exposed", "models/gold"),
-            DataModel::None => return None,
+        if matches!(self.layering_strategy, LayeringStrategy::None) {
+            return None;
+        }
+        let (final_layer, _) = self.layer_names();
+        let name = match self.layering_strategy {
+            LayeringStrategy::Medallion => "all_gold_models_are_exposed",
+            _ => "all_marts_are_exposed",
+        };
+        let folder = match self.methodology {
+            DataModelMethodology::Kimball => format!("models/{final_layer}/facts"),
+            DataModelMethodology::DataVault => format!("models/{final_layer}/information_mart"),
+            _ => format!("models/{final_layer}"),
         };
         Some(format!(
             r#"  - name: "{name}"
@@ -525,10 +996,18 @@ impl InitConfig {
     }
 
     fn marts_exposure_rule_toml(&self, section: &str) -> Option<String> {
-        let (name, folder) = match self.data_model {
-            DataModel::Common => ("all_marts_are_exposed", "models/marts"),
-            DataModel::Medallion => ("all_gold_models_are_exposed", "models/gold"),
-            DataModel::None => return None,
+        if matches!(self.layering_strategy, LayeringStrategy::None) {
+            return None;
+        }
+        let (final_layer, _) = self.layer_names();
+        let name = match self.layering_strategy {
+            LayeringStrategy::Medallion => "all_gold_models_are_exposed",
+            _ => "all_marts_are_exposed",
+        };
+        let folder = match self.methodology {
+            DataModelMethodology::Kimball => format!("models/{final_layer}/facts"),
+            DataModelMethodology::DataVault => format!("models/{final_layer}/information_mart"),
+            _ => format!("models/{final_layer}"),
         };
         Some(format!(
             r#"[[{section}]]
@@ -575,10 +1054,10 @@ severity = "warning""#
                 )
             }
             CatalogSpecificRuleConfig::ColumnsHaveDataType { min_coverage } => {
-                let includes = match self.data_model {
-                    DataModel::Medallion => Some(vec!["models/silver", "models/gold"]),
-                    DataModel::Common => Some(vec!["models/marts", "models/intermediate"]),
-                    DataModel::None => None,
+                let includes = match self.layering_strategy {
+                    LayeringStrategy::Medallion => Some(vec!["models/silver", "models/gold"]),
+                    LayeringStrategy::Common => Some(vec!["models/marts", "models/intermediate"]),
+                    LayeringStrategy::None => None,
                 };
 
                 let mut s = r#"  - name: "columns_have_data_type"
@@ -644,10 +1123,10 @@ type = "code_contains_refs""#
                 )
             }
             ManifestSpecificRuleConfig::HasContractEnforced { .. } => {
-                let includes = match self.data_model {
-                    DataModel::Medallion => Some(vec!["models/silver", "models/gold"]),
-                    DataModel::Common => Some(vec!["models/marts", "models/intermediate"]),
-                    DataModel::None => return String::new(),
+                let includes = match self.layering_strategy {
+                    LayeringStrategy::Medallion => Some(vec!["models/silver", "models/gold"]),
+                    LayeringStrategy::Common => Some(vec!["models/marts", "models/intermediate"]),
+                    LayeringStrategy::None => return String::new(),
                 };
 
                 let mut s = format!(
@@ -745,37 +1224,36 @@ name = "has_unique_test"
 type = "has_unique_test""#
                 )
             }
-            ManifestSpecificRuleConfig::IsNotOrphaned { .. } => match self.data_model {
-                DataModel::Medallion => {
-                    format!(
-                        r#"[[{section}]]
-name = "all_gold_models_are_exposed"
-type = "is_not_orphaned"
-description = "All gold models should be referenced by at least one exposure."
-applies_to = ["models"]
-includes = ["models/gold"]
-allowed_references = ["exposures"]"#
-                    )
-                }
-                DataModel::Common => {
-                    format!(
-                        r#"[[{section}]]
-name = "all_marts_are_exposed"
-type = "is_not_orphaned"
-description = "All mart models should be referenced by at least one exposure."
-applies_to = ["models"]
-includes = ["models/marts"]
-allowed_references = ["exposures"]"#
-                    )
-                }
-                DataModel::None => {
-                    format!(
-                        r#"[[{section}]]
+            ManifestSpecificRuleConfig::IsNotOrphaned { .. } => {
+                let (final_layer, _) = self.layer_names();
+                let include_path = match (&self.layering_strategy, &self.methodology) {
+                    (LayeringStrategy::None, _) => {
+                        return format!(
+                            r#"[[{section}]]
 name = "is_not_orphaned"
 type = "is_not_orphaned""#
-                    )
-                }
-            },
+                        );
+                    }
+                    (_, DataModelMethodology::Kimball) => format!("models/{final_layer}/facts"),
+                    (_, DataModelMethodology::DataVault) => {
+                        format!("models/{final_layer}/information_mart")
+                    }
+                    _ => format!("models/{final_layer}"),
+                };
+                let rule_name = match self.layering_strategy {
+                    LayeringStrategy::Medallion => "all_gold_models_are_exposed",
+                    LayeringStrategy::Common | LayeringStrategy::None => "all_marts_are_exposed",
+                };
+                format!(
+                    r#"[[{section}]]
+name = "{rule_name}"
+type = "is_not_orphaned"
+description = "All {final_layer} models should be referenced by at least one exposure."
+applies_to = ["models"]
+includes = ["{include_path}"]
+allowed_references = ["exposures"]"#
+                )
+            }
             ManifestSpecificRuleConfig::CodeMaxLines { max_lines } => {
                 format!(
                     r#"[[{section}]]
@@ -891,10 +1369,10 @@ invalid_names = [{invalid_str}]"#
                 )
             }
             CatalogSpecificRuleConfig::ColumnsHaveDataType { min_coverage } => {
-                let includes = match self.data_model {
-                    DataModel::Medallion => Some(vec!["models/silver", "models/gold"]),
-                    DataModel::Common => Some(vec!["models/marts", "models/intermediate"]),
-                    DataModel::None => None,
+                let includes = match self.layering_strategy {
+                    LayeringStrategy::Medallion => Some(vec!["models/silver", "models/gold"]),
+                    LayeringStrategy::Common => Some(vec!["models/marts", "models/intermediate"]),
+                    LayeringStrategy::None => None,
                 };
 
                 let mut s = format!(
@@ -949,7 +1427,23 @@ mod tests {
 
     // Helper function to create a minimal questionnaire result
     fn create_questionnaire_result(
-        data_model: DataModel,
+        layering_strategy: LayeringStrategy,
+        manifest_rules: Vec<ManifestSpecificRuleConfig>,
+        catalog_rules: Vec<CatalogSpecificRuleConfig>,
+        naming_convention: NamingConvention,
+    ) -> QuestionnaireResult {
+        create_questionnaire_result_with_methodology(
+            layering_strategy,
+            DataModelMethodology::None,
+            manifest_rules,
+            catalog_rules,
+            naming_convention,
+        )
+    }
+
+    fn create_questionnaire_result_with_methodology(
+        layering_strategy: LayeringStrategy,
+        methodology: DataModelMethodology,
         manifest_rules: Vec<ManifestSpecificRuleConfig>,
         catalog_rules: Vec<CatalogSpecificRuleConfig>,
         naming_convention: NamingConvention,
@@ -957,7 +1451,8 @@ mod tests {
         QuestionnaireResult {
             format: super::super::questionnaire::ConfigFormat::Yaml,
             naming_convention,
-            data_model,
+            layering_strategy,
+            methodology,
             manifest_rules,
             catalog_rules,
             auto_parse_command: None,
@@ -971,7 +1466,7 @@ mod tests {
     #[test]
     fn test_allowed_subfolders_medallion_mapping() {
         let result = create_questionnaire_result(
-            DataModel::Medallion,
+            LayeringStrategy::Medallion,
             vec![ManifestSpecificRuleConfig::AllowedSubfolders {
                 allowed_subfolders: vec![],
                 path_prefix: None,
@@ -1000,7 +1495,7 @@ mod tests {
     #[test]
     fn test_allowed_subfolders_common_mapping() {
         let result = create_questionnaire_result(
-            DataModel::Common,
+            LayeringStrategy::Common,
             vec![ManifestSpecificRuleConfig::AllowedSubfolders {
                 allowed_subfolders: vec![],
                 path_prefix: None,
@@ -1029,7 +1524,7 @@ mod tests {
     #[test]
     fn test_allowed_subfolders_none_mapping() {
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             vec![ManifestSpecificRuleConfig::AllowedSubfolders {
                 allowed_subfolders: vec![],
                 path_prefix: None,
@@ -1060,7 +1555,7 @@ mod tests {
     #[test]
     fn test_create_manifest_rule_has_description() {
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             vec![ManifestSpecificRuleConfig::HasDescription {
                 min_length: None,
                 forbidden_substrings: None,
@@ -1084,7 +1579,7 @@ mod tests {
     fn test_create_manifest_rule_name_convention() {
         let convention = NamingConvention::from_pattern("snake_case").unwrap();
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             vec![ManifestSpecificRuleConfig::NameConvention {
                 convention: NamingConvention::default(),
             }],
@@ -1105,7 +1600,7 @@ mod tests {
     #[test]
     fn test_create_manifest_rule_has_tags() {
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             vec![ManifestSpecificRuleConfig::HasTags {
                 required_tags: vec![],
                 criteria: HasTagsCriteria::default(),
@@ -1135,7 +1630,7 @@ mod tests {
     #[test]
     fn test_create_manifest_rule_is_not_orphaned() {
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             vec![ManifestSpecificRuleConfig::IsNotOrphaned {
                 allowed_references: vec![],
             }],
@@ -1156,7 +1651,7 @@ mod tests {
     #[test]
     fn test_create_manifest_rule_has_unique_test() {
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             vec![ManifestSpecificRuleConfig::HasUniqueTest {
                 allowed_test_names: vec![],
             }],
@@ -1177,7 +1672,7 @@ mod tests {
     #[test]
     fn test_create_manifest_rule_has_contract_enforced() {
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             vec![ManifestSpecificRuleConfig::HasContractEnforced { access_level: None }],
             Vec::new(),
             NamingConvention::default(),
@@ -1194,7 +1689,7 @@ mod tests {
     #[test]
     fn test_create_manifest_rule_has_metadata_keys() {
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             vec![ManifestSpecificRuleConfig::HasMetadataKeys {
                 required_keys: vec![],
                 custom_message: None,
@@ -1221,7 +1716,7 @@ mod tests {
     #[test]
     fn test_create_manifest_rule_has_refs() {
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             vec![ManifestSpecificRuleConfig::HasRefs {}],
             Vec::new(),
             NamingConvention::default(),
@@ -1238,7 +1733,7 @@ mod tests {
     #[test]
     fn test_create_manifest_rule_max_code_lines() {
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             vec![ManifestSpecificRuleConfig::CodeMaxLines { max_lines: 0 }],
             Vec::new(),
             NamingConvention::default(),
@@ -1261,7 +1756,7 @@ mod tests {
     #[test]
     fn test_create_catalog_rule_columns_all_documented() {
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             Vec::new(),
             vec![CatalogSpecificRuleConfig::ColumnsAllDocumented {}],
             NamingConvention::default(),
@@ -1278,7 +1773,7 @@ mod tests {
     #[test]
     fn test_create_catalog_rule_columns_have_description() {
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             Vec::new(),
             vec![CatalogSpecificRuleConfig::ColumnsHaveDescription {}],
             NamingConvention::default(),
@@ -1296,7 +1791,7 @@ mod tests {
     fn test_create_catalog_rule_columns_name_convention() {
         let convention = NamingConvention::from_pattern("snake_case").unwrap();
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             Vec::new(),
             vec![CatalogSpecificRuleConfig::ColumnsNameConvention {
                 convention: NamingConvention::default(),
@@ -1324,7 +1819,7 @@ mod tests {
     #[test]
     fn test_create_catalog_rule_columns_canonical_name() {
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             Vec::new(),
             vec![CatalogSpecificRuleConfig::ColumnsCanonicalName {
                 canonical: String::new(),
@@ -1365,7 +1860,7 @@ mod tests {
     #[test]
     fn test_strictness_basic_manifest_rules() {
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             vec![
                 ManifestSpecificRuleConfig::HasDescription {
                     min_length: None,
@@ -1399,7 +1894,7 @@ mod tests {
     #[test]
     fn test_strictness_basic_catalog_rules() {
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             Vec::new(),
             vec![CatalogSpecificRuleConfig::ColumnsNameConvention {
                 convention: NamingConvention::default(),
@@ -1420,7 +1915,7 @@ mod tests {
     #[test]
     fn test_strictness_standard_manifest_rules() {
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             vec![
                 ManifestSpecificRuleConfig::HasDescription {
                     min_length: None,
@@ -1468,7 +1963,7 @@ mod tests {
     #[test]
     fn test_strictness_standard_catalog_rules() {
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             Vec::new(),
             vec![
                 CatalogSpecificRuleConfig::ColumnsNameConvention {
@@ -1500,7 +1995,7 @@ mod tests {
     #[test]
     fn test_strictness_strict_manifest_rules() {
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             vec![
                 ManifestSpecificRuleConfig::HasDescription {
                     min_length: None,
@@ -1541,7 +2036,7 @@ mod tests {
     #[test]
     fn test_strictness_strict_catalog_rules() {
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             Vec::new(),
             vec![
                 CatalogSpecificRuleConfig::ColumnsNameConvention {
@@ -1566,7 +2061,7 @@ mod tests {
     #[test]
     fn test_medallion_with_standard_strictness() {
         let result = create_questionnaire_result(
-            DataModel::Medallion,
+            LayeringStrategy::Medallion,
             vec![
                 ManifestSpecificRuleConfig::HasDescription {
                     min_length: None,
@@ -1615,7 +2110,7 @@ mod tests {
     #[test]
     fn test_common_with_basic_strictness() {
         let result = create_questionnaire_result(
-            DataModel::Common,
+            LayeringStrategy::Common,
             vec![
                 ManifestSpecificRuleConfig::HasDescription {
                     min_length: None,
@@ -1654,9 +2149,9 @@ mod tests {
 
     #[test]
     fn test_none_with_strict_strictness_no_allowed_subfolders() {
-        // When DataModel::None is used with Strict, AllowedSubfolders should NOT be added
+        // When LayeringStrategy::None is used with Strict, AllowedSubfolders should NOT be added
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             vec![
                 ManifestSpecificRuleConfig::HasDescription {
                     min_length: None,
@@ -1678,7 +2173,7 @@ mod tests {
                     allowed_test_names: vec![],
                 },
                 ManifestSpecificRuleConfig::HasContractEnforced { access_level: None },
-                // Note: AllowedSubfolders NOT added when DataModel::None
+                // Note: AllowedSubfolders NOT added when LayeringStrategy::None
             ],
             vec![
                 CatalogSpecificRuleConfig::ColumnsNameConvention {
@@ -1709,7 +2204,7 @@ mod tests {
     #[test]
     fn test_contract_enforced_medallion_yaml_includes_silver_gold() {
         let result = create_questionnaire_result(
-            DataModel::Medallion,
+            LayeringStrategy::Medallion,
             vec![ManifestSpecificRuleConfig::HasContractEnforced { access_level: None }],
             Vec::new(),
             NamingConvention::default(),
@@ -1725,7 +2220,7 @@ mod tests {
     #[test]
     fn test_contract_enforced_common_yaml_includes_marts() {
         let result = create_questionnaire_result(
-            DataModel::Common,
+            LayeringStrategy::Common,
             vec![ManifestSpecificRuleConfig::HasContractEnforced { access_level: None }],
             Vec::new(),
             NamingConvention::default(),
@@ -1741,7 +2236,7 @@ mod tests {
     #[test]
     fn test_contract_enforced_none_yaml_no_includes() {
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             vec![ManifestSpecificRuleConfig::HasContractEnforced { access_level: None }],
             Vec::new(),
             NamingConvention::default(),
@@ -1761,7 +2256,7 @@ mod tests {
     #[test]
     fn test_is_not_orphaned_common_yaml_all_marts_exposed() {
         let result = create_questionnaire_result(
-            DataModel::Common,
+            LayeringStrategy::Common,
             vec![ManifestSpecificRuleConfig::IsNotOrphaned {
                 allowed_references: vec![],
             }],
@@ -1781,7 +2276,7 @@ mod tests {
     #[test]
     fn test_is_not_orphaned_medallion_yaml_all_gold_exposed() {
         let result = create_questionnaire_result(
-            DataModel::Medallion,
+            LayeringStrategy::Medallion,
             vec![ManifestSpecificRuleConfig::IsNotOrphaned {
                 allowed_references: vec![],
             }],
@@ -1801,7 +2296,7 @@ mod tests {
     #[test]
     fn test_is_not_orphaned_none_yaml_generic() {
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             vec![ManifestSpecificRuleConfig::IsNotOrphaned {
                 allowed_references: vec![],
             }],
@@ -1821,7 +2316,7 @@ mod tests {
     #[test]
     fn test_is_not_orphaned_common_toml_all_marts_exposed() {
         let result = create_questionnaire_result(
-            DataModel::Common,
+            LayeringStrategy::Common,
             vec![ManifestSpecificRuleConfig::IsNotOrphaned {
                 allowed_references: vec![],
             }],
@@ -1841,7 +2336,7 @@ mod tests {
     #[test]
     fn test_contract_enforced_medallion_toml_includes_silver_gold() {
         let result = create_questionnaire_result(
-            DataModel::Medallion,
+            LayeringStrategy::Medallion,
             vec![ManifestSpecificRuleConfig::HasContractEnforced { access_level: None }],
             Vec::new(),
             NamingConvention::default(),
@@ -1861,7 +2356,7 @@ mod tests {
     #[test]
     fn test_forbidden_code_medallion_patterns() {
         let result = create_questionnaire_result(
-            DataModel::Medallion,
+            LayeringStrategy::Medallion,
             vec![ManifestSpecificRuleConfig::CodeForbiddenPatterns {
                 forbidden_patterns: vec![],
                 case_sensitive: false,
@@ -1888,7 +2383,7 @@ mod tests {
     #[test]
     fn test_forbidden_code_common_patterns() {
         let result = create_questionnaire_result(
-            DataModel::Common,
+            LayeringStrategy::Common,
             vec![ManifestSpecificRuleConfig::CodeForbiddenPatterns {
                 forbidden_patterns: vec![],
                 case_sensitive: false,
@@ -1915,7 +2410,7 @@ mod tests {
     #[test]
     fn test_forbidden_code_none_no_schema_patterns() {
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             vec![ManifestSpecificRuleConfig::CodeForbiddenPatterns {
                 forbidden_patterns: vec![],
                 case_sensitive: false,
@@ -1939,7 +2434,7 @@ mod tests {
     #[test]
     fn test_forbidden_code_medallion_yaml_output() {
         let result = create_questionnaire_result(
-            DataModel::Medallion,
+            LayeringStrategy::Medallion,
             vec![ManifestSpecificRuleConfig::CodeForbiddenPatterns {
                 forbidden_patterns: vec![],
                 case_sensitive: false,
@@ -1960,7 +2455,7 @@ mod tests {
     #[test]
     fn test_forbidden_code_common_toml_output() {
         let result = create_questionnaire_result(
-            DataModel::Common,
+            LayeringStrategy::Common,
             vec![ManifestSpecificRuleConfig::CodeForbiddenPatterns {
                 forbidden_patterns: vec![],
                 case_sensitive: false,
@@ -1986,7 +2481,7 @@ mod tests {
     fn test_naming_convention_snake_case() {
         let convention = NamingConvention::from_pattern("snake_case").unwrap();
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             vec![ManifestSpecificRuleConfig::NameConvention {
                 convention: NamingConvention::default(),
             }],
@@ -2021,7 +2516,7 @@ mod tests {
     fn test_naming_convention_kebab_case() {
         let convention = NamingConvention::from_pattern("kebab-case").unwrap();
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             vec![ManifestSpecificRuleConfig::NameConvention {
                 convention: NamingConvention::default(),
             }],
@@ -2042,7 +2537,7 @@ mod tests {
     fn test_naming_convention_camel_case() {
         let convention = NamingConvention::from_pattern("camelCase").unwrap();
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             vec![ManifestSpecificRuleConfig::NameConvention {
                 convention: NamingConvention::default(),
             }],
@@ -2063,7 +2558,7 @@ mod tests {
     fn test_naming_convention_pascal_case() {
         let convention = NamingConvention::from_pattern("PascalCase").unwrap();
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             vec![ManifestSpecificRuleConfig::NameConvention {
                 convention: NamingConvention::default(),
             }],
@@ -2087,7 +2582,7 @@ mod tests {
     #[test]
     fn test_to_yaml_basic_structure() {
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             vec![ManifestSpecificRuleConfig::HasDescription {
                 min_length: None,
                 forbidden_substrings: None,
@@ -2114,7 +2609,7 @@ mod tests {
     #[test]
     fn test_to_yaml_has_description() {
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             vec![ManifestSpecificRuleConfig::HasDescription {
                 min_length: None,
                 forbidden_substrings: None,
@@ -2134,7 +2629,7 @@ mod tests {
     fn test_to_yaml_name_convention() {
         let convention = NamingConvention::from_pattern("snake_case").unwrap();
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             vec![ManifestSpecificRuleConfig::NameConvention {
                 convention: NamingConvention::default(),
             }],
@@ -2153,7 +2648,7 @@ mod tests {
     #[test]
     fn test_to_yaml_has_tags() {
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             vec![ManifestSpecificRuleConfig::HasTags {
                 required_tags: vec![],
                 criteria: HasTagsCriteria::default(),
@@ -2176,7 +2671,7 @@ mod tests {
     #[test]
     fn test_to_yaml_allowed_subfolders_medallion() {
         let result = create_questionnaire_result(
-            DataModel::Medallion,
+            LayeringStrategy::Medallion,
             vec![ManifestSpecificRuleConfig::AllowedSubfolders {
                 allowed_subfolders: vec![],
                 path_prefix: None,
@@ -2198,7 +2693,7 @@ mod tests {
     #[test]
     fn test_to_yaml_columns_canonical_name() {
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             Vec::new(),
             vec![CatalogSpecificRuleConfig::ColumnsCanonicalName {
                 canonical: String::new(),
@@ -2224,7 +2719,7 @@ mod tests {
     #[test]
     fn test_to_toml_basic_structure() {
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             vec![ManifestSpecificRuleConfig::HasDescription {
                 min_length: None,
                 forbidden_substrings: None,
@@ -2248,7 +2743,7 @@ mod tests {
     #[test]
     fn test_to_toml_has_description() {
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             vec![ManifestSpecificRuleConfig::HasDescription {
                 min_length: None,
                 forbidden_substrings: None,
@@ -2268,7 +2763,7 @@ mod tests {
     #[test]
     fn test_to_toml_allowed_subfolders() {
         let result = create_questionnaire_result(
-            DataModel::Common,
+            LayeringStrategy::Common,
             vec![ManifestSpecificRuleConfig::AllowedSubfolders {
                 allowed_subfolders: vec![],
                 path_prefix: None,
@@ -2294,7 +2789,7 @@ mod tests {
     #[test]
     fn test_to_pyproject_basic_structure() {
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             vec![ManifestSpecificRuleConfig::HasDescription {
                 min_length: None,
                 forbidden_substrings: None,
@@ -2319,7 +2814,7 @@ mod tests {
     #[test]
     fn test_to_pyproject_has_description() {
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             vec![ManifestSpecificRuleConfig::HasDescription {
                 min_length: None,
                 forbidden_substrings: None,
@@ -2346,7 +2841,7 @@ mod tests {
         let all_rules: Vec<_> = ManifestSpecificRuleConfig::iter().collect();
 
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             all_rules.clone(),
             Vec::new(),
             NamingConvention::default(),
@@ -2374,7 +2869,7 @@ mod tests {
         let all_rules: Vec<_> = CatalogSpecificRuleConfig::iter().collect();
 
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             Vec::new(),
             all_rules.clone(),
             NamingConvention::default(),
@@ -2393,7 +2888,7 @@ mod tests {
     #[test]
     fn test_empty_manifest_rules() {
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             Vec::new(),
             vec![CatalogSpecificRuleConfig::ColumnsNameConvention {
                 convention: NamingConvention::default(),
@@ -2415,7 +2910,7 @@ mod tests {
     #[test]
     fn test_empty_catalog_rules() {
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             vec![ManifestSpecificRuleConfig::HasDescription {
                 min_length: None,
                 forbidden_substrings: None,
@@ -2435,7 +2930,7 @@ mod tests {
         let all_rules: Vec<_> = ManifestSpecificRuleConfig::iter().collect();
 
         let result = create_questionnaire_result(
-            DataModel::Medallion,
+            LayeringStrategy::Medallion,
             all_rules,
             Vec::new(),
             NamingConvention::default(),
@@ -2451,7 +2946,7 @@ mod tests {
         let all_rules: Vec<_> = CatalogSpecificRuleConfig::iter().collect();
 
         let result = create_questionnaire_result(
-            DataModel::None,
+            LayeringStrategy::None,
             Vec::new(),
             all_rules,
             NamingConvention::default(),
@@ -2459,5 +2954,598 @@ mod tests {
 
         let config = InitConfig::from_questionnaire(&result);
         assert_eq!(config.catalog_rules.len(), 5); // All 5 catalog rules
+    }
+
+    // ========================================================================
+    // Methodology Rule Generation Tests
+    // ========================================================================
+
+    #[test]
+    fn test_kimball_medallion_generates_dimension_subfolder_rule() {
+        let result = create_questionnaire_result_with_methodology(
+            LayeringStrategy::Medallion,
+            DataModelMethodology::Kimball,
+            vec![ManifestSpecificRuleConfig::HasDescription {
+                min_length: None,
+                forbidden_substrings: None,
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+        assert!(yaml.contains(r#"name: "gold_subfolders""#));
+        assert!(yaml.contains(r#""dimensions""#));
+        assert!(yaml.contains(r#""facts""#));
+        assert!(yaml.contains(r#"includes: ["models/gold"]"#));
+    }
+
+    #[test]
+    fn test_kimball_medallion_generates_naming_rules() {
+        let result = create_questionnaire_result_with_methodology(
+            LayeringStrategy::Medallion,
+            DataModelMethodology::Kimball,
+            vec![ManifestSpecificRuleConfig::HasDescription {
+                min_length: None,
+                forbidden_substrings: None,
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+        assert!(yaml.contains(r#"name: "dimension_naming""#));
+        assert!(yaml.contains(r#"pattern: "^dim_""#));
+        assert!(yaml.contains(r#"includes: ["models/gold/dimensions"]"#));
+        assert!(yaml.contains(r#"name: "fact_naming""#));
+        assert!(yaml.contains(r#"pattern: "^fact_""#));
+        assert!(yaml.contains(r#"includes: ["models/gold/facts"]"#));
+    }
+
+    #[test]
+    fn test_kimball_common_uses_marts_layer() {
+        let result = create_questionnaire_result_with_methodology(
+            LayeringStrategy::Common,
+            DataModelMethodology::Kimball,
+            vec![ManifestSpecificRuleConfig::HasDescription {
+                min_length: None,
+                forbidden_substrings: None,
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+        assert!(yaml.contains(r#"name: "marts_subfolders""#));
+        assert!(yaml.contains(r#"includes: ["models/marts"]"#));
+        assert!(yaml.contains(r#"includes: ["models/marts/dimensions"]"#));
+        assert!(yaml.contains(r#"includes: ["models/marts/facts"]"#));
+    }
+
+    #[test]
+    fn test_data_vault_medallion_generates_vault_subfolders() {
+        let result = create_questionnaire_result_with_methodology(
+            LayeringStrategy::Medallion,
+            DataModelMethodology::DataVault,
+            vec![ManifestSpecificRuleConfig::HasDescription {
+                min_length: None,
+                forbidden_substrings: None,
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+        assert!(yaml.contains(r#"name: "silver_vault_subfolders""#));
+        assert!(yaml.contains(r#""hubs""#));
+        assert!(yaml.contains(r#""links""#));
+        assert!(yaml.contains(r#""satellites""#));
+        assert!(yaml.contains(r#""t_links""#));
+        assert!(yaml.contains(r#"includes: ["models/silver"]"#));
+    }
+
+    #[test]
+    fn test_data_vault_medallion_generates_hub_naming_rule() {
+        let result = create_questionnaire_result_with_methodology(
+            LayeringStrategy::Medallion,
+            DataModelMethodology::DataVault,
+            vec![ManifestSpecificRuleConfig::HasDescription {
+                min_length: None,
+                forbidden_substrings: None,
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+        assert!(yaml.contains(r#"name: "hub_naming""#));
+        assert!(yaml.contains(r#"pattern: "^hub_""#));
+        assert!(yaml.contains(r#"includes: ["models/silver/hubs"]"#));
+    }
+
+    #[test]
+    fn test_data_vault_generates_all_naming_rules() {
+        let result = create_questionnaire_result_with_methodology(
+            LayeringStrategy::Medallion,
+            DataModelMethodology::DataVault,
+            vec![ManifestSpecificRuleConfig::HasDescription {
+                min_length: None,
+                forbidden_substrings: None,
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+        assert!(yaml.contains(r#"pattern: "^hub_""#));
+        assert!(yaml.contains(r#"pattern: "^lnk_""#));
+        assert!(yaml.contains(r#"pattern: "^sat_""#));
+        assert!(yaml.contains(r#"pattern: "^t_lnk_""#));
+        assert!(yaml.contains(r#"name: "vault_contracts""#));
+        assert!(yaml.contains(r#"name: "hub_unique_keys""#));
+        assert!(yaml.contains(r#"name: "link_unique_keys""#));
+    }
+
+    #[test]
+    fn test_data_vault_generates_info_mart_naming() {
+        let result = create_questionnaire_result_with_methodology(
+            LayeringStrategy::Medallion,
+            DataModelMethodology::DataVault,
+            vec![ManifestSpecificRuleConfig::HasDescription {
+                min_length: None,
+                forbidden_substrings: None,
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+        assert!(yaml.contains(r#"name: "info_mart_dim_naming""#));
+        assert!(yaml.contains(r#"name: "info_mart_fact_naming""#));
+        assert!(yaml.contains(r#"includes: ["models/gold/information_mart"]"#));
+    }
+
+    #[test]
+    fn test_data_vault_common_uses_intermediate_layer() {
+        let result = create_questionnaire_result_with_methodology(
+            LayeringStrategy::Common,
+            DataModelMethodology::DataVault,
+            vec![ManifestSpecificRuleConfig::HasDescription {
+                min_length: None,
+                forbidden_substrings: None,
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+        assert!(yaml.contains(r#"name: "intermediate_vault_subfolders""#));
+        assert!(yaml.contains(r#"includes: ["models/intermediate"]"#));
+        assert!(yaml.contains(r#"includes: ["models/intermediate/hubs"]"#));
+    }
+
+    #[test]
+    fn test_inmon_medallion_generates_enterprise_subfolders() {
+        let result = create_questionnaire_result_with_methodology(
+            LayeringStrategy::Medallion,
+            DataModelMethodology::Inmon,
+            vec![ManifestSpecificRuleConfig::HasDescription {
+                min_length: None,
+                forbidden_substrings: None,
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+        assert!(yaml.contains(r#"name: "silver_subfolders""#));
+        assert!(yaml.contains(r#""core""#));
+        assert!(yaml.contains(r#""reference""#));
+        assert!(yaml.contains(r#""bridge""#));
+    }
+
+    #[test]
+    fn test_inmon_generates_department_subfolders() {
+        let result = create_questionnaire_result_with_methodology(
+            LayeringStrategy::Medallion,
+            DataModelMethodology::Inmon,
+            vec![ManifestSpecificRuleConfig::HasDescription {
+                min_length: None,
+                forbidden_substrings: None,
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+        assert!(yaml.contains(r#"name: "gold_subfolders""#));
+        assert!(yaml.contains(r#""finance""#));
+        assert!(yaml.contains(r#""marketing""#));
+        assert!(yaml.contains(r#""operations""#));
+    }
+
+    #[test]
+    fn test_inmon_generates_contract_and_unique_rules() {
+        let result = create_questionnaire_result_with_methodology(
+            LayeringStrategy::Medallion,
+            DataModelMethodology::Inmon,
+            vec![ManifestSpecificRuleConfig::HasDescription {
+                min_length: None,
+                forbidden_substrings: None,
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+        assert!(yaml.contains(r#"name: "enterprise_model_contracts""#));
+        assert!(yaml.contains(r#"name: "enterprise_model_unique_keys""#));
+    }
+
+    #[test]
+    fn test_none_methodology_generates_no_extra_rules() {
+        let result = create_questionnaire_result_with_methodology(
+            LayeringStrategy::Medallion,
+            DataModelMethodology::None,
+            vec![ManifestSpecificRuleConfig::HasDescription {
+                min_length: None,
+                forbidden_substrings: None,
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+        // Should not contain any methodology-specific rule names
+        assert!(!yaml.contains("dimension_naming"));
+        assert!(!yaml.contains("fact_naming"));
+        assert!(!yaml.contains("hub_naming"));
+        assert!(!yaml.contains("enterprise_model"));
+    }
+
+    #[test]
+    fn test_kimball_medallion_toml_output() {
+        let result = create_questionnaire_result_with_methodology(
+            LayeringStrategy::Medallion,
+            DataModelMethodology::Kimball,
+            vec![ManifestSpecificRuleConfig::HasDescription {
+                min_length: None,
+                forbidden_substrings: None,
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+        let config = InitConfig::from_questionnaire(&result);
+        let toml = config.to_toml();
+        assert!(toml.contains(r#"name = "gold_subfolders""#));
+        assert!(toml.contains(r#"name = "dimension_naming""#));
+        assert!(toml.contains(r#"name = "fact_naming""#));
+        assert!(toml.contains(r#"pattern = "^dim_""#));
+        assert!(toml.contains(r#"pattern = "^fact_""#));
+    }
+
+    #[test]
+    fn test_data_vault_common_toml_output() {
+        let result = create_questionnaire_result_with_methodology(
+            LayeringStrategy::Common,
+            DataModelMethodology::DataVault,
+            vec![ManifestSpecificRuleConfig::HasDescription {
+                min_length: None,
+                forbidden_substrings: None,
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+        let config = InitConfig::from_questionnaire(&result);
+        let toml = config.to_toml();
+        assert!(toml.contains(r#"name = "intermediate_vault_subfolders""#));
+        assert!(toml.contains(r#"name = "hub_naming""#));
+        assert!(toml.contains(r#"name = "vault_contracts""#));
+    }
+
+    // ========================================================================
+    // Layer Names Helper Tests
+    // ========================================================================
+
+    #[test]
+    fn test_layer_names_medallion() {
+        let result = create_questionnaire_result(
+            LayeringStrategy::Medallion,
+            Vec::new(),
+            Vec::new(),
+            NamingConvention::default(),
+        );
+        let config = InitConfig::from_questionnaire(&result);
+        assert_eq!(config.layer_names(), ("gold", "silver"));
+    }
+
+    #[test]
+    fn test_layer_names_common() {
+        let result = create_questionnaire_result(
+            LayeringStrategy::Common,
+            Vec::new(),
+            Vec::new(),
+            NamingConvention::default(),
+        );
+        let config = InitConfig::from_questionnaire(&result);
+        assert_eq!(config.layer_names(), ("marts", "intermediate"));
+    }
+
+    #[test]
+    fn test_layer_names_none_defaults_to_common() {
+        let result = create_questionnaire_result(
+            LayeringStrategy::None,
+            Vec::new(),
+            Vec::new(),
+            NamingConvention::default(),
+        );
+        let config = InitConfig::from_questionnaire(&result);
+        assert_eq!(config.layer_names(), ("marts", "intermediate"));
+    }
+
+    // ========================================================================
+    // IsNotOrphaned Methodology-Aware Tests
+    // ========================================================================
+
+    #[test]
+    fn test_is_not_orphaned_kimball_scoped_to_facts() {
+        let result = create_questionnaire_result_with_methodology(
+            LayeringStrategy::Medallion,
+            DataModelMethodology::Kimball,
+            vec![ManifestSpecificRuleConfig::IsNotOrphaned {
+                allowed_references: vec![],
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+        assert!(yaml.contains(r#"includes: ["models/gold/facts"]"#));
+    }
+
+    #[test]
+    fn test_is_not_orphaned_data_vault_scoped_to_info_mart() {
+        let result = create_questionnaire_result_with_methodology(
+            LayeringStrategy::Medallion,
+            DataModelMethodology::DataVault,
+            vec![ManifestSpecificRuleConfig::IsNotOrphaned {
+                allowed_references: vec![],
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+        assert!(yaml.contains(r#"includes: ["models/gold/information_mart"]"#));
+    }
+
+    #[test]
+    fn test_is_not_orphaned_inmon_scoped_to_full_layer() {
+        let result = create_questionnaire_result_with_methodology(
+            LayeringStrategy::Medallion,
+            DataModelMethodology::Inmon,
+            vec![ManifestSpecificRuleConfig::IsNotOrphaned {
+                allowed_references: vec![],
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+        assert!(yaml.contains(r#"includes: ["models/gold"]"#));
+    }
+
+    // ========================================================================
+    // Section Banner Tests
+    // ========================================================================
+
+    #[test]
+    fn test_section_banner_format() {
+        let banner = InitConfig::section_banner("documentation", "  ");
+        assert!(banner.contains("## documentation ##"));
+        assert!(banner.starts_with("  #####"));
+        // Verify top and bottom borders match inner width
+        let lines: Vec<_> = banner.lines().collect();
+        assert_eq!(lines.len(), 3);
+        assert_eq!(lines[0].trim(), lines[2].trim());
+        assert_eq!(lines[0].trim().len(), lines[1].trim().len());
+    }
+
+    #[test]
+    fn test_yaml_output_contains_section_banners() {
+        let result = create_questionnaire_result(
+            LayeringStrategy::Medallion,
+            vec![
+                ManifestSpecificRuleConfig::HasDescription {
+                    min_length: None,
+                    forbidden_substrings: None,
+                },
+                ManifestSpecificRuleConfig::NameConvention {
+                    convention: NamingConvention::default(),
+                },
+                ManifestSpecificRuleConfig::HasTags {
+                    required_tags: vec![],
+                    criteria: HasTagsCriteria::default(),
+                },
+                ManifestSpecificRuleConfig::HasUniqueTest {
+                    allowed_test_names: vec![],
+                },
+                ManifestSpecificRuleConfig::IsNotOrphaned {
+                    allowed_references: vec![],
+                },
+                ManifestSpecificRuleConfig::CodeMaxLines { max_lines: 0 },
+            ],
+            vec![
+                CatalogSpecificRuleConfig::ColumnsHaveDescription {},
+                CatalogSpecificRuleConfig::ColumnsNameConvention {
+                    convention: NamingConvention::default(),
+                    data_types: None,
+                    use_database_columns: true,
+                },
+            ],
+            NamingConvention::default(),
+        );
+
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+
+        // Verify manifest section banners
+        assert!(yaml.contains("## documentation ##"));
+        assert!(yaml.contains("## naming ##"));
+        assert!(yaml.contains("## governance ##"));
+        assert!(yaml.contains("## testing ##"));
+        assert!(yaml.contains("## structure ##"));
+        assert!(yaml.contains("## performance ##"));
+
+        // Verify catalog section banners
+        let catalog_section = yaml.split("catalog_tests:").nth(1).unwrap();
+        assert!(catalog_section.contains("## documentation ##"));
+        assert!(catalog_section.contains("## naming ##"));
+    }
+
+    #[test]
+    fn test_yaml_output_contains_data_modeling_banner() {
+        let result = create_questionnaire_result_with_methodology(
+            LayeringStrategy::Medallion,
+            DataModelMethodology::Kimball,
+            vec![ManifestSpecificRuleConfig::HasDescription {
+                min_length: None,
+                forbidden_substrings: None,
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+
+        assert!(yaml.contains("## Data Model/Layering Specific ##"));
+        assert!(yaml.contains("dimension_naming"));
+        assert!(yaml.contains("fact_naming"));
+    }
+
+    #[test]
+    fn test_toml_output_contains_section_banners() {
+        let result = create_questionnaire_result(
+            LayeringStrategy::None,
+            vec![
+                ManifestSpecificRuleConfig::HasDescription {
+                    min_length: None,
+                    forbidden_substrings: None,
+                },
+                ManifestSpecificRuleConfig::HasTags {
+                    required_tags: vec![],
+                    criteria: HasTagsCriteria::default(),
+                },
+            ],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+
+        let config = InitConfig::from_questionnaire(&result);
+        let config = InitConfig {
+            format: ConfigFormat::Toml,
+            ..config
+        };
+        let toml = config.to_toml();
+
+        assert!(toml.contains("## documentation ##"));
+        assert!(toml.contains("## governance ##"));
+        // Banners should not be indented in TOML
+        assert!(toml.contains("\n## documentation ##\n"));
+    }
+
+    #[test]
+    fn test_yaml_banners_are_indented() {
+        let result = create_questionnaire_result(
+            LayeringStrategy::None,
+            vec![ManifestSpecificRuleConfig::HasDescription {
+                min_length: None,
+                forbidden_substrings: None,
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+
+        // YAML banners should be indented with 2 spaces
+        assert!(yaml.contains("  ## documentation ##"));
+    }
+
+    #[test]
+    fn test_empty_category_does_not_produce_banner() {
+        let result = create_questionnaire_result(
+            LayeringStrategy::None,
+            vec![ManifestSpecificRuleConfig::HasDescription {
+                min_length: None,
+                forbidden_substrings: None,
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+
+        // Only Documentation category has rules, other banners should not appear
+        assert!(yaml.contains("## documentation ##"));
+        assert!(!yaml.contains("## naming ##"));
+        assert!(!yaml.contains("## governance ##"));
+        assert!(!yaml.contains("## testing ##"));
+        assert!(!yaml.contains("## structure ##"));
+        assert!(!yaml.contains("## performance ##"));
+    }
+
+    #[test]
+    fn test_no_data_modeling_banner_when_no_methodology() {
+        let result = create_questionnaire_result(
+            LayeringStrategy::None,
+            vec![ManifestSpecificRuleConfig::HasDescription {
+                min_length: None,
+                forbidden_substrings: None,
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+
+        assert!(!yaml.contains("## Data Model/Layering Specific ##"));
+    }
+
+    #[test]
+    fn test_rules_grouped_under_correct_banner() {
+        let result = create_questionnaire_result(
+            LayeringStrategy::None,
+            vec![
+                ManifestSpecificRuleConfig::HasDescription {
+                    min_length: None,
+                    forbidden_substrings: None,
+                },
+                ManifestSpecificRuleConfig::CodeMaxLines { max_lines: 0 },
+            ],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+
+        // Documentation banner should come before Performance banner
+        let doc_pos = yaml.find("## documentation ##").unwrap();
+        let perf_pos = yaml.find("## performance ##").unwrap();
+        assert!(doc_pos < perf_pos);
+
+        // has_description should come after documentation banner and before performance banner
+        let desc_pos = yaml.find("has_description").unwrap();
+        assert!(desc_pos > doc_pos);
+        assert!(desc_pos < perf_pos);
+
+        // code_max_lines should come after performance banner
+        let max_lines_pos = yaml.find("code_max_lines").unwrap();
+        assert!(max_lines_pos > perf_pos);
     }
 }

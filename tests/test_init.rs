@@ -6,7 +6,7 @@ use dbtective::core::config::naming_convention::NamingConvention;
 use dbtective::core::config::parse_config::Config;
 use dbtective::core::init::init_with_result;
 use dbtective::core::init::questionnaire::{
-    ConfigFormat, DataModel, QuestionnaireResult, Strictness,
+    ConfigFormat, DataModelMethodology, LayeringStrategy, QuestionnaireResult, Strictness,
 };
 use dbtective::core::init::{create_config, InitResult};
 use std::fs;
@@ -23,12 +23,15 @@ fn create_default_init_config_with_format(
 ) -> dbtective::core::init::config_builder::InitConfig {
     use dbtective::core::config::naming_convention::NamingConvention;
     use dbtective::core::init::config_builder::InitConfig;
-    use dbtective::core::init::questionnaire::{DataModel, QuestionnaireResult};
+    use dbtective::core::init::questionnaire::{
+        DataModelMethodology, LayeringStrategy, QuestionnaireResult,
+    };
 
     let questionnaire_result = QuestionnaireResult {
         format,
         naming_convention: NamingConvention::default(),
-        data_model: DataModel::Common,
+        layering_strategy: LayeringStrategy::Common,
+        methodology: DataModelMethodology::None,
         manifest_rules: vec![
             ManifestSpecificRuleConfig::HasDescription {
                 min_length: None,
@@ -341,7 +344,7 @@ fn test_init_yaml_alias_creates_yml_file() {
 /// Helper to get manifest rules for a given strictness level
 fn get_manifest_rules(
     strictness: Strictness,
-    data_model: DataModel,
+    layering_strategy: LayeringStrategy,
 ) -> Vec<ManifestSpecificRuleConfig> {
     let mut rules = Vec::new();
 
@@ -374,8 +377,8 @@ fn get_manifest_rules(
         });
     }
 
-    // Add data-model-specific rules if data model is specified
-    if !matches!(data_model, DataModel::None) {
+    // Add layering-specific rules if a layering strategy is specified
+    if !matches!(layering_strategy, LayeringStrategy::None) {
         rules.push(ManifestSpecificRuleConfig::AllowedSubfolders {
             allowed_subfolders: vec![],
             path_prefix: None,
@@ -415,14 +418,31 @@ fn get_catalog_rules(strictness: Strictness) -> Vec<CatalogSpecificRuleConfig> {
 fn create_full_questionnaire_result(
     format: ConfigFormat,
     naming_convention: NamingConvention,
-    data_model: DataModel,
+    layering_strategy: LayeringStrategy,
+    strictness: Strictness,
+) -> QuestionnaireResult {
+    create_full_questionnaire_result_with_methodology(
+        format,
+        naming_convention,
+        layering_strategy,
+        DataModelMethodology::None,
+        strictness,
+    )
+}
+
+fn create_full_questionnaire_result_with_methodology(
+    format: ConfigFormat,
+    naming_convention: NamingConvention,
+    layering_strategy: LayeringStrategy,
+    methodology: DataModelMethodology,
     strictness: Strictness,
 ) -> QuestionnaireResult {
     QuestionnaireResult {
         format,
         naming_convention,
-        data_model,
-        manifest_rules: get_manifest_rules(strictness, data_model),
+        layering_strategy,
+        methodology,
+        manifest_rules: get_manifest_rules(strictness, layering_strategy),
         catalog_rules: get_catalog_rules(strictness),
         auto_parse_command: None,
     }
@@ -442,7 +462,7 @@ fn test_medallion_basic_generates_valid_yaml() {
     let questionnaire_result = create_full_questionnaire_result(
         ConfigFormat::Yaml,
         NamingConvention::default(),
-        DataModel::Medallion,
+        LayeringStrategy::Medallion,
         Strictness::Basic,
     );
 
@@ -469,7 +489,7 @@ fn test_common_standard_generates_valid_toml() {
     let questionnaire_result = create_full_questionnaire_result(
         ConfigFormat::Toml,
         NamingConvention::from_pattern("snake_case").unwrap(),
-        DataModel::Common,
+        LayeringStrategy::Common,
         Strictness::Standard,
     );
 
@@ -496,7 +516,7 @@ fn test_none_strict_generates_valid_yaml() {
     let questionnaire_result = create_full_questionnaire_result(
         ConfigFormat::Yaml,
         NamingConvention::default(),
-        DataModel::None,
+        LayeringStrategy::None,
         Strictness::Strict,
     );
 
@@ -506,7 +526,7 @@ fn test_none_strict_generates_valid_yaml() {
     let config_path = temp_dir.path().join("dbtective.yml");
     let content = fs::read_to_string(&config_path).unwrap();
 
-    // Verify NO allowed_subfolders when DataModel::None
+    // Verify NO allowed_subfolders when LayeringStrategy::None
     assert!(!content.contains("allowed_subfolders"));
 }
 
@@ -524,7 +544,7 @@ fn test_basic_strictness_has_correct_rules() {
     let questionnaire_result = create_full_questionnaire_result(
         ConfigFormat::Yaml,
         NamingConvention::default(),
-        DataModel::None,
+        LayeringStrategy::None,
         Strictness::Basic,
     );
 
@@ -548,7 +568,7 @@ fn test_standard_strictness_has_correct_rules() {
     let questionnaire_result = create_full_questionnaire_result(
         ConfigFormat::Yaml,
         NamingConvention::default(),
-        DataModel::None,
+        LayeringStrategy::None,
         Strictness::Standard,
     );
 
@@ -574,7 +594,7 @@ fn test_strict_strictness_has_correct_rules() {
     let questionnaire_result = create_full_questionnaire_result(
         ConfigFormat::Yaml,
         NamingConvention::default(),
-        DataModel::None,
+        LayeringStrategy::None,
         Strictness::Strict,
     );
 
@@ -603,7 +623,7 @@ fn test_snake_case_naming_convention() {
     let questionnaire_result = create_full_questionnaire_result(
         ConfigFormat::Yaml,
         NamingConvention::from_pattern("snake_case").unwrap(),
-        DataModel::None,
+        LayeringStrategy::None,
         Strictness::Basic,
     );
 
@@ -626,7 +646,7 @@ fn test_kebab_case_naming_convention() {
     let questionnaire_result = create_full_questionnaire_result(
         ConfigFormat::Yaml,
         NamingConvention::from_pattern("kebab-case").unwrap(),
-        DataModel::None,
+        LayeringStrategy::None,
         Strictness::Basic,
     );
 
@@ -649,7 +669,7 @@ fn test_camel_case_naming_convention() {
     let questionnaire_result = create_full_questionnaire_result(
         ConfigFormat::Yaml,
         NamingConvention::from_pattern("camelCase").unwrap(),
-        DataModel::None,
+        LayeringStrategy::None,
         Strictness::Basic,
     );
 
@@ -672,7 +692,7 @@ fn test_pascal_case_naming_convention() {
     let questionnaire_result = create_full_questionnaire_result(
         ConfigFormat::Yaml,
         NamingConvention::from_pattern("PascalCase").unwrap(),
-        DataModel::None,
+        LayeringStrategy::None,
         Strictness::Basic,
     );
 
@@ -699,7 +719,7 @@ fn test_yaml_format_generates_valid_file() {
     let questionnaire_result = create_full_questionnaire_result(
         ConfigFormat::Yaml,
         NamingConvention::default(),
-        DataModel::Common,
+        LayeringStrategy::Common,
         Strictness::Standard,
     );
 
@@ -720,7 +740,7 @@ fn test_toml_format_generates_valid_file() {
     let questionnaire_result = create_full_questionnaire_result(
         ConfigFormat::Toml,
         NamingConvention::default(),
-        DataModel::Common,
+        LayeringStrategy::Common,
         Strictness::Standard,
     );
 
@@ -746,7 +766,7 @@ fn test_pyproject_format_generates_valid_file() {
     let questionnaire_result = create_full_questionnaire_result(
         ConfigFormat::Pyproject,
         NamingConvention::default(),
-        DataModel::Common,
+        LayeringStrategy::Common,
         Strictness::Standard,
     );
 
@@ -762,10 +782,14 @@ fn test_pyproject_format_generates_valid_file() {
 // ========================================================================
 
 #[test]
-fn test_all_data_models_with_strict() {
-    let data_models = vec![DataModel::Medallion, DataModel::Common, DataModel::None];
+fn test_all_layering_strategies_with_strict() {
+    let strategies = vec![
+        LayeringStrategy::Medallion,
+        LayeringStrategy::Common,
+        LayeringStrategy::None,
+    ];
 
-    for data_model in data_models {
+    for layering_strategy in strategies {
         let temp_dir = TempDir::new().unwrap();
         let options = InitOptions {
             location: temp_dir.path().to_string_lossy().to_string(),
@@ -774,12 +798,15 @@ fn test_all_data_models_with_strict() {
         let questionnaire_result = create_full_questionnaire_result(
             ConfigFormat::Yaml,
             NamingConvention::default(),
-            data_model,
+            layering_strategy,
             Strictness::Strict,
         );
 
         let exit_code = init_with_result(&options, false, questionnaire_result);
-        assert_eq!(exit_code, 0, "Data model {data_model:?} should succeed");
+        assert_eq!(
+            exit_code, 0,
+            "Layering strategy {layering_strategy:?} should succeed"
+        );
 
         let config_path = temp_dir.path().join("dbtective.yml");
         assert!(config_path.exists());
@@ -800,7 +827,7 @@ fn test_all_naming_conventions_generate_valid_configs() {
         let questionnaire_result = create_full_questionnaire_result(
             ConfigFormat::Yaml,
             naming_convention,
-            DataModel::None,
+            LayeringStrategy::None,
             Strictness::Basic,
         );
 
@@ -825,7 +852,7 @@ fn test_all_formats_generate_parseable_configs() {
         let questionnaire_result = create_full_questionnaire_result(
             config_format,
             NamingConvention::default(),
-            DataModel::Common,
+            LayeringStrategy::Common,
             Strictness::Standard,
         );
 
@@ -851,7 +878,7 @@ fn test_has_tags_rule_generates_correct_content() {
     let questionnaire_result = create_full_questionnaire_result(
         ConfigFormat::Yaml,
         NamingConvention::default(),
-        DataModel::None,
+        LayeringStrategy::None,
         Strictness::Strict,
     );
 
@@ -879,7 +906,7 @@ fn test_has_metadata_keys_rule_generates_correct_content() {
     let questionnaire_result = create_full_questionnaire_result(
         ConfigFormat::Yaml,
         NamingConvention::default(),
-        DataModel::None,
+        LayeringStrategy::None,
         Strictness::Standard,
     );
 
@@ -902,7 +929,7 @@ fn test_columns_canonical_name_rule_generates_correct_content() {
     };
 
     // Add ColumnsCanonicalName explicitly
-    let manifest_rules = get_manifest_rules(Strictness::Basic, DataModel::None);
+    let manifest_rules = get_manifest_rules(Strictness::Basic, LayeringStrategy::None);
     let mut catalog_rules = get_catalog_rules(Strictness::Basic);
     catalog_rules.push(CatalogSpecificRuleConfig::ColumnsCanonicalName {
         canonical: String::new(),
@@ -913,7 +940,8 @@ fn test_columns_canonical_name_rule_generates_correct_content() {
     let questionnaire_result = QuestionnaireResult {
         format: ConfigFormat::Toml,
         naming_convention: NamingConvention::default(),
-        data_model: DataModel::None,
+        layering_strategy: LayeringStrategy::None,
+        methodology: DataModelMethodology::None,
         manifest_rules,
         catalog_rules,
         auto_parse_command: None,
@@ -959,7 +987,8 @@ fn test_init_yaml_contains_auto_parse_command_when_set() {
     let questionnaire_result = QuestionnaireResult {
         format: ConfigFormat::Yaml,
         naming_convention: NamingConvention::default(),
-        data_model: DataModel::None,
+        layering_strategy: LayeringStrategy::None,
+        methodology: DataModelMethodology::None,
         manifest_rules: vec![ManifestSpecificRuleConfig::HasDescription {
             min_length: None,
             forbidden_substrings: None,
@@ -988,7 +1017,8 @@ fn test_init_yaml_with_auto_parse_is_valid_parseable_config() {
     let questionnaire_result = QuestionnaireResult {
         format: ConfigFormat::Yaml,
         naming_convention: NamingConvention::default(),
-        data_model: DataModel::None,
+        layering_strategy: LayeringStrategy::None,
+        methodology: DataModelMethodology::None,
         manifest_rules: vec![ManifestSpecificRuleConfig::HasDescription {
             min_length: None,
             forbidden_substrings: None,
@@ -1023,7 +1053,8 @@ fn test_init_toml_contains_auto_parse_command_when_set() {
     let questionnaire_result = QuestionnaireResult {
         format: ConfigFormat::Toml,
         naming_convention: NamingConvention::default(),
-        data_model: DataModel::None,
+        layering_strategy: LayeringStrategy::None,
+        methodology: DataModelMethodology::None,
         manifest_rules: vec![ManifestSpecificRuleConfig::HasDescription {
             min_length: None,
             forbidden_substrings: None,
@@ -1054,7 +1085,8 @@ fn test_init_toml_with_auto_parse_is_valid_parseable_config() {
     let questionnaire_result = QuestionnaireResult {
         format: ConfigFormat::Toml,
         naming_convention: NamingConvention::default(),
-        data_model: DataModel::None,
+        layering_strategy: LayeringStrategy::None,
+        methodology: DataModelMethodology::None,
         manifest_rules: vec![ManifestSpecificRuleConfig::HasDescription {
             min_length: None,
             forbidden_substrings: None,
@@ -1092,7 +1124,8 @@ fn test_init_pyproject_contains_auto_parse_command_when_set() {
     let questionnaire_result = QuestionnaireResult {
         format: ConfigFormat::Pyproject,
         naming_convention: NamingConvention::default(),
-        data_model: DataModel::None,
+        layering_strategy: LayeringStrategy::None,
+        methodology: DataModelMethodology::None,
         manifest_rules: vec![ManifestSpecificRuleConfig::HasDescription {
             min_length: None,
             forbidden_substrings: None,
@@ -1145,7 +1178,7 @@ fn test_questionnaire_toml_choice_creates_toml_file_not_yml() {
     let questionnaire_result = create_full_questionnaire_result(
         ConfigFormat::Toml,
         NamingConvention::default(),
-        DataModel::Common,
+        LayeringStrategy::Common,
         Strictness::Standard,
     );
 
@@ -1185,7 +1218,7 @@ fn test_questionnaire_yaml_choice_creates_yml_file_not_toml() {
     let questionnaire_result = create_full_questionnaire_result(
         ConfigFormat::Yaml,
         NamingConvention::default(),
-        DataModel::Common,
+        LayeringStrategy::Common,
         Strictness::Standard,
     );
 
@@ -1224,7 +1257,7 @@ fn test_questionnaire_pyproject_choice_updates_pyproject_toml() {
     let questionnaire_result = create_full_questionnaire_result(
         ConfigFormat::Pyproject,
         NamingConvention::default(),
-        DataModel::Common,
+        LayeringStrategy::Common,
         Strictness::Standard,
     );
 
@@ -1253,4 +1286,278 @@ fn test_questionnaire_pyproject_choice_updates_pyproject_toml() {
         !toml_path.exists(),
         "Choosing pyproject format should NOT create dbtective.toml"
     );
+}
+
+// ========================================================================
+// Methodology Integration Tests
+// ========================================================================
+
+#[test]
+fn test_kimball_medallion_strict_generates_valid_yaml() {
+    let temp_dir = TempDir::new().unwrap();
+    let options = InitOptions {
+        location: temp_dir.path().to_string_lossy().to_string(),
+    };
+
+    let questionnaire_result = create_full_questionnaire_result_with_methodology(
+        ConfigFormat::Yaml,
+        NamingConvention::default(),
+        LayeringStrategy::Medallion,
+        DataModelMethodology::Kimball,
+        Strictness::Strict,
+    );
+
+    let exit_code = init_with_result(&options, false, questionnaire_result);
+    assert_eq!(exit_code, 0);
+
+    let config_path = temp_dir.path().join("dbtective.yml");
+    let content = fs::read_to_string(&config_path).unwrap();
+
+    assert!(content.contains("gold_subfolders"));
+    assert!(content.contains("dimension_naming"));
+    assert!(content.contains("fact_naming"));
+    assert!(content.contains("^dim_"));
+    assert!(content.contains("^fact_"));
+}
+
+#[test]
+fn test_kimball_yaml_contains_dimension_and_fact_naming_rules() {
+    let temp_dir = TempDir::new().unwrap();
+    let options = InitOptions {
+        location: temp_dir.path().to_string_lossy().to_string(),
+    };
+
+    let questionnaire_result = create_full_questionnaire_result_with_methodology(
+        ConfigFormat::Yaml,
+        NamingConvention::default(),
+        LayeringStrategy::Common,
+        DataModelMethodology::Kimball,
+        Strictness::Standard,
+    );
+
+    let exit_code = init_with_result(&options, false, questionnaire_result);
+    assert_eq!(exit_code, 0);
+
+    let config_path = temp_dir.path().join("dbtective.yml");
+    let content = fs::read_to_string(&config_path).unwrap();
+    assert!(content.contains(r#"includes: ["models/marts/dimensions"]"#));
+    assert!(content.contains(r#"includes: ["models/marts/facts"]"#));
+}
+
+#[test]
+fn test_data_vault_medallion_strict_generates_valid_yaml() {
+    let temp_dir = TempDir::new().unwrap();
+    let options = InitOptions {
+        location: temp_dir.path().to_string_lossy().to_string(),
+    };
+
+    let questionnaire_result = create_full_questionnaire_result_with_methodology(
+        ConfigFormat::Yaml,
+        NamingConvention::default(),
+        LayeringStrategy::Medallion,
+        DataModelMethodology::DataVault,
+        Strictness::Strict,
+    );
+
+    let exit_code = init_with_result(&options, false, questionnaire_result);
+    assert_eq!(exit_code, 0);
+
+    let config_path = temp_dir.path().join("dbtective.yml");
+    let content = fs::read_to_string(&config_path).unwrap();
+
+    assert!(content.contains("silver_vault_subfolders"));
+    assert!(content.contains("hub_naming"));
+    assert!(content.contains("link_naming"));
+    assert!(content.contains("satellite_naming"));
+    assert!(content.contains("vault_contracts"));
+}
+
+#[test]
+fn test_data_vault_yaml_contains_hub_link_sat_naming_rules() {
+    let temp_dir = TempDir::new().unwrap();
+    let options = InitOptions {
+        location: temp_dir.path().to_string_lossy().to_string(),
+    };
+
+    let questionnaire_result = create_full_questionnaire_result_with_methodology(
+        ConfigFormat::Yaml,
+        NamingConvention::default(),
+        LayeringStrategy::Medallion,
+        DataModelMethodology::DataVault,
+        Strictness::Basic,
+    );
+
+    let exit_code = init_with_result(&options, false, questionnaire_result);
+    assert_eq!(exit_code, 0);
+
+    let config_path = temp_dir.path().join("dbtective.yml");
+    let content = fs::read_to_string(&config_path).unwrap();
+    assert!(content.contains("^hub_"));
+    assert!(content.contains("^lnk_"));
+    assert!(content.contains("^sat_"));
+    assert!(content.contains("^t_lnk_"));
+}
+
+#[test]
+fn test_inmon_medallion_strict_generates_valid_yaml() {
+    let temp_dir = TempDir::new().unwrap();
+    let options = InitOptions {
+        location: temp_dir.path().to_string_lossy().to_string(),
+    };
+
+    let questionnaire_result = create_full_questionnaire_result_with_methodology(
+        ConfigFormat::Yaml,
+        NamingConvention::default(),
+        LayeringStrategy::Medallion,
+        DataModelMethodology::Inmon,
+        Strictness::Strict,
+    );
+
+    let exit_code = init_with_result(&options, false, questionnaire_result);
+    assert_eq!(exit_code, 0);
+
+    let config_path = temp_dir.path().join("dbtective.yml");
+    let content = fs::read_to_string(&config_path).unwrap();
+
+    assert!(content.contains("silver_subfolders"));
+    assert!(content.contains("gold_subfolders"));
+    assert!(content.contains("enterprise_model_contracts"));
+    assert!(content.contains("enterprise_model_unique_keys"));
+}
+
+#[test]
+fn test_inmon_yaml_contains_enterprise_subfolders() {
+    let temp_dir = TempDir::new().unwrap();
+    let options = InitOptions {
+        location: temp_dir.path().to_string_lossy().to_string(),
+    };
+
+    let questionnaire_result = create_full_questionnaire_result_with_methodology(
+        ConfigFormat::Yaml,
+        NamingConvention::default(),
+        LayeringStrategy::Common,
+        DataModelMethodology::Inmon,
+        Strictness::Basic,
+    );
+
+    let exit_code = init_with_result(&options, false, questionnaire_result);
+    assert_eq!(exit_code, 0);
+
+    let config_path = temp_dir.path().join("dbtective.yml");
+    let content = fs::read_to_string(&config_path).unwrap();
+    assert!(content.contains(r#""core""#));
+    assert!(content.contains(r#""reference""#));
+    assert!(content.contains(r#""bridge""#));
+}
+
+#[test]
+fn test_kimball_common_standard_generates_valid_toml() {
+    let temp_dir = TempDir::new().unwrap();
+    let options = InitOptions {
+        location: temp_dir.path().to_string_lossy().to_string(),
+    };
+
+    let questionnaire_result = create_full_questionnaire_result_with_methodology(
+        ConfigFormat::Toml,
+        NamingConvention::default(),
+        LayeringStrategy::Common,
+        DataModelMethodology::Kimball,
+        Strictness::Standard,
+    );
+
+    let exit_code = init_with_result(&options, false, questionnaire_result);
+    assert_eq!(exit_code, 0);
+
+    let config_path = temp_dir.path().join("dbtective.toml");
+    let content = fs::read_to_string(&config_path).unwrap();
+
+    assert!(content.contains(r#"name = "marts_subfolders""#));
+    assert!(content.contains(r#"name = "dimension_naming""#));
+    assert!(content.contains(r#"pattern = "^dim_""#));
+}
+
+#[test]
+fn test_all_methodology_layering_combinations_generate_parseable_yaml() {
+    let strategies = vec![
+        LayeringStrategy::Medallion,
+        LayeringStrategy::Common,
+        LayeringStrategy::None,
+    ];
+    let methodologies = vec![
+        DataModelMethodology::None,
+        DataModelMethodology::Kimball,
+        DataModelMethodology::Inmon,
+        DataModelMethodology::DataVault,
+    ];
+
+    for strategy in &strategies {
+        for methodology in &methodologies {
+            let temp_dir = TempDir::new().unwrap();
+            let options = InitOptions {
+                location: temp_dir.path().to_string_lossy().to_string(),
+            };
+
+            let questionnaire_result = create_full_questionnaire_result_with_methodology(
+                ConfigFormat::Yaml,
+                NamingConvention::default(),
+                *strategy,
+                *methodology,
+                Strictness::Standard,
+            );
+
+            let exit_code = init_with_result(&options, false, questionnaire_result);
+            assert_eq!(exit_code, 0, "Failed for {strategy:?} + {methodology:?}");
+
+            let config_path = temp_dir.path().join("dbtective.yml");
+            let config = Config::from_file(&config_path);
+            assert!(
+                config.is_ok(),
+                "Generated YAML should be parseable for {strategy:?} + {methodology:?}: {:?}",
+                config.err()
+            );
+        }
+    }
+}
+
+#[test]
+fn test_all_methodology_layering_combinations_generate_parseable_toml() {
+    let strategies = vec![
+        LayeringStrategy::Medallion,
+        LayeringStrategy::Common,
+        LayeringStrategy::None,
+    ];
+    let methodologies = vec![
+        DataModelMethodology::None,
+        DataModelMethodology::Kimball,
+        DataModelMethodology::Inmon,
+        DataModelMethodology::DataVault,
+    ];
+
+    for strategy in &strategies {
+        for methodology in &methodologies {
+            let temp_dir = TempDir::new().unwrap();
+            let options = InitOptions {
+                location: temp_dir.path().to_string_lossy().to_string(),
+            };
+
+            let questionnaire_result = create_full_questionnaire_result_with_methodology(
+                ConfigFormat::Toml,
+                NamingConvention::default(),
+                *strategy,
+                *methodology,
+                Strictness::Standard,
+            );
+
+            let exit_code = init_with_result(&options, false, questionnaire_result);
+            assert_eq!(exit_code, 0, "Failed for {strategy:?} + {methodology:?}");
+
+            let config_path = temp_dir.path().join("dbtective.toml");
+            let config = Config::from_file(&config_path);
+            assert!(
+                config.is_ok(),
+                "Generated TOML should be parseable for {strategy:?} + {methodology:?}: {:?}",
+                config.err()
+            );
+        }
+    }
 }
