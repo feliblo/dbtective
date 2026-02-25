@@ -36,18 +36,37 @@ impl std::fmt::Display for ConfigFormat {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum DataModel {
+pub enum LayeringStrategy {
     Medallion,
     Common,
     None,
 }
 
-impl std::fmt::Display for DataModel {
+impl std::fmt::Display for LayeringStrategy {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Medallion => write!(f, "Medallion (bronze, silver, gold)"),
             Self::Common => write!(f, "Common (staging, intermediate, marts)"),
             Self::None => write!(f, "None (no folder structure enforcement)"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DataModelMethodology {
+    Kimball,
+    Inmon,
+    DataVault,
+    None,
+}
+
+impl std::fmt::Display for DataModelMethodology {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Kimball => write!(f, "Kimball (star schema — dimensions & facts)"),
+            Self::Inmon => write!(f, "Inmon (normalized enterprise DWH → departmental marts)"),
+            Self::DataVault => write!(f, "Data Vault (hub-link-satellite)"),
+            Self::None => write!(f, "None (no specific methodology)"),
         }
     }
 }
@@ -158,7 +177,8 @@ pub struct QuestionnaireResult {
     #[allow(dead_code)]
     pub format: ConfigFormat,
     pub naming_convention: NamingConvention,
-    pub data_model: DataModel,
+    pub layering_strategy: LayeringStrategy,
+    pub methodology: DataModelMethodology,
     pub manifest_rules: Vec<ManifestSpecificRuleConfig>,
     pub catalog_rules: Vec<CatalogSpecificRuleConfig>,
     pub auto_parse_command: Option<String>,
@@ -208,17 +228,33 @@ pub fn run_questionnaire() -> Result<QuestionnaireResult, String> {
     }
     .map_err(|e| format!("Invalid naming convention: {e}"))?;
 
-    // 3. Ask for data model
-    let data_model_options = vec![DataModel::None, DataModel::Common, DataModel::Medallion];
-    let data_model = Select::new(
-        "What data model structure are you using?",
-        data_model_options,
-    )
-    .with_starting_cursor(1) // Default to Common
-    .prompt()
-    .map_err(|e| format!("Failed to get data model: {e}"))?;
+    // 3. Ask for layering strategy
+    let layering_options = vec![
+        LayeringStrategy::None,
+        LayeringStrategy::Common,
+        LayeringStrategy::Medallion,
+    ];
+    let layering_strategy = Select::new("What layering strategy are you using?", layering_options)
+        .with_starting_cursor(1) // Default to Common
+        .prompt()
+        .map_err(|e| format!("Failed to get layering strategy: {e}"))?;
 
-    // 4. Ask for strictness level
+    // 4. Ask for data modeling methodology
+    let methodology_options = vec![
+        DataModelMethodology::None,
+        DataModelMethodology::Kimball,
+        DataModelMethodology::Inmon,
+        DataModelMethodology::DataVault,
+    ];
+    let methodology = Select::new(
+        "What data modeling methodology do you follow?",
+        methodology_options,
+    )
+    .with_starting_cursor(0)
+    .prompt()
+    .map_err(|e| format!("Failed to get methodology: {e}"))?;
+
+    // 5. Ask for strictness level
     let strictness_options = vec![Strictness::Basic, Strictness::Standard, Strictness::Strict];
     let strictness = Select::new("How strict do you want the rules?", strictness_options)
         .with_starting_cursor(2) // Default to Strict (recommended start)
@@ -326,8 +362,8 @@ pub fn run_questionnaire() -> Result<QuestionnaireResult, String> {
         allowed_references: vec![],
     });
 
-    // Add data-model-specific rules if a data model structure was selected
-    if data_model != DataModel::None {
+    // Add layering-specific rules if a layering strategy was selected
+    if layering_strategy != LayeringStrategy::None {
         manifest_rules.push(ManifestSpecificRuleConfig::AllowedSubfolders {
             allowed_subfolders: vec![],
             path_prefix: None,
@@ -399,7 +435,8 @@ pub fn run_questionnaire() -> Result<QuestionnaireResult, String> {
     Ok(QuestionnaireResult {
         format,
         naming_convention,
-        data_model,
+        layering_strategy,
+        methodology,
         manifest_rules,
         catalog_rules,
         auto_parse_command,
@@ -484,18 +521,38 @@ mod tests {
     }
 
     #[test]
-    fn test_data_model_display() {
+    fn test_layering_strategy_display() {
         assert_eq!(
-            DataModel::Medallion.to_string(),
+            LayeringStrategy::Medallion.to_string(),
             "Medallion (bronze, silver, gold)"
         );
         assert_eq!(
-            DataModel::Common.to_string(),
+            LayeringStrategy::Common.to_string(),
             "Common (staging, intermediate, marts)"
         );
         assert_eq!(
-            DataModel::None.to_string(),
+            LayeringStrategy::None.to_string(),
             "None (no folder structure enforcement)"
+        );
+    }
+
+    #[test]
+    fn test_methodology_display() {
+        assert_eq!(
+            DataModelMethodology::Kimball.to_string(),
+            "Kimball (star schema — dimensions & facts)"
+        );
+        assert_eq!(
+            DataModelMethodology::Inmon.to_string(),
+            "Inmon (normalized enterprise DWH → departmental marts)"
+        );
+        assert_eq!(
+            DataModelMethodology::DataVault.to_string(),
+            "Data Vault (hub-link-satellite)"
+        );
+        assert_eq!(
+            DataModelMethodology::None.to_string(),
+            "None (no specific methodology)"
         );
     }
 
@@ -610,9 +667,16 @@ mod tests {
     }
 
     #[test]
-    fn test_data_model_equality() {
-        assert_eq!(DataModel::Medallion, DataModel::Medallion);
-        assert_ne!(DataModel::Common, DataModel::None);
+    fn test_layering_strategy_equality() {
+        assert_eq!(LayeringStrategy::Medallion, LayeringStrategy::Medallion);
+        assert_ne!(LayeringStrategy::Common, LayeringStrategy::None);
+    }
+
+    #[test]
+    fn test_methodology_equality() {
+        assert_eq!(DataModelMethodology::Kimball, DataModelMethodology::Kimball);
+        assert_ne!(DataModelMethodology::Kimball, DataModelMethodology::Inmon);
+        assert_ne!(DataModelMethodology::DataVault, DataModelMethodology::None);
     }
 
     #[test]

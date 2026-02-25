@@ -3,36 +3,40 @@
 # Rules: https://feliblo.github.io/dbtective/docs/rules/
 
 config:
-  auto_parse_command: "dbt parse"
+  auto_parse_command: "uv run dbt parse"
 
 manifest_tests:
+  ###################
+  ## documentation ##
+  ###################
+  - name: "has_description"
+    type: "has_description"
+
+
+  - name: "sources_have_loader"
+    type: "sources_have_loader"
+
+
+  ############
+  ## naming ##
+  ############
   - name: "allowed_subfolders"
     type: "allowed_subfolders"
     allowed_subfolders: ["staging", "marts", "intermediate"]
 
+  - name: "naming_convention"
+    type: "name_convention"
+    pattern: "snake_case"
+
+  ################
+  ## governance ##
+  ################
   - name: "code_contains_refs"
     type: "code_contains_refs"
-
-  - name: "code_forbidden_patterns"
-    type: "code_forbidden_patterns"
-    forbidden_patterns: ["SELECT *", "staging.", "intermediate.", "marts."]
-
-  - name: "code_max_joins"
-    description: "Reduce model complexity"
-    type: "code_max_joins"
-    max_joins: 5
-
-  - name: "code_no_hardcoded_refs"
-    description: "Detect hardcoded table references (schema.table) in SQL code"
-    type: "code_no_hardcoded_refs"
 
   - name: "has_contract_enforced"
     type: "has_contract_enforced"
     includes: ["models/marts", "models/intermediate"]
-
-  - name: "has_description"
-    type: "has_description"
-
 
   - name: "has_owner"
     type: "has_metadata_keys"
@@ -47,14 +51,24 @@ manifest_tests:
     criteria: "one_of"
     description: "Resources need to have at least one of the required tags. To decide when a resource should be run."
 
+  - name: "sources_have_freshness"
+    type: "sources_have_freshness"
+
+
+  #############
+  ## testing ##
+  #############
   - name: "has_unique_test"
     type: "has_unique_test"
 
+  ###############
+  ## structure ##
+  ###############
   - name: "all_marts_are_exposed"
     type: "is_not_orphaned"
-    description: "All mart models should be referenced by at least one exposure."
+    description: "All marts models should be referenced by at least one exposure."
     applies_to: ["models"]
-    includes: ["models/marts"]
+    includes: ["models/marts/facts"]
     allowed_references: ["exposures"]
 
   - name: "max_downstream_dependencies"
@@ -74,26 +88,54 @@ manifest_tests:
     type: "max_upstream_dependencies"
     max_upstream: 5
 
-  - name: "naming_convention"
+  #################
+  ## performance ##
+  #################
+  - name: "code_forbidden_patterns"
+    type: "code_forbidden_patterns"
+    forbidden_patterns: ["SELECT *", "staging.", "intermediate.", "marts."]
+
+  - name: "code_max_joins"
+    description: "Reduce model complexity"
+    type: "code_max_joins"
+    max_joins: 5
+
+  - name: "code_no_hardcoded_refs"
+    description: "Detect hardcoded table references (schema.table) in SQL code"
+    type: "code_no_hardcoded_refs"
+
+  ###################
+  ## Data Modeling ##
+  ###################
+  - name: "marts_subfolders"
+    type: "allowed_subfolders"
+    allowed_subfolders: ["dimensions", "facts"]
+    includes: ["models/marts"]
+    description: "The marts layer must only contain dimensions and facts subfolders"
+
+  - name: "dimension_naming"
     type: "name_convention"
-    pattern: "snake_case"
+    pattern: "^dim_"
+    includes: ["models/marts/dimensions"]
+    description: "Dimension models must start with dim_"
 
-  - name: "sources_have_freshness"
-    type: "sources_have_freshness"
-
-
-  - name: "sources_have_loader"
-    type: "sources_have_loader"
-
+  - name: "fact_naming"
+    type: "name_convention"
+    pattern: "^fact_"
+    includes: ["models/marts/facts"]
+    description: "Fact models must start with fact_"
 
   - name: "all_marts_are_exposed"
     type: "is_not_orphaned"
     applies_to: ["models"]
-    includes: ["models/marts"]
+    includes: ["models/marts/facts"]
     allowed_references: ["exposures"]
     severity: "warning"
 
 catalog_tests:
+  ###################
+  ## documentation ##
+  ###################
   - name: "all_columns_documented"
     type: "columns_all_documented"
     description: "All columns must exist in the documentation."
@@ -108,6 +150,9 @@ catalog_tests:
     type: "columns_have_description"
     description: "All columns must have a description."
 
+  ############
+  ## naming ##
+  ############
   - name: "column_names_snake_case"
     type: "columns_name_convention"
     description: "All column names must be snake_case."

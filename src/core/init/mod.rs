@@ -256,7 +256,8 @@ mod tests {
         let questionnaire_result = questionnaire::QuestionnaireResult {
             format: questionnaire::ConfigFormat::Yaml,
             naming_convention: crate::core::config::naming_convention::NamingConvention::default(),
-            data_model: questionnaire::DataModel::None,
+            layering_strategy: questionnaire::LayeringStrategy::None,
+            methodology: questionnaire::DataModelMethodology::None,
             manifest_rules: vec![
                 crate::core::config::manifest_rule::ManifestSpecificRuleConfig::HasDescription { min_length: None, forbidden_substrings: None },
                 crate::core::config::manifest_rule::ManifestSpecificRuleConfig::NameConvention { convention: NamingConvention::default() },
@@ -290,7 +291,8 @@ mod tests {
         let questionnaire_result = questionnaire::QuestionnaireResult {
             format: questionnaire::ConfigFormat::Pyproject,
             naming_convention: crate::core::config::naming_convention::NamingConvention::default(),
-            data_model: questionnaire::DataModel::None,
+            layering_strategy: questionnaire::LayeringStrategy::None,
+            methodology: questionnaire::DataModelMethodology::None,
             manifest_rules: vec![],
             catalog_rules: vec![],
             auto_parse_command: None,
@@ -324,7 +326,8 @@ requires = ["setuptools"]
         let questionnaire_result = questionnaire::QuestionnaireResult {
             format: questionnaire::ConfigFormat::Pyproject,
             naming_convention: crate::core::config::naming_convention::NamingConvention::default(),
-            data_model: questionnaire::DataModel::None,
+            layering_strategy: questionnaire::LayeringStrategy::None,
+            methodology: questionnaire::DataModelMethodology::None,
             manifest_rules: vec![
                 crate::core::config::manifest_rule::ManifestSpecificRuleConfig::HasDescription {
                     min_length: None,
@@ -354,7 +357,8 @@ requires = ["setuptools"]
         let questionnaire_result = questionnaire::QuestionnaireResult {
             format: questionnaire::ConfigFormat::Yaml,
             naming_convention: crate::core::config::naming_convention::NamingConvention::default(),
-            data_model: questionnaire::DataModel::None,
+            layering_strategy: questionnaire::LayeringStrategy::None,
+            methodology: questionnaire::DataModelMethodology::None,
             manifest_rules: vec![],
             catalog_rules: vec![],
             auto_parse_command: None,
