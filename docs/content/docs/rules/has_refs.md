@@ -26,7 +26,7 @@ Also check out [`code_contains_refs`](../code#rule-code_contains_refs), which in
 - **type**: Must be `has_refs`.
 - **applies_to**: _(optional)_ List of dbt object types to include.
   - Default: `["models", "snapshots", "analyses"]`
-  - Options: `models`, `seeds`, `snapshots` , `analyses`, `semantics_models`
+  - Options: `models`, `seeds`, `snapshots`, `analyses`, `semantic_models`, `functions`
 
 {{< include-markdown "content/snippets/common_rule_config.md" >}}
 

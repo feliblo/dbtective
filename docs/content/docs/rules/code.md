@@ -29,7 +29,7 @@ Also check out [`has_refs`](../has_refs), which checks the dependency graph (<co
 - **type**: Must be `code_contains_refs`.
 - **applies_to**: _(optional)_ List of dbt object types to include.
   - Default: `["models", "snapshots"]`
-  - Options: `models`, `snapshots`, `macros`
+  - Options: `models`, `snapshots`, `macros`, `functions`
 
 {{< include-markdown "content/snippets/common_rule_config.md" >}}
 
@@ -131,8 +131,8 @@ This rule checks if code contains forbidden patterns. Use it to enforce coding s
 - **forbidden_patterns**: List of string patterns that are not allowed in the code. Each pattern is matched as a substring.
 - **case_sensitive**: _(optional)_ Whether pattern matching should be case-sensitive. Defaults to `false` (case-insensitive).
 - **applies_to**: _(optional)_ List of dbt object types to check.
-  - Default: `["models", "snapshots", "macros"]`
-  - Options: `models`, `snapshots`, `macros`
+  - Default: `["models", "snapshots", "macros", "functions"]`
+  - Options: `models`, `snapshots`, `macros`, `functions`
 
 {{< include-markdown "content/snippets/common_rule_config.md" >}}
 
@@ -260,8 +260,8 @@ This rule enforces a maximum line count for dbt code objects, helping to maintai
 - **type**: Must be `code_max_lines`.
 - **max_lines**: _(optional)_ The maximum number of lines allowed for the code. Defaults to `150`.
 - **applies_to**: _(optional)_ List of dbt object types to include.
-  - Default: `["models", "snapshots", "macros"]`
-  - Options: `models`, `snapshots`, `macros`
+  - Default: `["models", "snapshots", "macros", "functions"]`
+  - Options: `models`, `snapshots`, `macros`, `functions`
 
 {{< include-markdown "content/snippets/common_rule_config.md" >}}
 
@@ -377,7 +377,7 @@ This rule enforces a maximum number of JOINs in raw SQL code, helping to reduce 
 - **max_joins**: _(optional)_ The maximum number of JOINs allowed. Defaults to `5`.
 - **applies_to**: _(optional)_ List of dbt object types to include.
   - Default: `["models", "snapshots"]`
-  - Options: `models`, `snapshots`, `macros`
+  - Options: `models`, `snapshots`, `macros`, `functions`
 
 {{< include-markdown "content/snippets/common_rule_config.md" >}}
 
@@ -498,7 +498,7 @@ The rule does **not** trigger on:
 - **type**: Must be `code_no_hardcoded_refs`.
 - **applies_to**: _(optional)_ List of dbt object types to include.
   - Default: `["models", "snapshots"]`
-  - Options: `models`, `snapshots`, `macros`
+  - Options: `models`, `snapshots`, `macros`, `functions`
 
 {{< include-markdown "content/snippets/common_rule_config.md" >}}
 

@@ -234,6 +234,7 @@ impl ManifestRule {
                 &applies_to.semantic_model_objects,
                 &options.semantic_model_objects,
             ),
+            (&applies_to.function_objects, &options.function_objects),
             (&applies_to.custom_objects, &options.custom_objects),
         ];
         for (targets, valid) in pairs {
@@ -274,6 +275,7 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             macro_objects: vec![RuleTarget::Macros],
             exposure_objects: vec![RuleTarget::Exposures],
             semantic_model_objects: vec![RuleTarget::SemanticModels],
+            function_objects: vec![RuleTarget::Functions],
             custom_objects: vec![],
         },
         // name_convention
@@ -289,6 +291,7 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             macro_objects: vec![RuleTarget::Macros],
             exposure_objects: vec![RuleTarget::Exposures],
             semantic_model_objects: vec![RuleTarget::SemanticModels],
+            function_objects: vec![RuleTarget::Functions],
             custom_objects: vec![],
         },
         // has_tags
@@ -304,6 +307,7 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             macro_objects: vec![],
             exposure_objects: vec![RuleTarget::Exposures],
             semantic_model_objects: vec![],
+            function_objects: vec![RuleTarget::Functions],
             custom_objects: vec![],
         },
         // max_upstream_dependencies & max_downstream_dependencies & code_contains_refs
@@ -316,6 +320,7 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             macro_objects: vec![],
             exposure_objects: vec![],
             semantic_model_objects: vec![],
+            function_objects: vec![],
             custom_objects: vec![],
         },
         // is_not_orphaned & sources_have_loader & sources_have_freshness
@@ -328,6 +333,7 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             macro_objects: vec![],
             exposure_objects: vec![],
             semantic_model_objects: vec![],
+            function_objects: vec![],
             custom_objects: vec![],
         },
         // has_contract_enforced
@@ -338,11 +344,21 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             unit_test_objects: vec![],
             exposure_objects: vec![],
             semantic_model_objects: vec![],
+            function_objects: vec![],
             custom_objects: vec![],
         },
         ManifestSpecificRuleConfig::CodeMaxLines { .. }
-        | ManifestSpecificRuleConfig::CodeForbiddenPatterns { .. }
-        | ManifestSpecificRuleConfig::CodeMaxJoins { .. }
+        | ManifestSpecificRuleConfig::CodeForbiddenPatterns { .. } => AppliesTo {
+            node_objects: vec![RuleTarget::Models, RuleTarget::Snapshots],
+            source_objects: vec![],
+            unit_test_objects: vec![],
+            macro_objects: vec![RuleTarget::Macros],
+            exposure_objects: vec![],
+            semantic_model_objects: vec![],
+            function_objects: vec![RuleTarget::Functions],
+            custom_objects: vec![],
+        },
+        ManifestSpecificRuleConfig::CodeMaxJoins { .. }
         | ManifestSpecificRuleConfig::CodeNoHardcodedRefs {} => AppliesTo {
             node_objects: vec![RuleTarget::Models, RuleTarget::Snapshots],
             source_objects: vec![],
@@ -350,6 +366,7 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             macro_objects: vec![RuleTarget::Macros],
             exposure_objects: vec![],
             semantic_model_objects: vec![],
+            function_objects: vec![],
             custom_objects: vec![],
         },
         // has_unique_test & has_metadata_keys
@@ -361,6 +378,7 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             macro_objects: vec![],
             exposure_objects: vec![],
             semantic_model_objects: vec![],
+            function_objects: vec![],
             custom_objects: vec![],
         },
         ManifestSpecificRuleConfig::HasRefs {} => AppliesTo {
@@ -374,6 +392,7 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             macro_objects: vec![],
             exposure_objects: vec![],
             semantic_model_objects: vec![],
+            function_objects: vec![],
             custom_objects: vec![],
         },
         // allowed_subfolders
@@ -384,6 +403,7 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             macro_objects: vec![],
             exposure_objects: vec![],
             semantic_model_objects: vec![],
+            function_objects: vec![],
             custom_objects: vec![],
         },
     }
@@ -401,6 +421,7 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
             macro_objects: vec![RuleTarget::Macros],
             exposure_objects: vec![RuleTarget::Exposures],
             semantic_model_objects: vec![RuleTarget::SemanticModels],
+            function_objects: vec![RuleTarget::Functions],
             custom_objects: vec![],
         },
         // name_convention
@@ -416,6 +437,7 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
             macro_objects: vec![RuleTarget::Macros],
             exposure_objects: vec![RuleTarget::Exposures],
             semantic_model_objects: vec![RuleTarget::SemanticModels],
+            function_objects: vec![RuleTarget::Functions],
             custom_objects: vec![],
         },
         // has_tags
@@ -431,6 +453,7 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
             macro_objects: vec![],
             exposure_objects: vec![RuleTarget::Exposures],
             semantic_model_objects: vec![],
+            function_objects: vec![RuleTarget::Functions],
             custom_objects: vec![],
         },
         // is_not_orphaned
@@ -441,6 +464,7 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
             macro_objects: vec![],
             exposure_objects: vec![],
             semantic_model_objects: vec![],
+            function_objects: vec![],
             custom_objects: vec![],
         },
         ManifestSpecificRuleConfig::HasUniqueTest { .. }
@@ -452,6 +476,7 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
             macro_objects: vec![],
             exposure_objects: vec![],
             semantic_model_objects: vec![],
+            function_objects: vec![],
             custom_objects: vec![],
         },
         ManifestSpecificRuleConfig::HasContractEnforced { .. } => AppliesTo {
@@ -461,6 +486,7 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
             unit_test_objects: vec![],
             exposure_objects: vec![],
             semantic_model_objects: vec![],
+            function_objects: vec![],
             custom_objects: vec![],
         },
         ManifestSpecificRuleConfig::HasMetadataKeys { .. } => AppliesTo {
@@ -470,6 +496,7 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
             macro_objects: vec![RuleTarget::Macros],
             exposure_objects: vec![RuleTarget::Exposures],
             semantic_model_objects: vec![RuleTarget::SemanticModels],
+            function_objects: vec![RuleTarget::Functions],
             custom_objects: vec![],
         },
         ManifestSpecificRuleConfig::CodeMaxLines { .. }
@@ -483,6 +510,7 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
             macro_objects: vec![RuleTarget::Macros],
             exposure_objects: vec![],
             semantic_model_objects: vec![],
+            function_objects: vec![RuleTarget::Functions],
             custom_objects: vec![],
         },
         ManifestSpecificRuleConfig::HasRefs {} => AppliesTo {
@@ -496,6 +524,7 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
             macro_objects: vec![],
             exposure_objects: vec![],
             semantic_model_objects: vec![RuleTarget::SemanticModels],
+            function_objects: vec![RuleTarget::Functions],
             custom_objects: vec![],
         },
         ManifestSpecificRuleConfig::AllowedSubfolders { .. } => AppliesTo {
@@ -514,6 +543,7 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
             macro_objects: vec![RuleTarget::Macros],
             exposure_objects: vec![RuleTarget::Exposures],
             semantic_model_objects: vec![RuleTarget::SemanticModels],
+            function_objects: vec![RuleTarget::Functions],
             custom_objects: vec![],
         },
         ManifestSpecificRuleConfig::SourcesHaveLoader {}
@@ -524,6 +554,7 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
             macro_objects: vec![],
             exposure_objects: vec![],
             semantic_model_objects: vec![],
+            function_objects: vec![],
             custom_objects: vec![],
         },
     }

@@ -21,8 +21,8 @@ This rule ensures that dbt objects (model, seed, source, macro, etc.) contain ta
 
 - **type**: Must be `has_tags`.
 - **applies_to**: *(optional)* List of dbt object types to include.
-  - Default: `["models", "seeds", "snapshots", "analyses", "sources", "exposures"]`
-  - Options: `models`, `seeds`, `snapshots`, `analyses`, `sources`, `exposures`
+  - Default: `["models", "seeds", "snapshots", "analyses", "sources", "exposures", "functions"]`
+  - Options: `models`, `seeds`, `snapshots`, `analyses`, `sources`, `exposures`, `functions`
 - **tags**: List of tags to check for.
 - **criteria**: Criteria for tag presence.
   - Options:

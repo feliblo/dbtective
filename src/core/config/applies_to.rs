@@ -15,6 +15,7 @@ pub enum RuleTargetType {
     Source,
     Exposure,
     SemanticModel,
+    Function,
     Custom,
 }
 
@@ -36,6 +37,7 @@ pub enum RuleTarget {
     Custom,
     Sources,
     Exposures,
+    Functions,
 }
 impl RuleTarget {
     // Objects can be nodes or their own type
@@ -54,6 +56,7 @@ impl RuleTarget {
             Self::Macros => RuleTargetType::Macro,
             Self::Exposures => RuleTargetType::Exposure,
             Self::SemanticModels => RuleTargetType::SemanticModel,
+            Self::Functions => RuleTargetType::Function,
             Self::Custom => RuleTargetType::Custom,
         }
     }
@@ -73,6 +76,7 @@ impl RuleTarget {
             Self::Snapshots => "snapshots",
             Self::HookNodes => "hook_nodes",
             Self::SqlOperations => "sql_operations",
+            Self::Functions => "functions",
             Self::Custom => "custom",
         }
     }
@@ -100,6 +104,7 @@ impl fmt::Display for RuleTarget {
             Self::Snapshots => "Snapshot",
             Self::HookNodes => "HookNode",
             Self::SqlOperations => "SqlOperation",
+            Self::Functions => "Function",
             Self::Custom => "Custom",
         };
         write!(f, "{singular}")
@@ -114,6 +119,7 @@ pub struct AppliesTo {
     pub unit_test_objects: Vec<RuleTarget>,
     pub exposure_objects: Vec<RuleTarget>,
     pub semantic_model_objects: Vec<RuleTarget>,
+    pub function_objects: Vec<RuleTarget>,
     pub custom_objects: Vec<RuleTarget>,
 }
 
@@ -129,6 +135,7 @@ impl<'de> Deserialize<'de> for AppliesTo {
         let mut macro_objects = Vec::new();
         let mut exposure_objects = Vec::new();
         let mut semantic_model_objects = Vec::new();
+        let mut function_objects = Vec::new();
         let mut custom_objects = Vec::new();
         let mut unknown_targets = Vec::new();
 
@@ -143,6 +150,7 @@ impl<'de> Deserialize<'de> for AppliesTo {
                         RuleTargetType::Exposure => exposure_objects.push(target),
                         RuleTargetType::Custom => custom_objects.push(target),
                         RuleTargetType::SemanticModel => semantic_model_objects.push(target),
+                        RuleTargetType::Function => function_objects.push(target),
                     },
                     Err(_) => unknown_targets.push(item),
                 }
@@ -168,6 +176,7 @@ impl<'de> Deserialize<'de> for AppliesTo {
             && exposure_objects.is_empty()
             && custom_objects.is_empty()
             && semantic_model_objects.is_empty()
+            && function_objects.is_empty()
         {
             let msg = format!(
                 "applies_to must specify at least one valid target (e.g. models, sources, tests, snapshots). Valid options are: {}",
@@ -183,6 +192,7 @@ impl<'de> Deserialize<'de> for AppliesTo {
             unit_test_objects,
             exposure_objects,
             semantic_model_objects,
+            function_objects,
             custom_objects,
         })
     }
@@ -200,6 +210,7 @@ impl Serialize for AppliesTo {
         targets.extend(self.unit_test_objects.iter());
         targets.extend(self.exposure_objects.iter());
         targets.extend(self.semantic_model_objects.iter());
+        targets.extend(self.function_objects.iter());
         targets.extend(self.custom_objects.iter());
         targets.serialize(serializer)
     }

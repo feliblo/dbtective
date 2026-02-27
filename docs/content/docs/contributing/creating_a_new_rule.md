@@ -85,6 +85,7 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             macro_objects: vec![],
             exposure_objects: vec![],
             semantic_model_objects: vec![],
+            function_objects: vec![],
             custom_objects: vec![],
         },
     }
