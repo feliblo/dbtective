@@ -1,7 +1,7 @@
 // Re-export types from dbt_artifact_parser
 #[allow(unused_imports)]
 pub use dbt_artifact_parser::manifest::{
-    Exposure, Group, Macro, Manifest, Node, SavedQuery, SemanticModel, Source, UnitTest,
+    Exposure, Group, Macro, Manifest, Node, SavedQuery, SemanticModel, Source, UnitTest, UDF,
 };
 
 // Re-export dbt_objects for backward compatibility
@@ -19,6 +19,7 @@ pub mod parse_manifest {
 
 // Trait implementation modules (these stay in dbtective)
 mod exposure_impls;
+mod function_impls;
 mod macro_impls;
 mod node_impls;
 mod node_objects_impls;

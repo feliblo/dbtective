@@ -216,6 +216,7 @@ impl CatalogRule {
                 &applies_to.semantic_model_objects,
                 &options.semantic_model_objects,
             ),
+            (&applies_to.function_objects, &options.function_objects),
             (&applies_to.custom_objects, &options.custom_objects),
         ];
         for (targets, valid) in pairs {
@@ -255,6 +256,7 @@ pub fn default_applies_to_for_catalog_rule(rule_type: &CatalogSpecificRuleConfig
             macro_objects: vec![],
             exposure_objects: vec![],
             semantic_model_objects: vec![],
+            function_objects: vec![],
             custom_objects: vec![],
         },
         CatalogSpecificRuleConfig::ColumnsNameConvention { .. }
@@ -265,6 +267,7 @@ pub fn default_applies_to_for_catalog_rule(rule_type: &CatalogSpecificRuleConfig
             macro_objects: vec![],
             exposure_objects: vec![],
             semantic_model_objects: vec![],
+            function_objects: vec![],
             custom_objects: vec![],
         },
     }
@@ -283,6 +286,7 @@ fn applies_to_options_for_catalog_rule(rule_type: &CatalogSpecificRuleConfig) ->
             macro_objects: vec![],
             exposure_objects: vec![],
             semantic_model_objects: vec![],
+            function_objects: vec![],
             custom_objects: vec![],
         },
     }

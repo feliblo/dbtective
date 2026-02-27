@@ -26,7 +26,7 @@ This rule enforces that dbt objects are organized within specific allowed subfol
   - **path_postfix**: *(optional)* Path segment that appears after the resource type (e.g., `bronze` for paths like `models/bronze/...`).
 - **applies_to**: *(optional)* List of dbt object types to include.
   - Default: `["models"]`
-  - Options: `models`, `seeds`, `snapshots`, `analyses`, `metrics`, `hook_nodes`, `sql_operations`, `saved_queries`, `sources`, `unit_tests`, `macros`, `exposures`, `semantic_models`
+  - Options: `models`, `seeds`, `snapshots`, `analyses`, `metrics`, `hook_nodes`, `sql_operations`, `saved_queries`, `sources`, `unit_tests`, `macros`, `exposures`, `semantic_models`, `functions`
 
 {{< include-markdown "content/snippets/common_rule_config.md" >}}
 

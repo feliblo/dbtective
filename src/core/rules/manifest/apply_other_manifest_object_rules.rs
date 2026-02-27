@@ -35,6 +35,7 @@ pub fn apply_manifest_object_rules<'a>(
         apply_exposure_rules(manifest, config, verbose)?,
         apply_semantic_model_rules(manifest, config, verbose)?,
         apply_unit_test_rules(manifest, config, verbose)?,
+        apply_function_rules(manifest, config, verbose)?,
     ]
     .into_iter()
     .flatten()
@@ -485,6 +486,98 @@ fn apply_unit_test_rules<'a>(
                     | ManifestSpecificRuleConfig::CodeContainsRefs {}
                     | ManifestSpecificRuleConfig::CodeMaxJoins { .. }
                     | ManifestSpecificRuleConfig::CodeNoHardcodedRefs {}
+                    | ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. }
+                    | ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. }
+                    | ManifestSpecificRuleConfig::SourcesHaveLoader {}
+                    | ManifestSpecificRuleConfig::SourcesHaveFreshness {} => return Ok(acc),
+                };
+
+                if let Some(mut rule_row) = rule_row_result {
+                    rule_row.category = rule.get_category().to_string();
+                    acc.push((rule_row, &rule.severity));
+                }
+
+                Ok(acc)
+            })?
+    } else {
+        Vec::new()
+    };
+
+    Ok(results)
+}
+
+/// Applies function (UDF) rules to the manifest.
+/// # Errors
+/// Returns an error if a rule has invalid configuration (e.g., invalid regex pattern).
+fn apply_function_rules<'a>(
+    manifest: &'a Manifest,
+    config: &'a Config,
+    _verbose: bool,
+) -> anyhow::Result<Vec<(RuleResult, &'a Severity)>> {
+    let results = if let Some(manifest_tests) = &config.manifest_tests {
+        manifest
+            .functions
+            .values()
+            .flat_map(|func| manifest_tests.iter().map(move |rule| (func, rule)))
+            .try_fold(Vec::new(), |mut acc, (func, rule)| -> anyhow::Result<_> {
+                if !should_run_test(func, rule.includes.as_ref(), rule.excludes.as_ref()) {
+                    return Ok(acc);
+                }
+
+                if let Some(applies) = &rule.applies_to {
+                    if !applies.function_objects.contains(&func.ruletarget()) {
+                        return Ok(acc);
+                    }
+                }
+
+                let rule_row_result = match &rule.rule {
+                    ManifestSpecificRuleConfig::HasDescription {
+                        ref min_length,
+                        ref forbidden_substrings,
+                    } => has_description(func, rule, *min_length, forbidden_substrings.as_deref()),
+                    ManifestSpecificRuleConfig::NameConvention { convention } => {
+                        check_name_convention(func, rule, convention)
+                    }
+                    ManifestSpecificRuleConfig::HasTags {
+                        required_tags,
+                        criteria,
+                    } => has_tags(func, rule, required_tags, criteria),
+                    ManifestSpecificRuleConfig::HasMetadataKeys {
+                        required_keys,
+                        custom_message,
+                    } => has_metadata_keys(func, rule, required_keys, custom_message.as_ref()),
+                    ManifestSpecificRuleConfig::HasRefs {} => has_refs(func, rule),
+                    ManifestSpecificRuleConfig::CodeMaxLines { max_lines } => {
+                        code_max_lines(func, rule, *max_lines)
+                    }
+                    ManifestSpecificRuleConfig::CodeForbiddenPatterns {
+                        forbidden_patterns,
+                        case_sensitive,
+                    } => code_forbidden_patterns(func, rule, forbidden_patterns, *case_sensitive),
+                    ManifestSpecificRuleConfig::CodeContainsRefs {} => {
+                        code_contains_refs(func, rule)
+                    }
+                    ManifestSpecificRuleConfig::CodeMaxJoins {
+                        max_joins: code_max_joins_allowed,
+                    } => code_max_joins(func, rule, *code_max_joins_allowed),
+                    ManifestSpecificRuleConfig::CodeNoHardcodedRefs {} => {
+                        code_no_hardcoded_refs(func, rule)
+                    }
+                    ManifestSpecificRuleConfig::AllowedSubfolders {
+                        allowed_subfolders,
+                        path_prefix,
+                        path_postfix,
+                    } => check_allowed_subfolders(
+                        func,
+                        rule,
+                        allowed_subfolders,
+                        path_prefix.as_ref(),
+                        path_postfix.as_ref(),
+                    ),
+                    // These can't be implemented for functions
+                    ManifestSpecificRuleConfig::IsNotOrphaned { .. }
+                    | ManifestSpecificRuleConfig::HasUniqueTest { .. }
+                    | ManifestSpecificRuleConfig::HasContractEnforced { .. }
                     | ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. }
                     | ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. }
                     | ManifestSpecificRuleConfig::SourcesHaveLoader {}

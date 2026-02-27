@@ -23,8 +23,8 @@ This rule ensures that a dbt object's name applies to naming conventions given i
 
 - **type**: Must be `name_convention`.
 - **applies_to**: *(optional)* List of dbt object types to include.
-  - Default: `["models", "seeds", "snapshots", "analyses", "sources", "unit_tests", "macros", "exposures", "semantic_models"]`
-  - Options: `models`, `seeds`, `snapshots`, `analyses`, `sources`, `unit_tests`, `macros`, `exposures`, `semantic_models`
+  - Default: `["models", "seeds", "snapshots", "analyses", "sources", "unit_tests", "macros", "exposures", "semantic_models", "functions"]`
+  - Options: `models`, `seeds`, `snapshots`, `analyses`, `sources`, `unit_tests`, `macros`, `exposures`, `semantic_models`, `functions`
 - **pattern**: The naming convention pattern to enforce. Can be one of the following presets or a custom regex pattern.
   - Presets:
     - `snake_case`: lowercase letters, numbers, and underscores (e.g., `my_model_name`)

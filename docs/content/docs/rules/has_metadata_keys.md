@@ -22,7 +22,7 @@ This rule ensures that dbt objects have specific required keys in their <code>me
 - **type**: Must be `has_metadata_keys`.
 - **applies_to**: *(optional)* List of dbt object types to include.
   - Default: `["models", "sources"]`
-  - Options: `models`, `seeds`, `snapshots`, `sources`, `macros`, `exposures`, `semantic_models`
+  - Options: `models`, `seeds`, `snapshots`, `sources`, `macros`, `exposures`, `semantic_models`, `functions`
 - **required_keys**: List of metadata keys that must be present in the `meta` property of each dbt object.
 - **custom_message** (Optional): Custom message to display when the rule fails. It will insert the {Object name} **before** the message.
   - The custom message `is missing an owner` would produce a message like `{Object name} is missing an owner`

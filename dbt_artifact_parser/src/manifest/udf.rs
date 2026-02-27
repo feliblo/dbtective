@@ -67,6 +67,30 @@ pub struct UDF {
     pub arguments: Vec<FunctionArgument>,
 }
 
+impl UDF {
+    pub const fn get_name(&self) -> &String {
+        &self.name
+    }
+
+    pub const fn get_package_name(&self) -> &String {
+        &self.package_name
+    }
+
+    pub const fn get_object_type() -> &'static str {
+        "Function"
+    }
+
+    pub const fn get_original_file_path(&self) -> &String {
+        &self.original_file_path
+    }
+
+    pub fn get_patch_path(&self) -> Option<&str> {
+        self.patch_path
+            .as_deref()
+            .and_then(super::strip_patch_path_prefix)
+    }
+}
+
 #[derive(Debug, Deserialize)]
 #[allow(dead_code)]
 pub struct FunctionReturns {
@@ -487,5 +511,79 @@ mod tests {
         let json = r"2";
         let v: RefArgsVersion = serde_json::from_str(json).unwrap();
         assert!(matches!(v, RefArgsVersion::VersionInt(2)));
+    }
+
+    fn make_udf(patch_path: Option<&str>) -> UDF {
+        let json = format!(
+            r#"{{
+                "returns": {{"data_type": "integer"}},
+                "database": null,
+                "schema": "main",
+                "name": "my_func",
+                "resource_type": "function",
+                "package_name": "my_project",
+                "path": "my_func.sql",
+                "original_file_path": "functions/my_func.sql",
+                "unique_id": "function.my_project.my_func",
+                "fqn": ["my_project", "my_func"],
+                "alias": "my_func",
+                "checksum": {{"name": "sha256", "checksum": "abc"}},
+                "config": {{
+                    "enabled": true,
+                    "materialized": "function",
+                    "on_schema_change": "ignore",
+                    "post-hook": [],
+                    "pre-hook": [],
+                    "packages": []
+                }},
+                "meta": {{}},
+                "group": null,
+                "docs": null,
+                "patch_path": {},
+                "build_path": null,
+                "unrendered_config": {{}},
+                "created_at": 1.0,
+                "relation_name": null,
+                "compiled_path": null,
+                "contract": null
+            }}"#,
+            patch_path.map_or_else(|| "null".to_string(), |p| format!(r#""{p}""#))
+        );
+        serde_json::from_str(&json).unwrap()
+    }
+
+    #[test]
+    fn test_get_name() {
+        let udf = make_udf(None);
+        assert_eq!(udf.get_name(), "my_func");
+    }
+
+    #[test]
+    fn test_get_package_name() {
+        let udf = make_udf(None);
+        assert_eq!(udf.get_package_name(), "my_project");
+    }
+
+    #[test]
+    fn test_get_object_type() {
+        assert_eq!(UDF::get_object_type(), "Function");
+    }
+
+    #[test]
+    fn test_get_original_file_path() {
+        let udf = make_udf(None);
+        assert_eq!(udf.get_original_file_path(), "functions/my_func.sql");
+    }
+
+    #[test]
+    fn test_get_patch_path_none() {
+        let udf = make_udf(None);
+        assert_eq!(udf.get_patch_path(), None);
+    }
+
+    #[test]
+    fn test_get_patch_path_with_prefix() {
+        let udf = make_udf(Some("my_project://functions/schema.yml"));
+        assert_eq!(udf.get_patch_path(), Some("functions/schema.yml"));
     }
 }
