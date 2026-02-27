@@ -6,8 +6,45 @@ use super::questionnaire::{
 use crate::core::config::catalog_rule::CatalogSpecificRuleConfig;
 use crate::core::config::check_config_options::HasTagsCriteria;
 use crate::core::config::manifest_rule::ManifestSpecificRuleConfig;
+use crate::core::config::naming_convention::NamingConvention;
 use crate::core::config::rule_category::RuleCategory;
 use strum::IntoEnumIterator;
+
+/// Convert a `snake_case` base like `t_lnk` into `camelCase` `tLnk`
+fn to_camel_case(s: &str) -> String {
+    let mut result = String::new();
+    let mut capitalize_next = false;
+    for (i, c) in s.chars().enumerate() {
+        if c == '_' {
+            capitalize_next = true;
+        } else if capitalize_next {
+            result.extend(c.to_uppercase());
+            capitalize_next = false;
+        } else if i == 0 {
+            result.extend(c.to_lowercase());
+        } else {
+            result.push(c);
+        }
+    }
+    result
+}
+
+/// Convert a `snake_case` base like `t_lnk` into `PascalCase` `TLnk`
+fn to_pascal_case(s: &str) -> String {
+    let mut result = String::new();
+    let mut capitalize_next = true;
+    for c in s.chars() {
+        if c == '_' {
+            capitalize_next = true;
+        } else if capitalize_next {
+            result.extend(c.to_uppercase());
+            capitalize_next = false;
+        } else {
+            result.push(c);
+        }
+    }
+    result
+}
 
 #[derive(Debug)]
 pub struct InitConfig {
@@ -16,6 +53,7 @@ pub struct InitConfig {
     pub catalog_rules: Vec<CatalogSpecificRuleConfig>,
     pub layering_strategy: LayeringStrategy,
     pub methodology: DataModelMethodology,
+    pub naming_convention: NamingConvention,
     pub auto_parse_command: Option<String>,
 }
 
@@ -30,6 +68,7 @@ impl InitConfig {
             catalog_rules,
             layering_strategy: result.layering_strategy,
             methodology: result.methodology,
+            naming_convention: result.naming_convention.clone(),
             auto_parse_command: result.auto_parse_command.clone(),
         }
     }
@@ -61,8 +100,8 @@ impl InitConfig {
                     ],
                     LayeringStrategy::Common => vec![
                         "staging".to_string(),
+                        "warehouse".to_string(),
                         "marts".to_string(),
-                        "intermediate".to_string(),
                     ],
                     LayeringStrategy::None => vec![],
                 };
@@ -97,7 +136,7 @@ impl InitConfig {
                     LayeringStrategy::Common => {
                         patterns.extend([
                             "staging.".to_string(),
-                            "intermediate.".to_string(),
+                            "warehouse.".to_string(),
                             "marts.".to_string(),
                         ]);
                     }
@@ -118,6 +157,7 @@ impl InitConfig {
             ManifestSpecificRuleConfig::HasTags { .. } => ManifestSpecificRuleConfig::HasTags {
                 required_tags: vec![
                     "daily".to_string(),
+                    "weekly".to_string(),
                     "monthly".to_string(),
                     "yearly".to_string(),
                     "inactive".to_string(),
@@ -223,7 +263,32 @@ impl InitConfig {
     const fn layer_names(&self) -> (&str, &str) {
         match self.layering_strategy {
             LayeringStrategy::Medallion => ("gold", "silver"),
-            LayeringStrategy::Common | LayeringStrategy::None => ("marts", "intermediate"),
+            LayeringStrategy::Common | LayeringStrategy::None => ("marts", "warehouse"),
+        }
+    }
+
+    /// Convert a methodology prefix (e.g. "dim", "fact", "hub") into the
+    /// regex pattern and display form matching the user's naming convention.
+    ///
+    /// Returns `(pattern, display)` — e.g. `("^dim_", "dim_")` for `snake_case`,
+    /// `("^dim-", "dim-")` for `kebab-case`, `("^dim[A-Z]", "dim")` for `camelCase`,
+    /// `("^Dim[A-Z]", "Dim")` for `PascalCase`.
+    fn prefix_for_convention(&self, base: &str) -> (String, String) {
+        match self.naming_convention.name() {
+            "kebab-case" => {
+                let kebab = base.replace('_', "-");
+                (format!("^{kebab}-"), format!("{kebab}-"))
+            }
+            "camelCase" => {
+                let camel = to_camel_case(base);
+                (format!("^{camel}[A-Z]"), camel)
+            }
+            "PascalCase" => {
+                let pascal = to_pascal_case(base);
+                (format!("^{pascal}[A-Z]"), pascal)
+            }
+            // snake_case and custom regex — fall back to snake_case style
+            _ => (format!("^{base}_"), format!("{base}_")),
         }
     }
 
@@ -259,30 +324,61 @@ impl InitConfig {
     }
 
     fn kimball_rules_yaml(&self) -> Vec<String> {
-        let (final_layer, _) = self.layer_names();
-        vec![
-            format!(
-                r#"  - name: "{final_layer}_subfolders"
+        let (final_layer, middle_layer) = self.layer_names();
+        let (dim_pattern, dim_display) = self.prefix_for_convention("dim");
+        let (fact_pattern, fact_display) = self.prefix_for_convention("fact");
+        match self.layering_strategy {
+            // Medallion: dims, facts, and marts all live under the final layer (gold)
+            LayeringStrategy::Medallion => vec![
+                format!(
+                    r#"  - name: "{final_layer}_subfolders"
+    type: "allowed_subfolders"
+    allowed_subfolders: ["dimensions", "facts", "marts"]
+    includes: ["models/{final_layer}"]
+    description: "The {final_layer} layer must contain dimensions, facts, and marts subfolders""#
+                ),
+                format!(
+                    r#"  - name: "dimension_naming"
+    type: "name_convention"
+    pattern: "{dim_pattern}"
+    includes: ["models/{final_layer}/dimensions"]
+    description: "Dimension models must start with {dim_display}""#
+                ),
+                format!(
+                    r#"  - name: "fact_naming"
+    type: "name_convention"
+    pattern: "{fact_pattern}"
+    includes: ["models/{final_layer}/facts"]
+    description: "Fact models must start with {fact_display}""#
+                ),
+            ],
+            // Common: dims and facts live in the middle layer (warehouse),
+            // marts is a separate final layer
+            LayeringStrategy::Common => vec![
+                format!(
+                    r#"  - name: "{middle_layer}_subfolders"
     type: "allowed_subfolders"
     allowed_subfolders: ["dimensions", "facts"]
-    includes: ["models/{final_layer}"]
-    description: "The {final_layer} layer must only contain dimensions and facts subfolders""#
-            ),
-            format!(
-                r#"  - name: "dimension_naming"
+    includes: ["models/{middle_layer}"]
+    description: "The {middle_layer} layer must contain dimensions and facts subfolders""#
+                ),
+                format!(
+                    r#"  - name: "dimension_naming"
     type: "name_convention"
-    pattern: "^dim_"
-    includes: ["models/{final_layer}/dimensions"]
-    description: "Dimension models must start with dim_""#
-            ),
-            format!(
-                r#"  - name: "fact_naming"
+    pattern: "{dim_pattern}"
+    includes: ["models/{middle_layer}/dimensions"]
+    description: "Dimension models must start with {dim_display}""#
+                ),
+                format!(
+                    r#"  - name: "fact_naming"
     type: "name_convention"
-    pattern: "^fact_"
-    includes: ["models/{final_layer}/facts"]
-    description: "Fact models must start with fact_""#
-            ),
-        ]
+    pattern: "{fact_pattern}"
+    includes: ["models/{middle_layer}/facts"]
+    description: "Fact models must start with {fact_display}""#
+                ),
+            ],
+            LayeringStrategy::None => vec![],
+        }
     }
 
     fn inmon_rules_yaml(&self) -> Vec<String> {
@@ -320,6 +416,12 @@ impl InitConfig {
     #[allow(clippy::too_many_lines)]
     fn data_vault_rules_yaml(&self) -> Vec<String> {
         let (final_layer, middle_layer) = self.layer_names();
+        let (hub_pattern, hub_display) = self.prefix_for_convention("hub");
+        let (lnk_pattern, lnk_display) = self.prefix_for_convention("lnk");
+        let (sat_pattern, sat_display) = self.prefix_for_convention("sat");
+        let (t_lnk_pattern, t_lnk_display) = self.prefix_for_convention("t_lnk");
+        let (dim_pattern, dim_display) = self.prefix_for_convention("dim");
+        let (fact_pattern, fact_display) = self.prefix_for_convention("fact");
         vec![
             format!(
                 r#"  - name: "{middle_layer}_vault_subfolders"
@@ -338,30 +440,30 @@ impl InitConfig {
             format!(
                 r#"  - name: "hub_naming"
     type: "name_convention"
-    pattern: "^hub_"
+    pattern: "{hub_pattern}"
     includes: ["models/{middle_layer}/hubs"]
-    description: "Hub models must start with hub_""#
+    description: "Hub models must start with {hub_display}""#
             ),
             format!(
                 r#"  - name: "link_naming"
     type: "name_convention"
-    pattern: "^lnk_"
+    pattern: "{lnk_pattern}"
     includes: ["models/{middle_layer}/links"]
-    description: "Link models must start with lnk_""#
+    description: "Link models must start with {lnk_display}""#
             ),
             format!(
                 r#"  - name: "satellite_naming"
     type: "name_convention"
-    pattern: "^sat_"
+    pattern: "{sat_pattern}"
     includes: ["models/{middle_layer}/satellites"]
-    description: "Satellite models must start with sat_""#
+    description: "Satellite models must start with {sat_display}""#
             ),
             format!(
                 r#"  - name: "t_link_naming"
     type: "name_convention"
-    pattern: "^t_lnk_"
+    pattern: "{t_lnk_pattern}"
     includes: ["models/{middle_layer}/t_links"]
-    description: "Transactional link models must start with t_lnk_""#
+    description: "Transactional link models must start with {t_lnk_display}""#
             ),
             format!(
                 r#"  - name: "vault_contracts"
@@ -384,16 +486,16 @@ impl InitConfig {
             format!(
                 r#"  - name: "info_mart_dim_naming"
     type: "name_convention"
-    pattern: "^dim_"
+    pattern: "{dim_pattern}"
     includes: ["models/{final_layer}/information_mart"]
-    description: "Information mart dimension models must start with dim_""#
+    description: "Information mart dimension models must start with {dim_display}""#
             ),
             format!(
                 r#"  - name: "info_mart_fact_naming"
     type: "name_convention"
-    pattern: "^fact_"
+    pattern: "{fact_pattern}"
     includes: ["models/{final_layer}/information_mart"]
-    description: "Information mart fact models must start with fact_""#
+    description: "Information mart fact models must start with {fact_display}""#
             ),
         ]
     }
@@ -409,33 +511,67 @@ impl InitConfig {
     }
 
     fn kimball_rules_toml(&self, section: &str) -> Vec<String> {
-        let (final_layer, _) = self.layer_names();
-        vec![
-            format!(
-                r#"[[{section}]]
+        let (final_layer, middle_layer) = self.layer_names();
+        let (dim_pattern, dim_display) = self.prefix_for_convention("dim");
+        let (fact_pattern, fact_display) = self.prefix_for_convention("fact");
+        match self.layering_strategy {
+            // Medallion: dims, facts, and marts all live under the final layer (gold)
+            LayeringStrategy::Medallion => vec![
+                format!(
+                    r#"[[{section}]]
 name = "{final_layer}_subfolders"
 type = "allowed_subfolders"
-allowed_subfolders = ["dimensions", "facts"]
+allowed_subfolders = ["dimensions", "facts", "marts"]
 includes = ["models/{final_layer}"]
-description = "The {final_layer} layer must only contain dimensions and facts subfolders""#
-            ),
-            format!(
-                r#"[[{section}]]
+description = "The {final_layer} layer must contain dimensions, facts, and marts subfolders""#
+                ),
+                format!(
+                    r#"[[{section}]]
 name = "dimension_naming"
 type = "name_convention"
-pattern = "^dim_"
+pattern = "{dim_pattern}"
 includes = ["models/{final_layer}/dimensions"]
-description = "Dimension models must start with dim_""#
-            ),
-            format!(
-                r#"[[{section}]]
+description = "Dimension models must start with {dim_display}""#
+                ),
+                format!(
+                    r#"[[{section}]]
 name = "fact_naming"
 type = "name_convention"
-pattern = "^fact_"
+pattern = "{fact_pattern}"
 includes = ["models/{final_layer}/facts"]
-description = "Fact models must start with fact_""#
-            ),
-        ]
+description = "Fact models must start with {fact_display}""#
+                ),
+            ],
+            // Common: dims and facts live in the middle layer (warehouse),
+            // marts is a separate final layer
+            LayeringStrategy::Common => vec![
+                format!(
+                    r#"[[{section}]]
+name = "{middle_layer}_subfolders"
+type = "allowed_subfolders"
+allowed_subfolders = ["dimensions", "facts"]
+includes = ["models/{middle_layer}"]
+description = "The {middle_layer} layer must contain dimensions and facts subfolders""#
+                ),
+                format!(
+                    r#"[[{section}]]
+name = "dimension_naming"
+type = "name_convention"
+pattern = "{dim_pattern}"
+includes = ["models/{middle_layer}/dimensions"]
+description = "Dimension models must start with {dim_display}""#
+                ),
+                format!(
+                    r#"[[{section}]]
+name = "fact_naming"
+type = "name_convention"
+pattern = "{fact_pattern}"
+includes = ["models/{middle_layer}/facts"]
+description = "Fact models must start with {fact_display}""#
+                ),
+            ],
+            LayeringStrategy::None => vec![],
+        }
     }
 
     fn inmon_rules_toml(&self, section: &str) -> Vec<String> {
@@ -477,6 +613,12 @@ description = "All normalized tables must have primary key uniqueness tests""#
     #[allow(clippy::too_many_lines)]
     fn data_vault_rules_toml(&self, section: &str) -> Vec<String> {
         let (final_layer, middle_layer) = self.layer_names();
+        let (hub_pattern, hub_display) = self.prefix_for_convention("hub");
+        let (lnk_pattern, lnk_display) = self.prefix_for_convention("lnk");
+        let (sat_pattern, sat_display) = self.prefix_for_convention("sat");
+        let (t_lnk_pattern, t_lnk_display) = self.prefix_for_convention("t_lnk");
+        let (dim_pattern, dim_display) = self.prefix_for_convention("dim");
+        let (fact_pattern, fact_display) = self.prefix_for_convention("fact");
         vec![
             format!(
                 r#"[[{section}]]
@@ -498,33 +640,33 @@ description = "The {final_layer} layer contains business vault and information m
                 r#"[[{section}]]
 name = "hub_naming"
 type = "name_convention"
-pattern = "^hub_"
+pattern = "{hub_pattern}"
 includes = ["models/{middle_layer}/hubs"]
-description = "Hub models must start with hub_""#
+description = "Hub models must start with {hub_display}""#
             ),
             format!(
                 r#"[[{section}]]
 name = "link_naming"
 type = "name_convention"
-pattern = "^lnk_"
+pattern = "{lnk_pattern}"
 includes = ["models/{middle_layer}/links"]
-description = "Link models must start with lnk_""#
+description = "Link models must start with {lnk_display}""#
             ),
             format!(
                 r#"[[{section}]]
 name = "satellite_naming"
 type = "name_convention"
-pattern = "^sat_"
+pattern = "{sat_pattern}"
 includes = ["models/{middle_layer}/satellites"]
-description = "Satellite models must start with sat_""#
+description = "Satellite models must start with {sat_display}""#
             ),
             format!(
                 r#"[[{section}]]
 name = "t_link_naming"
 type = "name_convention"
-pattern = "^t_lnk_"
+pattern = "{t_lnk_pattern}"
 includes = ["models/{middle_layer}/t_links"]
-description = "Transactional link models must start with t_lnk_""#
+description = "Transactional link models must start with {t_lnk_display}""#
             ),
             format!(
                 r#"[[{section}]]
@@ -551,17 +693,17 @@ description = "All links must have a uniqueness test on the hash key""#
                 r#"[[{section}]]
 name = "info_mart_dim_naming"
 type = "name_convention"
-pattern = "^dim_"
+pattern = "{dim_pattern}"
 includes = ["models/{final_layer}/information_mart"]
-description = "Information mart dimension models must start with dim_""#
+description = "Information mart dimension models must start with {dim_display}""#
             ),
             format!(
                 r#"[[{section}]]
 name = "info_mart_fact_naming"
 type = "name_convention"
-pattern = "^fact_"
+pattern = "{fact_pattern}"
 includes = ["models/{final_layer}/information_mart"]
-description = "Information mart fact models must start with fact_""#
+description = "Information mart fact models must start with {fact_display}""#
             ),
         ]
     }
@@ -796,7 +938,7 @@ description = "Information mart fact models must start with fact_""#
             ManifestSpecificRuleConfig::HasContractEnforced { .. } => {
                 let includes = match self.layering_strategy {
                     LayeringStrategy::Medallion => Some(vec!["models/silver", "models/gold"]),
-                    LayeringStrategy::Common => Some(vec!["models/marts", "models/intermediate"]),
+                    LayeringStrategy::Common => Some(vec!["models/marts", "models/warehouse"]),
                     LayeringStrategy::None => return String::new(),
                 };
 
@@ -887,18 +1029,17 @@ description = "Information mart fact models must start with fact_""#
     type: "is_not_orphaned""#
                             .to_string();
                     }
-                    (_, DataModelMethodology::Kimball) => format!("models/{final_layer}/facts"),
+                    (_, DataModelMethodology::Kimball) => match self.layering_strategy {
+                        LayeringStrategy::Medallion => format!("models/{final_layer}/marts"),
+                        _ => format!("models/{final_layer}"),
+                    },
                     (_, DataModelMethodology::DataVault) => {
                         format!("models/{final_layer}/information_mart")
                     }
                     _ => format!("models/{final_layer}"),
                 };
-                let rule_name = match self.layering_strategy {
-                    LayeringStrategy::Medallion => "all_gold_models_are_exposed",
-                    LayeringStrategy::Common | LayeringStrategy::None => "all_marts_are_exposed",
-                };
                 format!(
-                    r#"  - name: "{rule_name}"
+                    r#"  - name: "all_marts_are_exposed"
     type: "is_not_orphaned"
     description: "All {final_layer} models should be referenced by at least one exposure."
     applies_to: ["models"]
@@ -976,17 +1117,19 @@ description = "Information mart fact models must start with fact_""#
             return None;
         }
         let (final_layer, _) = self.layer_names();
-        let name = match self.layering_strategy {
-            LayeringStrategy::Medallion => "all_gold_models_are_exposed",
-            _ => "all_marts_are_exposed",
-        };
-        let folder = match self.methodology {
-            DataModelMethodology::Kimball => format!("models/{final_layer}/facts"),
-            DataModelMethodology::DataVault => format!("models/{final_layer}/information_mart"),
+        let folder = match (&self.methodology, &self.layering_strategy) {
+            // Kimball+Medallion: marts subfolder within gold
+            (DataModelMethodology::Kimball, LayeringStrategy::Medallion) => {
+                format!("models/{final_layer}/marts")
+            }
+            (DataModelMethodology::DataVault, _) => {
+                format!("models/{final_layer}/information_mart")
+            }
+            // Kimball+Common and everything else: the whole final layer
             _ => format!("models/{final_layer}"),
         };
         Some(format!(
-            r#"  - name: "{name}"
+            r#"  - name: "all_marts_are_exposed"
     type: "is_not_orphaned"
     applies_to: ["models"]
     includes: ["{folder}"]
@@ -1000,18 +1143,20 @@ description = "Information mart fact models must start with fact_""#
             return None;
         }
         let (final_layer, _) = self.layer_names();
-        let name = match self.layering_strategy {
-            LayeringStrategy::Medallion => "all_gold_models_are_exposed",
-            _ => "all_marts_are_exposed",
-        };
-        let folder = match self.methodology {
-            DataModelMethodology::Kimball => format!("models/{final_layer}/facts"),
-            DataModelMethodology::DataVault => format!("models/{final_layer}/information_mart"),
+        let folder = match (&self.methodology, &self.layering_strategy) {
+            // Kimball+Medallion: marts subfolder within gold
+            (DataModelMethodology::Kimball, LayeringStrategy::Medallion) => {
+                format!("models/{final_layer}/marts")
+            }
+            (DataModelMethodology::DataVault, _) => {
+                format!("models/{final_layer}/information_mart")
+            }
+            // Kimball+Common and everything else: the whole final layer
             _ => format!("models/{final_layer}"),
         };
         Some(format!(
             r#"[[{section}]]
-name = "{name}"
+name = "all_marts_are_exposed"
 type = "is_not_orphaned"
 applies_to = ["models"]
 includes = ["{folder}"]
@@ -1056,7 +1201,7 @@ severity = "warning""#
             CatalogSpecificRuleConfig::ColumnsHaveDataType { min_coverage } => {
                 let includes = match self.layering_strategy {
                     LayeringStrategy::Medallion => Some(vec!["models/silver", "models/gold"]),
-                    LayeringStrategy::Common => Some(vec!["models/marts", "models/intermediate"]),
+                    LayeringStrategy::Common => Some(vec!["models/marts", "models/warehouse"]),
                     LayeringStrategy::None => None,
                 };
 
@@ -1125,7 +1270,7 @@ type = "code_contains_refs""#
             ManifestSpecificRuleConfig::HasContractEnforced { .. } => {
                 let includes = match self.layering_strategy {
                     LayeringStrategy::Medallion => Some(vec!["models/silver", "models/gold"]),
-                    LayeringStrategy::Common => Some(vec!["models/marts", "models/intermediate"]),
+                    LayeringStrategy::Common => Some(vec!["models/marts", "models/warehouse"]),
                     LayeringStrategy::None => return String::new(),
                 };
 
@@ -1234,19 +1379,18 @@ name = "is_not_orphaned"
 type = "is_not_orphaned""#
                         );
                     }
-                    (_, DataModelMethodology::Kimball) => format!("models/{final_layer}/facts"),
+                    (_, DataModelMethodology::Kimball) => match self.layering_strategy {
+                        LayeringStrategy::Medallion => format!("models/{final_layer}/marts"),
+                        _ => format!("models/{final_layer}"),
+                    },
                     (_, DataModelMethodology::DataVault) => {
                         format!("models/{final_layer}/information_mart")
                     }
                     _ => format!("models/{final_layer}"),
                 };
-                let rule_name = match self.layering_strategy {
-                    LayeringStrategy::Medallion => "all_gold_models_are_exposed",
-                    LayeringStrategy::Common | LayeringStrategy::None => "all_marts_are_exposed",
-                };
                 format!(
                     r#"[[{section}]]
-name = "{rule_name}"
+name = "all_marts_are_exposed"
 type = "is_not_orphaned"
 description = "All {final_layer} models should be referenced by at least one exposure."
 applies_to = ["models"]
@@ -1371,7 +1515,7 @@ invalid_names = [{invalid_str}]"#
             CatalogSpecificRuleConfig::ColumnsHaveDataType { min_coverage } => {
                 let includes = match self.layering_strategy {
                     LayeringStrategy::Medallion => Some(vec!["models/silver", "models/gold"]),
-                    LayeringStrategy::Common => Some(vec!["models/marts", "models/intermediate"]),
+                    LayeringStrategy::Common => Some(vec!["models/marts", "models/warehouse"]),
                     LayeringStrategy::None => None,
                 };
 
@@ -1514,8 +1658,8 @@ mod tests {
             } => {
                 assert_eq!(allowed_subfolders.len(), 3);
                 assert_eq!(allowed_subfolders[0], "staging");
-                assert_eq!(allowed_subfolders[1], "marts");
-                assert_eq!(allowed_subfolders[2], "intermediate");
+                assert_eq!(allowed_subfolders[1], "warehouse");
+                assert_eq!(allowed_subfolders[2], "marts");
             }
             _ => panic!("Expected AllowedSubfolders rule"),
         }
@@ -1616,8 +1760,9 @@ mod tests {
                 required_tags,
                 criteria,
             } => {
-                assert_eq!(required_tags.len(), 4);
+                assert_eq!(required_tags.len(), 5);
                 assert!(required_tags.contains(&"daily".to_string()));
+                assert!(required_tags.contains(&"weekly".to_string()));
                 assert!(required_tags.contains(&"monthly".to_string()));
                 assert!(required_tags.contains(&"yearly".to_string()));
                 assert!(required_tags.contains(&"inactive".to_string()));
@@ -2141,7 +2286,7 @@ mod tests {
                 ManifestSpecificRuleConfig::AllowedSubfolders {
                     allowed_subfolders,
                     ..
-                } if allowed_subfolders == &vec!["staging".to_string(), "marts".to_string(), "intermediate".to_string()]
+                } if allowed_subfolders == &vec!["staging".to_string(), "warehouse".to_string(), "marts".to_string()]
             )
         });
         assert!(has_allowed_subfolders);
@@ -2230,7 +2375,7 @@ mod tests {
         let yaml = config.to_yaml();
 
         assert!(yaml.contains(r#"type: "has_contract_enforced""#));
-        assert!(yaml.contains(r#"includes: ["models/marts", "models/intermediate"]"#));
+        assert!(yaml.contains(r#"includes: ["models/marts", "models/warehouse"]"#));
     }
 
     #[test]
@@ -2287,7 +2432,7 @@ mod tests {
         let config = InitConfig::from_questionnaire(&result);
         let yaml = config.to_yaml();
 
-        assert!(yaml.contains(r#"name: "all_gold_models_are_exposed""#));
+        assert!(yaml.contains(r#"name: "all_marts_are_exposed""#));
         assert!(yaml.contains(r#"type: "is_not_orphaned""#));
         assert!(yaml.contains(r#"includes: ["models/gold"]"#));
         assert!(yaml.contains(r#"allowed_references: ["exposures"]"#));
@@ -2310,7 +2455,7 @@ mod tests {
         assert!(yaml.contains(r#"name: "is_not_orphaned""#));
         assert!(yaml.contains(r#"type: "is_not_orphaned""#));
         assert!(!yaml.contains("all_marts_are_exposed"));
-        assert!(!yaml.contains("all_gold_models_are_exposed"));
+        assert!(!yaml.contains("all_marts_are_exposed"));
     }
 
     #[test]
@@ -2399,7 +2544,7 @@ mod tests {
             } => {
                 assert!(forbidden_patterns.contains(&"SELECT *".to_string()));
                 assert!(forbidden_patterns.contains(&"staging.".to_string()));
-                assert!(forbidden_patterns.contains(&"intermediate.".to_string()));
+                assert!(forbidden_patterns.contains(&"warehouse.".to_string()));
                 assert!(forbidden_patterns.contains(&"marts.".to_string()));
                 assert_eq!(forbidden_patterns.len(), 4);
             }
@@ -2469,7 +2614,7 @@ mod tests {
 
         assert!(toml.contains(r#"type = "code_forbidden_patterns""#));
         assert!(toml.contains(r#""staging.""#));
-        assert!(toml.contains(r#""intermediate.""#));
+        assert!(toml.contains(r#""warehouse.""#));
         assert!(toml.contains(r#""marts.""#));
     }
 
@@ -2779,7 +2924,7 @@ mod tests {
         assert!(toml.contains(r#"type = "allowed_subfolders""#));
         assert!(toml.contains(r#""staging""#));
         assert!(toml.contains(r#""marts""#));
-        assert!(toml.contains(r#""intermediate""#));
+        assert!(toml.contains(r#""warehouse""#));
     }
 
     // ========================================================================
@@ -3003,7 +3148,7 @@ mod tests {
     }
 
     #[test]
-    fn test_kimball_common_uses_marts_layer() {
+    fn test_kimball_common_uses_warehouse_for_dims_facts() {
         let result = create_questionnaire_result_with_methodology(
             LayeringStrategy::Common,
             DataModelMethodology::Kimball,
@@ -3016,10 +3161,11 @@ mod tests {
         );
         let config = InitConfig::from_questionnaire(&result);
         let yaml = config.to_yaml();
-        assert!(yaml.contains(r#"name: "marts_subfolders""#));
-        assert!(yaml.contains(r#"includes: ["models/marts"]"#));
-        assert!(yaml.contains(r#"includes: ["models/marts/dimensions"]"#));
-        assert!(yaml.contains(r#"includes: ["models/marts/facts"]"#));
+        // Dims and facts live in the warehouse (middle) layer
+        assert!(yaml.contains(r#"name: "warehouse_subfolders""#));
+        assert!(yaml.contains(r#"includes: ["models/warehouse"]"#));
+        assert!(yaml.contains(r#"includes: ["models/warehouse/dimensions"]"#));
+        assert!(yaml.contains(r#"includes: ["models/warehouse/facts"]"#));
     }
 
     #[test]
@@ -3119,9 +3265,9 @@ mod tests {
         );
         let config = InitConfig::from_questionnaire(&result);
         let yaml = config.to_yaml();
-        assert!(yaml.contains(r#"name: "intermediate_vault_subfolders""#));
-        assert!(yaml.contains(r#"includes: ["models/intermediate"]"#));
-        assert!(yaml.contains(r#"includes: ["models/intermediate/hubs"]"#));
+        assert!(yaml.contains(r#"name: "warehouse_vault_subfolders""#));
+        assert!(yaml.contains(r#"includes: ["models/warehouse"]"#));
+        assert!(yaml.contains(r#"includes: ["models/warehouse/hubs"]"#));
     }
 
     #[test]
@@ -3238,7 +3384,7 @@ mod tests {
         );
         let config = InitConfig::from_questionnaire(&result);
         let toml = config.to_toml();
-        assert!(toml.contains(r#"name = "intermediate_vault_subfolders""#));
+        assert!(toml.contains(r#"name = "warehouse_vault_subfolders""#));
         assert!(toml.contains(r#"name = "hub_naming""#));
         assert!(toml.contains(r#"name = "vault_contracts""#));
     }
@@ -3268,7 +3414,7 @@ mod tests {
             NamingConvention::default(),
         );
         let config = InitConfig::from_questionnaire(&result);
-        assert_eq!(config.layer_names(), ("marts", "intermediate"));
+        assert_eq!(config.layer_names(), ("marts", "warehouse"));
     }
 
     #[test]
@@ -3280,7 +3426,7 @@ mod tests {
             NamingConvention::default(),
         );
         let config = InitConfig::from_questionnaire(&result);
-        assert_eq!(config.layer_names(), ("marts", "intermediate"));
+        assert_eq!(config.layer_names(), ("marts", "warehouse"));
     }
 
     // ========================================================================
@@ -3547,5 +3693,183 @@ mod tests {
         // code_max_lines should come after performance banner
         let max_lines_pos = yaml.find("code_max_lines").unwrap();
         assert!(max_lines_pos > perf_pos);
+    }
+
+    // ========================================================================
+    // Helper Function Tests (to_camel_case, to_pascal_case)
+    // ========================================================================
+
+    #[test]
+    fn test_to_camel_case() {
+        assert_eq!(to_camel_case("dim"), "dim");
+        assert_eq!(to_camel_case("t_lnk"), "tLnk");
+        assert_eq!(to_camel_case("hub"), "hub");
+    }
+
+    #[test]
+    fn test_to_pascal_case() {
+        assert_eq!(to_pascal_case("dim"), "Dim");
+        assert_eq!(to_pascal_case("t_lnk"), "TLnk");
+        assert_eq!(to_pascal_case("hub"), "Hub");
+    }
+
+    // ========================================================================
+    // prefix_for_convention Tests
+    // ========================================================================
+
+    #[test]
+    fn test_prefix_for_convention_snake_case() {
+        let result = create_questionnaire_result_with_methodology(
+            LayeringStrategy::Common,
+            DataModelMethodology::Kimball,
+            vec![ManifestSpecificRuleConfig::NameConvention {
+                convention: NamingConvention::default(),
+            }],
+            Vec::new(),
+            NamingConvention::from_pattern("snake_case").unwrap(),
+        );
+        let config = InitConfig::from_questionnaire(&result);
+        let (pattern, display) = config.prefix_for_convention("dim");
+        assert_eq!(pattern, "^dim_");
+        assert_eq!(display, "dim_");
+    }
+
+    #[test]
+    fn test_prefix_for_convention_kebab_case() {
+        let result = create_questionnaire_result_with_methodology(
+            LayeringStrategy::Common,
+            DataModelMethodology::Kimball,
+            vec![ManifestSpecificRuleConfig::NameConvention {
+                convention: NamingConvention::default(),
+            }],
+            Vec::new(),
+            NamingConvention::from_pattern("kebab-case").unwrap(),
+        );
+        let config = InitConfig::from_questionnaire(&result);
+        let (pattern, display) = config.prefix_for_convention("dim");
+        assert_eq!(pattern, "^dim-");
+        assert_eq!(display, "dim-");
+
+        let (pattern, display) = config.prefix_for_convention("t_lnk");
+        assert_eq!(pattern, "^t-lnk-");
+        assert_eq!(display, "t-lnk-");
+    }
+
+    #[test]
+    fn test_prefix_for_convention_camel_case() {
+        let result = create_questionnaire_result_with_methodology(
+            LayeringStrategy::Common,
+            DataModelMethodology::Kimball,
+            vec![ManifestSpecificRuleConfig::NameConvention {
+                convention: NamingConvention::default(),
+            }],
+            Vec::new(),
+            NamingConvention::from_pattern("camelCase").unwrap(),
+        );
+        let config = InitConfig::from_questionnaire(&result);
+        let (pattern, display) = config.prefix_for_convention("dim");
+        assert_eq!(pattern, "^dim[A-Z]");
+        assert_eq!(display, "dim");
+
+        let (pattern, display) = config.prefix_for_convention("t_lnk");
+        assert_eq!(pattern, "^tLnk[A-Z]");
+        assert_eq!(display, "tLnk");
+    }
+
+    #[test]
+    fn test_prefix_for_convention_pascal_case() {
+        let result = create_questionnaire_result_with_methodology(
+            LayeringStrategy::Common,
+            DataModelMethodology::Kimball,
+            vec![ManifestSpecificRuleConfig::NameConvention {
+                convention: NamingConvention::default(),
+            }],
+            Vec::new(),
+            NamingConvention::from_pattern("PascalCase").unwrap(),
+        );
+        let config = InitConfig::from_questionnaire(&result);
+        let (pattern, display) = config.prefix_for_convention("dim");
+        assert_eq!(pattern, "^Dim[A-Z]");
+        assert_eq!(display, "Dim");
+
+        let (pattern, display) = config.prefix_for_convention("t_lnk");
+        assert_eq!(pattern, "^TLnk[A-Z]");
+        assert_eq!(display, "TLnk");
+    }
+
+    // ========================================================================
+    // Methodology + Naming Convention Combination Tests
+    // ========================================================================
+
+    #[test]
+    fn test_kimball_with_kebab_case_yaml() {
+        let result = create_questionnaire_result_with_methodology(
+            LayeringStrategy::Common,
+            DataModelMethodology::Kimball,
+            vec![ManifestSpecificRuleConfig::NameConvention {
+                convention: NamingConvention::default(),
+            }],
+            Vec::new(),
+            NamingConvention::from_pattern("kebab-case").unwrap(),
+        );
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+        assert!(yaml.contains("^dim-"));
+        assert!(yaml.contains("^fact-"));
+    }
+
+    #[test]
+    fn test_kimball_with_camel_case_yaml() {
+        let result = create_questionnaire_result_with_methodology(
+            LayeringStrategy::Medallion,
+            DataModelMethodology::Kimball,
+            vec![ManifestSpecificRuleConfig::NameConvention {
+                convention: NamingConvention::default(),
+            }],
+            Vec::new(),
+            NamingConvention::from_pattern("camelCase").unwrap(),
+        );
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+        assert!(yaml.contains("^dim[A-Z]"));
+        assert!(yaml.contains("^fact[A-Z]"));
+    }
+
+    #[test]
+    fn test_data_vault_with_pascal_case_yaml() {
+        let result = create_questionnaire_result_with_methodology(
+            LayeringStrategy::Common,
+            DataModelMethodology::DataVault,
+            vec![ManifestSpecificRuleConfig::NameConvention {
+                convention: NamingConvention::default(),
+            }],
+            Vec::new(),
+            NamingConvention::from_pattern("PascalCase").unwrap(),
+        );
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+        assert!(yaml.contains("^Hub[A-Z]"));
+        assert!(yaml.contains("^Lnk[A-Z]"));
+        assert!(yaml.contains("^Sat[A-Z]"));
+        assert!(yaml.contains("^TLnk[A-Z]"));
+    }
+
+    #[test]
+    fn test_data_vault_with_kebab_case_toml() {
+        let result = create_questionnaire_result_with_methodology(
+            LayeringStrategy::Medallion,
+            DataModelMethodology::DataVault,
+            vec![ManifestSpecificRuleConfig::NameConvention {
+                convention: NamingConvention::default(),
+            }],
+            Vec::new(),
+            NamingConvention::from_pattern("kebab-case").unwrap(),
+        );
+        let config = InitConfig::from_questionnaire(&result);
+        let toml = config.to_toml();
+        assert!(toml.contains("^hub-"));
+        assert!(toml.contains("^lnk-"));
+        assert!(toml.contains("^sat-"));
+        assert!(toml.contains("^t-lnk-"));
     }
 }

@@ -24,7 +24,7 @@ test:
     cargo test
 
 test-cov:
-    cargo llvm-cov test --workspace --all-features
+    rustup run stable cargo llvm-cov test --workspace --all-features
 
 lint:
     cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
