@@ -27,24 +27,24 @@ The first question asks how your dbt project organizes pipeline stages.
 - `allowed_subfolders` enforcing `["bronze", "silver", "gold"]`
 - `has_contract_enforced` scoped to `models/silver` and `models/gold`
 - `code_forbidden_patterns` preventing direct schema references like `bronze.`, `silver.`, `gold.`
-- `is_not_orphaned` ensuring gold models are referenced by exposures
+- `is_not_orphaned` ensuring mart models are referenced by exposures
 
 </details>
 
 <details>
-<summary><strong>Common (staging, intermediate, marts)</strong></summary>
+<summary><strong>Common (staging, warehouse, marts)</strong></summary>
 
-| Layer            | Purpose                                                                      |
-| ---------------- | ---------------------------------------------------------------------------- |
-| **staging**      | 1:1 with source. Light transformations (renaming, casting, basic filtering). |
-| **intermediate** | Business logic, joins across staging models. Not exposed to end users.       |
-| **marts**        | Consumption-ready models. Exposed via BI tools, APIs, etc.                   |
+| Layer         | Purpose                                                                      |
+| ------------- | ---------------------------------------------------------------------------- |
+| **staging**   | 1:1 with source. Light transformations (renaming, casting, basic filtering). |
+| **warehouse** | Business logic, joins across staging models. Not exposed to end users.       |
+| **marts**     | Consumption-ready models. Exposed via BI tools, APIs, etc.                   |
 
 **Generated rules:**
 
-- `allowed_subfolders` enforcing `["staging", "intermediate", "marts"]`
-- `has_contract_enforced` scoped to `models/marts` and `models/intermediate`
-- `code_forbidden_patterns` preventing direct schema references like `staging.`, `intermediate.`, `marts.`
+- `allowed_subfolders` enforcing `["staging", "warehouse", "marts"]`
+- `has_contract_enforced` scoped to `models/marts` and `models/warehouse`
+- `code_forbidden_patterns` preventing direct schema references like `staging.`, `warehouse.`, `marts.`
 - `is_not_orphaned` ensuring mart models are referenced by exposures
 
 </details>
@@ -65,22 +65,32 @@ The second question asks what data modeling methodology you follow. This determi
 <details>
 <summary><strong>Kimball (star schema — dimensions & facts)</strong></summary>
 
-Kimball dimensional modeling organizes data into facts (measurable events) and dimensions (descriptive context).
+Kimball dimensional modeling organizes data into facts (measurable events) and dimensions (descriptive context). The generated folder structure depends on the layering strategy.
 
-**Folder structure generated** (example with Medallion):
+**With Medallion** — dims, facts, and marts all live under the final layer (gold):
 
 ```
 gold/
 ├── dimensions/     # dim_customer, dim_product, dim_date
+├── facts/          # fact_orders, fact_page_views
+└── marts/          # Consumption-ready aggregations, exposed via BI tools
+```
+
+**With Common** — dims and facts live in the middle layer (warehouse), marts is the final layer:
+
+```
+warehouse/
+├── dimensions/     # dim_customer, dim_product, dim_date
 └── facts/          # fact_orders, fact_page_views
+marts/              # Consumption-ready models, exposed via BI tools
 ```
 
 **Generated rules:**
 
-- `allowed_subfolders` on the final layer: `["dimensions", "facts"]`
-- `name_convention` with pattern `^dim_` scoped to dimensions folder
-- `name_convention` with pattern `^fact_` scoped to facts folder
-- `is_not_orphaned` scoped to the facts folder
+- `allowed_subfolders`: `["dimensions", "facts", "marts"]` on the final layer (Medallion) or `["dimensions", "facts"]` on the middle layer (Common)
+- `name_convention` with naming-convention-aware prefix scoped to dimensions folder (e.g. `^dim_` for snake_case)
+- `name_convention` with naming-convention-aware prefix scoped to facts folder (e.g. `^fact_` for snake_case)
+- `is_not_orphaned` scoped to the marts folder (Medallion: `gold/marts`, Common: `marts`)
 
 </details>
 
@@ -133,8 +143,8 @@ gold/                       # Business Vault + Information Marts
 
 - `allowed_subfolders` on middle layer: `["hubs", "links", "satellites", "t_links"]`
 - `allowed_subfolders` on final layer: `["business_vault", "information_mart"]`
-- `name_convention` rules: `^hub_`, `^lnk_`, `^sat_`, `^t_lnk_` scoped to respective folders
-- `name_convention` rules: `^dim_`, `^fact_` in the information mart
+- `name_convention` rules with naming-convention-aware prefixes: `hub`, `lnk`, `sat`, `t_lnk` scoped to respective folders
+- `name_convention` rules with naming-convention-aware prefixes: `dim`, `fact` in the information mart
 - `has_contract_enforced` on vault tables
 - `has_unique_test` on hubs and links (hash key uniqueness)
 - `is_not_orphaned` scoped to the information mart
@@ -154,13 +164,18 @@ No methodology-specific rules are generated. Use this if your project doesn't fo
 
 The layering strategy and methodology work together. The layering strategy determines the **top-level folder names**, while the methodology determines the **sub-folder structure within those layers**.
 
-| Layering + Methodology | Middle Layer Sub-folders                 | Final Layer Sub-folders              | Naming Prefixes                                   |
-| ---------------------- | ---------------------------------------- | ------------------------------------ | ------------------------------------------------- |
-| Any + **None**         | (none)                                   | (none)                               | (none)                                            |
-| Any + **Kimball**      | (none)                                   | `dimensions`, `facts`                | `dim_`, `fact_`                                   |
-| Any + **Inmon**        | `core`, `reference`, `bridge`            | department names                     | (none)                                            |
-| Any + **Data Vault**   | `hubs`, `links`, `satellites`, `t_links` | `business_vault`, `information_mart` | `hub_`, `lnk_`, `sat_`, `t_lnk_`, `dim_`, `fact_` |
+| Layering + Methodology  | Middle Layer Sub-folders                 | Final Layer Sub-folders              | Naming Prefixes                                   |
+| ----------------------- | ---------------------------------------- | ------------------------------------ | ------------------------------------------------- |
+| Any + **None**          | (none)                                   | (none)                               | (none)                                            |
+| Medallion + **Kimball** | (none)                                   | `dimensions`, `facts`, `marts`       | `dim_`, `fact_`                                   |
+| Common + **Kimball**    | `dimensions`, `facts`                    | (none)                               | `dim_`, `fact_`                                   |
+| Any + **Inmon**         | `core`, `reference`, `bridge`            | department names                     | (none)                                            |
+| Any + **Data Vault**    | `hubs`, `links`, `satellites`, `t_links` | `business_vault`, `information_mart` | `hub_`, `lnk_`, `sat_`, `t_lnk_`, `dim_`, `fact_` |
 
 {{< callout type="tip" >}}
 After running `dbtective init`, review the generated config file and customize any rules to match your project's specific needs. The department names in Inmon (`finance`, `marketing`, `operations`) are examples — replace them with your actual department or domain names.
+{{< /callout >}}
+
+{{< callout type="info" >}}
+**Naming convention aware**: The methodology naming prefixes (`dim_`, `fact_`, `hub_`, `lnk_`, etc.) are automatically adapted to your chosen naming convention. For example, with PascalCase they become `^Dim[A-Z]`, `^Fact[A-Z]`, `^Hub[A-Z]`, etc. With kebab-case they become `^dim-`, `^fact-`, `^hub-`, etc.
 {{< /callout >}}

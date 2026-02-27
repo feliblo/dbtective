@@ -503,7 +503,7 @@ fn test_common_standard_generates_valid_toml() {
     assert!(content.contains("allowed_subfolders"));
     assert!(content.contains("\"staging\""));
     assert!(content.contains("\"marts\""));
-    assert!(content.contains("\"intermediate\""));
+    assert!(content.contains("\"warehouse\""));
 }
 
 #[test]
@@ -1340,8 +1340,8 @@ fn test_kimball_yaml_contains_dimension_and_fact_naming_rules() {
 
     let config_path = temp_dir.path().join("dbtective.yml");
     let content = fs::read_to_string(&config_path).unwrap();
-    assert!(content.contains(r#"includes: ["models/marts/dimensions"]"#));
-    assert!(content.contains(r#"includes: ["models/marts/facts"]"#));
+    assert!(content.contains(r#"includes: ["models/warehouse/dimensions"]"#));
+    assert!(content.contains(r#"includes: ["models/warehouse/facts"]"#));
 }
 
 #[test]
@@ -1471,7 +1471,7 @@ fn test_kimball_common_standard_generates_valid_toml() {
     let config_path = temp_dir.path().join("dbtective.toml");
     let content = fs::read_to_string(&config_path).unwrap();
 
-    assert!(content.contains(r#"name = "marts_subfolders""#));
+    assert!(content.contains(r#"name = "warehouse_subfolders""#));
     assert!(content.contains(r#"name = "dimension_naming""#));
     assert!(content.contains(r#"pattern = "^dim_""#));
 }

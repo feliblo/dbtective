@@ -3,7 +3,7 @@
 # Rules: https://feliblo.github.io/dbtective/docs/rules/
 
 config:
-  auto_parse_command: "uv run dbt parse"
+  auto_parse_command: "dbt parse"
 
 manifest_tests:
   ###################
@@ -22,7 +22,7 @@ manifest_tests:
   ############
   - name: "allowed_subfolders"
     type: "allowed_subfolders"
-    allowed_subfolders: ["staging", "marts", "intermediate"]
+    allowed_subfolders: ["staging", "warehouse", "marts"]
 
   - name: "naming_convention"
     type: "name_convention"
@@ -36,7 +36,7 @@ manifest_tests:
 
   - name: "has_contract_enforced"
     type: "has_contract_enforced"
-    includes: ["models/marts", "models/intermediate"]
+    includes: ["models/marts", "models/warehouse"]
 
   - name: "has_owner"
     type: "has_metadata_keys"
@@ -68,7 +68,7 @@ manifest_tests:
     type: "is_not_orphaned"
     description: "All marts models should be referenced by at least one exposure."
     applies_to: ["models"]
-    includes: ["models/marts/facts"]
+    includes: ["models/marts/information_mart"]
     allowed_references: ["exposures"]
 
   - name: "max_downstream_dependencies"
@@ -93,7 +93,7 @@ manifest_tests:
   #################
   - name: "code_forbidden_patterns"
     type: "code_forbidden_patterns"
-    forbidden_patterns: ["SELECT *", "staging.", "intermediate.", "marts."]
+    forbidden_patterns: ["SELECT *", "staging.", "warehouse.", "marts."]
 
   - name: "code_max_joins"
     description: "Reduce model complexity"
@@ -104,31 +104,76 @@ manifest_tests:
     description: "Detect hardcoded table references (schema.table) in SQL code"
     type: "code_no_hardcoded_refs"
 
-  ###################
-  ## Data Modeling ##
-  ###################
+  ##################################
+  ## Data Model/Layering Specific ##
+  ##################################
+  - name: "warehouse_vault_subfolders"
+    type: "allowed_subfolders"
+    allowed_subfolders: ["hubs", "links", "satellites", "t_links"]
+    includes: ["models/warehouse"]
+    description: "The warehouse layer must contain Data Vault components"
+
   - name: "marts_subfolders"
     type: "allowed_subfolders"
-    allowed_subfolders: ["dimensions", "facts"]
+    allowed_subfolders: ["business_vault", "information_mart"]
     includes: ["models/marts"]
-    description: "The marts layer must only contain dimensions and facts subfolders"
+    description: "The marts layer contains business vault and information marts"
 
-  - name: "dimension_naming"
+  - name: "hub_naming"
+    type: "name_convention"
+    pattern: "^hub_"
+    includes: ["models/warehouse/hubs"]
+    description: "Hub models must start with hub_"
+
+  - name: "link_naming"
+    type: "name_convention"
+    pattern: "^lnk_"
+    includes: ["models/warehouse/links"]
+    description: "Link models must start with lnk_"
+
+  - name: "satellite_naming"
+    type: "name_convention"
+    pattern: "^sat_"
+    includes: ["models/warehouse/satellites"]
+    description: "Satellite models must start with sat_"
+
+  - name: "t_link_naming"
+    type: "name_convention"
+    pattern: "^t_lnk_"
+    includes: ["models/warehouse/t_links"]
+    description: "Transactional link models must start with t_lnk_"
+
+  - name: "vault_contracts"
+    type: "has_contract_enforced"
+    includes: ["models/warehouse"]
+    description: "All vault tables must have enforced contracts"
+
+  - name: "hub_unique_keys"
+    type: "has_unique_test"
+    includes: ["models/warehouse/hubs"]
+    description: "All hubs must have a uniqueness test on the hash key"
+
+  - name: "link_unique_keys"
+    type: "has_unique_test"
+    includes: ["models/warehouse/links"]
+    description: "All links must have a uniqueness test on the hash key"
+
+  - name: "info_mart_dim_naming"
     type: "name_convention"
     pattern: "^dim_"
-    includes: ["models/marts/dimensions"]
-    description: "Dimension models must start with dim_"
+    includes: ["models/marts/information_mart"]
+    description: "Information mart dimension models must start with dim_"
 
-  - name: "fact_naming"
+  - name: "info_mart_fact_naming"
     type: "name_convention"
     pattern: "^fact_"
-    includes: ["models/marts/facts"]
-    description: "Fact models must start with fact_"
+    includes: ["models/marts/information_mart"]
+    description: "Information mart fact models must start with fact_"
 
   - name: "all_marts_are_exposed"
     type: "is_not_orphaned"
     applies_to: ["models"]
-    includes: ["models/marts/facts"]
+    includes: ["models/marts/information_mart"]
     allowed_references: ["exposures"]
     severity: "warning"
 
@@ -144,7 +189,7 @@ catalog_tests:
   - name: "columns_have_data_type"
     type: "columns_have_data_type"
     description: "All columns must have data types defined."
-    includes: ["models/marts", "models/intermediate"]
+    includes: ["models/marts", "models/warehouse"]
 
   - name: "all_columns_described"
     type: "columns_have_description"

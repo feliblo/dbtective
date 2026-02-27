@@ -46,7 +46,7 @@ impl std::fmt::Display for LayeringStrategy {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Medallion => write!(f, "Medallion (bronze, silver, gold)"),
-            Self::Common => write!(f, "Common (staging, intermediate, marts)"),
+            Self::Common => write!(f, "Common (staging, warehouse, marts)"),
             Self::None => write!(f, "None (no folder structure enforcement)"),
         }
     }
@@ -528,7 +528,7 @@ mod tests {
         );
         assert_eq!(
             LayeringStrategy::Common.to_string(),
-            "Common (staging, intermediate, marts)"
+            "Common (staging, warehouse, marts)"
         );
         assert_eq!(
             LayeringStrategy::None.to_string(),
