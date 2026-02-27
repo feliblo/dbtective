@@ -9,6 +9,7 @@ pub mod parse_manifest;
 pub mod saved_query;
 pub mod semantic_model;
 pub mod source;
+pub mod udf;
 pub mod unit_test;
 
 pub use dbt_objects::{Column, Meta, NodeDocs, Tags};
@@ -22,6 +23,7 @@ pub use parse_manifest::{Manifest, ManifestMetadata, Quoting};
 pub use saved_query::{SavedQuery, SavedQueryDependsOn};
 pub use semantic_model::{SemanticModel, SemanticModelDependsOn};
 pub use source::{Source, SourceFreshness};
+pub use udf::UDF;
 pub use unit_test::UnitTest;
 
 /// Strips the project prefix from a `patch_path` (e.g., `project://path` -> "path")
@@ -32,7 +34,6 @@ pub fn strip_patch_path_prefix(patch_path: &str) -> Option<&str> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
     #[test]
     fn test_strip_patch_path_prefix_valid() {
         let patch_path = "dbtective_test_project://models/staging/crm/_stg_crm__models.yml";

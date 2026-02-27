@@ -7,6 +7,7 @@ use super::nodes::test::Test;
 use super::saved_query::SavedQuery;
 use super::semantic_model::SemanticModel;
 use super::source::Source;
+use super::udf::UDF;
 use super::unit_test::UnitTest;
 use anyhow::{Context, Result};
 use serde::Deserialize;
@@ -73,6 +74,8 @@ pub struct Manifest {
     pub semantic_models: HashMap<String, SemanticModel>,
     #[serde(default)]
     pub unit_tests: HashMap<String, UnitTest>,
+    #[serde(default)]
+    pub functions: HashMap<String, UDF>,
 }
 
 impl Manifest {
@@ -165,6 +168,9 @@ impl Manifest {
             manifest
                 .unit_tests
                 .retain(|_, ut| ut.get_package_name() == project_name.as_str());
+            manifest
+                .functions
+                .retain(|_, udf| udf.package_name == project_name.as_str());
         }
 
         Ok(manifest)
