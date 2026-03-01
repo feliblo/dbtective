@@ -20,7 +20,7 @@ Combine with `--auto-parse` to ensure the manifest is always up to date before r
 # .pre-commit-config.yaml
 repos:
   - repo: https://github.com/feliblo/dbtective
-    rev: v0.2.10
+    rev: v0.3.0
     hooks:
       - id: dbtective-run
         entry: dbtective run
@@ -39,7 +39,7 @@ CI/CD is the **only place** where we recommend running both catalog and manifest
     dbt docs generate
 
 - name: Run dbtective
-  uses: feliblo/dbtective@v0.2.10
+  uses: feliblo/dbtective@v0.3.0
   with:
     entry-point: "."
     # No --only-manifest flag: runs all tests including catalog

@@ -1,3 +1,27 @@
+## v0.3.0 (2026-03-01)
+
+### Feat
+
+- **udf**: add support for udfs - ([d0a88eb](https://github.com/feliblo/dbtective/commit/d0a88ebcaa138967b2449f8e322de41bf68d4158)) - feliblo
+- **udf**: add parsing for udfs - ([7b94b4d](https://github.com/feliblo/dbtective/commit/7b94b4da9e0f6df2a0c42aba8a8e24911d553188)) - feliblo
+- **init**: add modelling/layers: inmon, kimball, datavault - ([3caabad](https://github.com/feliblo/dbtective/commit/3caabad073c79e65a9bbaaac15668335ace75b45)) - feliblo
+- **rules**: add code_no_hardcoded_refs rule - ([c0aa268](https://github.com/feliblo/dbtective/commit/c0aa26816b9117350726e8fb0cc0473cc25afec1)) - feliblo
+- **bin**: strip debug info for smaller binary size - ([539fbac](https://github.com/feliblo/dbtective/commit/539fbacadb8d5475323c064ca8a631eefa10c7bf)) - feliblo
+
+### Fix
+
+- **init**: enhance modelling/layers logic - ([a8a476d](https://github.com/feliblo/dbtective/commit/a8a476d6d33e41b27b6912abb681f950cb4c3259)) - feliblo
+- **clippy**: clippy warning fix - ([529b381](https://github.com/feliblo/dbtective/commit/529b3810806a0d836e5aa65bc1e4fc59402bbbb9)) - feliblo
+- **tests**: add more tests for code_no hardcoded_refs - ([332ea9f](https://github.com/feliblo/dbtective/commit/332ea9f6f3094832c9f388019fb78b5df1ceb252)) - feliblo
+
+### Refactor
+
+- **rules**: rename code rules - ([74df105](https://github.com/feliblo/dbtective/commit/74df1059ce16ddf12431c22ed0a8dcd31ec531c6)) - feliblo
+
+### Contributors
+
+[@feliblo](https://github.com/feliblo)
+
 ## v0.2.10 (2026-02-20)
 
 ### Feat
