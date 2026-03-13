@@ -70,8 +70,14 @@ You can override the default category for any rule by setting `category: "your_c
       <td>Check if objects are referenced by other objects.</td>
       <td style="font-size: 12px; color: #666;">orphaned, unused, references, dependencies, lineage</td>
     </tr>
+    <tr class="rule-item" data-keywords="tests required mandatory not_null unique validation configurable" data-category="testing">
+      <td><a href="tests#rule-has_required_tests" class="rule-name">has_required_tests</a></td>
+      <td><span class="rule-category-badge badge-testing">Testing</span></td>
+      <td>Enforce a configurable set of mandatory tests on dbt objects.</td>
+      <td style="font-size: 12px; color: #666;">tests, required, mandatory, not_null, unique, validation</td>
+    </tr>
     <tr class="rule-item" data-keywords="tests uniqueness unique validation custom" data-category="testing">
-      <td><a href="tests" class="rule-name">has_unique_test</a></td>
+      <td><a href="tests#rule-has_unique_test" class="rule-name">has_unique_test</a></td>
       <td><span class="rule-category-badge badge-testing">Testing</span></td>
       <td>Check if dbt objects have at least one uniqueness test attached.</td>
       <td style="font-size: 12px; color: #666;">tests, uniqueness, unique, validation, custom</td>

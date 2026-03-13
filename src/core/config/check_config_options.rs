@@ -63,6 +63,39 @@ pub fn default_allowed_test_names() -> Vec<String> {
     ]
 }
 
+// HasRequiredTests
+/// A single required-test entry. Can be deserialized from either:
+/// - a plain string: `"not_null"` (matches exactly that test name)
+/// - an object with alternatives: `{ name: "uniqueness", allowed_names: ["unique", "dbt_utils.unique_combination_of_columns"] }`
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(untagged)]
+pub enum RequiredTest {
+    WithAlternatives {
+        name: String,
+        allowed_names: Vec<String>,
+    },
+    Simple(String),
+}
+
+impl RequiredTest {
+    /// The display name used in violation messages.
+    pub fn display_name(&self) -> &str {
+        match self {
+            Self::Simple(name) | Self::WithAlternatives { name, .. } => name,
+        }
+    }
+
+    /// The list of test metadata names that satisfy this requirement.
+    pub fn allowed_names(&self) -> Vec<&str> {
+        match self {
+            Self::Simple(name) => vec![name.as_str()],
+            Self::WithAlternatives { allowed_names, .. } => {
+                allowed_names.iter().map(String::as_str).collect()
+            }
+        }
+    }
+}
+
 pub const fn default_code_max_lines() -> usize {
     150
 }

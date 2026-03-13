@@ -10,6 +10,7 @@ use crate::core::config::check_config_options::{
     default_allowed_references, default_allowed_test_names, default_code_max_joins,
     default_code_max_lines, default_excluded_dependency_types, default_max_downstream,
     default_max_upstream, AccessLevel, DependencyType, HasTagsCriteria, OrphanedReferenceType,
+    RequiredTest,
 };
 use crate::core::config::naming_convention::NamingConvention;
 use crate::core::config::rule_category::RuleCategory;
@@ -60,6 +61,9 @@ pub enum ManifestSpecificRuleConfig {
         custom_message: Option<String>,
     },
     HasRefs {},
+    HasRequiredTests {
+        required_tests: Vec<RequiredTest>,
+    },
     HasTags {
         required_tags: Vec<String>,
         #[serde(default)]
@@ -122,7 +126,7 @@ impl ManifestSpecificRuleConfig {
         match self {
             Self::HasDescription { .. } | Self::SourcesHaveLoader {} => RuleCategory::Documentation,
             Self::NameConvention { .. } | Self::AllowedSubfolders { .. } => RuleCategory::Naming,
-            Self::HasUniqueTest { .. } => RuleCategory::Testing,
+            Self::HasUniqueTest { .. } | Self::HasRequiredTests { .. } => RuleCategory::Testing,
             Self::HasTags { .. }
             | Self::HasContractEnforced { .. }
             | Self::HasMetadataKeys { .. }
@@ -369,8 +373,9 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             function_objects: vec![],
             custom_objects: vec![],
         },
-        // has_unique_test & has_metadata_keys
+        // has_unique_test & has_required_tests & has_metadata_keys
         ManifestSpecificRuleConfig::HasUniqueTest { .. }
+        | ManifestSpecificRuleConfig::HasRequiredTests { .. }
         | ManifestSpecificRuleConfig::HasMetadataKeys { .. } => AppliesTo {
             node_objects: vec![RuleTarget::Models],
             source_objects: vec![RuleTarget::Sources],
@@ -468,6 +473,7 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
             custom_objects: vec![],
         },
         ManifestSpecificRuleConfig::HasUniqueTest { .. }
+        | ManifestSpecificRuleConfig::HasRequiredTests { .. }
         | ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. }
         | ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. } => AppliesTo {
             node_objects: vec![RuleTarget::Models, RuleTarget::Seeds, RuleTarget::Snapshots],

@@ -5,7 +5,8 @@ use crate::core::rules::rule_config::{
     check_allowed_subfolders, check_name_convention, child_map::is_not_orphaned,
     code_contains_refs, code_forbidden_patterns, code_max_joins, code_max_lines,
     code_no_hardcoded_refs, has_contract_enforced, has_description, has_metadata_keys, has_refs,
-    has_tags, has_unique_test, max_downstream_dependencies, max_upstream_dependencies,
+    has_required_tests, has_tags, has_unique_test, max_downstream_dependencies,
+    max_upstream_dependencies,
 };
 
 use crate::core::config::severity::Severity;
@@ -65,6 +66,14 @@ pub fn apply_manifest_node_rules<'a>(
                     }
                     ManifestSpecificRuleConfig::HasUniqueTest { allowed_test_names } => {
                         has_unique_test(node, rule, manifest, allowed_test_names)
+                    }
+                    ManifestSpecificRuleConfig::HasRequiredTests { required_tests } => {
+                        for mut rule_row in has_required_tests(node, rule, manifest, required_tests)
+                        {
+                            rule_row.category = rule.get_category().to_string();
+                            acc.push((rule_row, &rule.severity));
+                        }
+                        None
                     }
                     ManifestSpecificRuleConfig::HasContractEnforced { ref access_level } => {
                         has_contract_enforced(node, rule, access_level.as_ref())

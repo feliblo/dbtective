@@ -10,6 +10,7 @@ mod test_has_freshness;
 mod test_has_loader;
 mod test_has_metadata_keys;
 mod test_has_refs;
+mod test_has_required_tests;
 mod test_has_tags;
 mod test_has_unique_tests;
 mod test_is_not_orphaned;

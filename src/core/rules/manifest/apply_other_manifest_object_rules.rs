@@ -2,8 +2,8 @@ use crate::core::config::applies_to::RuleTargetable;
 use crate::core::rules::rule_config::{
     check_allowed_subfolders, check_name_convention, code_contains_refs, code_forbidden_patterns,
     code_max_joins, code_max_lines, code_no_hardcoded_refs, has_description, has_freshness,
-    has_loader, has_metadata_keys, has_refs, has_tags, has_unique_test, is_not_orphaned,
-    max_downstream_dependencies, max_upstream_dependencies,
+    has_loader, has_metadata_keys, has_refs, has_required_tests, has_tags, has_unique_test,
+    is_not_orphaned, max_downstream_dependencies, max_upstream_dependencies,
 };
 use crate::{
     cli::table::RuleResult,
@@ -86,6 +86,15 @@ fn apply_source_rules<'a>(
                     }
                     ManifestSpecificRuleConfig::HasUniqueTest { allowed_test_names } => {
                         has_unique_test(source, rule, manifest, allowed_test_names)
+                    }
+                    ManifestSpecificRuleConfig::HasRequiredTests { required_tests } => {
+                        for mut rule_row in
+                            has_required_tests(source, rule, manifest, required_tests)
+                        {
+                            rule_row.category = rule.get_category().to_string();
+                            acc.push((rule_row, &rule.severity));
+                        }
+                        None
                     }
                     ManifestSpecificRuleConfig::HasMetadataKeys {
                         required_keys,
@@ -236,6 +245,7 @@ fn apply_macro_rules<'a>(
                         ManifestSpecificRuleConfig::HasTags { .. }
                         | ManifestSpecificRuleConfig::IsNotOrphaned { .. }
                         | ManifestSpecificRuleConfig::HasUniqueTest { .. }
+                        | ManifestSpecificRuleConfig::HasRequiredTests { .. }
                         | ManifestSpecificRuleConfig::HasRefs {}
                         | ManifestSpecificRuleConfig::HasContractEnforced { .. }
                         | ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. }
@@ -327,6 +337,7 @@ fn apply_exposure_rules<'a>(
                         | ManifestSpecificRuleConfig::CodeMaxLines { .. }
                         | ManifestSpecificRuleConfig::CodeForbiddenPatterns { .. }
                         | ManifestSpecificRuleConfig::HasUniqueTest { .. }
+                        | ManifestSpecificRuleConfig::HasRequiredTests { .. }
                         | ManifestSpecificRuleConfig::HasContractEnforced { .. }
                         | ManifestSpecificRuleConfig::CodeContainsRefs {}
                         | ManifestSpecificRuleConfig::CodeMaxJoins { .. }
@@ -406,6 +417,7 @@ fn apply_semantic_model_rules<'a>(
                     | ManifestSpecificRuleConfig::CodeForbiddenPatterns { .. }
                     | ManifestSpecificRuleConfig::IsNotOrphaned { .. }
                     | ManifestSpecificRuleConfig::HasUniqueTest { .. }
+                    | ManifestSpecificRuleConfig::HasRequiredTests { .. }
                     | ManifestSpecificRuleConfig::HasContractEnforced { .. }
                     | ManifestSpecificRuleConfig::CodeContainsRefs {}
                     | ManifestSpecificRuleConfig::CodeMaxJoins { .. }
@@ -481,6 +493,7 @@ fn apply_unit_test_rules<'a>(
                     | ManifestSpecificRuleConfig::HasRefs {}
                     | ManifestSpecificRuleConfig::IsNotOrphaned { .. }
                     | ManifestSpecificRuleConfig::HasUniqueTest { .. }
+                    | ManifestSpecificRuleConfig::HasRequiredTests { .. }
                     | ManifestSpecificRuleConfig::HasContractEnforced { .. }
                     | ManifestSpecificRuleConfig::HasMetadataKeys { .. }
                     | ManifestSpecificRuleConfig::CodeContainsRefs {}
@@ -577,6 +590,7 @@ fn apply_function_rules<'a>(
                     // These can't be implemented for functions
                     ManifestSpecificRuleConfig::IsNotOrphaned { .. }
                     | ManifestSpecificRuleConfig::HasUniqueTest { .. }
+                    | ManifestSpecificRuleConfig::HasRequiredTests { .. }
                     | ManifestSpecificRuleConfig::HasContractEnforced { .. }
                     | ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. }
                     | ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. }

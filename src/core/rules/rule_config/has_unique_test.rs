@@ -14,37 +14,34 @@ pub trait TestAble: Identifiable {
     fn get_unique_id(&self) -> &String;
 }
 
-// Check if the testable has atleast one test that tests for uniqueness
+// Check if the testable has at least one test that tests for uniqueness.
+// This is a convenience wrapper around has_required_tests with a single
+// "uniqueness" requirement built from the allowed_test_names list.
 pub fn has_unique_test<T: TestAble>(
     testable: &T,
     rule: &ManifestRule,
     manifest: &Manifest,
     allowed_test_names: &[String],
 ) -> Option<RuleResult> {
-    let unique_tests_found = testable
-        .get_tests(manifest)
-        .into_iter()
-        .filter(|test| {
-            // If there is a name and it matches => count it as a unique test
-            test.get_metadata_name()
-                .is_some_and(|test_name| allowed_test_names.iter().any(|name| name == &test_name))
-        })
-        .count();
+    use super::has_required_tests::has_required_tests;
+    use crate::core::config::check_config_options::RequiredTest;
 
-    if unique_tests_found == 0 {
-        Some(RuleResult::new(
-            &rule.severity,
-            testable.get_object_type(),
-            rule.get_name(),
-            format!(
-                "{} should have atleast 1 unique test",
-                testable.get_object_string(),
-            ),
-            testable.get_problematic_path(false).map(str::to_owned),
-        ))
-    } else {
-        None
+    let required = vec![RequiredTest::WithAlternatives {
+        name: "unique".to_string(),
+        allowed_names: allowed_test_names.to_vec(),
+    }];
+
+    let mut results = has_required_tests(testable, rule, manifest, &required);
+
+    // Preserve the original error message for backwards compatibility
+    if let Some(result) = results.first_mut() {
+        result.message = format!(
+            "{} should have atleast 1 unique test",
+            testable.get_object_string(),
+        );
     }
+
+    results.into_iter().next()
 }
 
 #[cfg(test)]
