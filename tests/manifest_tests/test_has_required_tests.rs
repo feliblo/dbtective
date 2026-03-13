@@ -17,21 +17,6 @@ const MANIFEST_METADATA: &str = r#"
     }
   }"#;
 
-const MANIFEST_EMPTY_COLLECTIONS: &str = r#"
-  "sources": {},
-  "macros": {},
-  "exposures": {},
-  "metrics": {},
-  "groups": {},
-  "selectors": {},
-  "disabled": {},
-  "parent_map": {},
-  "child_map": {},
-  "group_map": {},
-  "saved_queries": {},
-  "semantic_models": {},
-  "unit_tests": {}"#;
-
 fn model_node(unique_id: &str, name: &str) -> String {
     format!(
         r#""{unique_id}": {{
@@ -130,16 +115,124 @@ fn test_node(
     )
 }
 
+fn source_node(unique_id: &str, name: &str, source_name: &str) -> String {
+    format!(
+        r#""{unique_id}": {{
+      "database": "raw",
+      "schema": "{source_name}",
+      "name": "{name}",
+      "source_name": "{source_name}",
+      "source_description": "Raw data",
+      "loader": "",
+      "identifier": "{name}",
+      "resource_type": "source",
+      "package_name": "test_project",
+      "path": "models/sources.yml",
+      "original_file_path": "models/sources.yml",
+      "unique_id": "{unique_id}",
+      "fqn": ["test_project", "{source_name}", "{name}"],
+      "source_meta": {{}},
+      "tags": [],
+      "config": {{"enabled": true}},
+      "patch_path": null,
+      "unrendered_config": {{}},
+      "relation_name": "raw.{source_name}.{name}",
+      "created_at": 1704067200.0,
+      "description": "Test source",
+      "columns": {{}},
+      "meta": {{}},
+      "freshness": {{
+        "warn_after": {{"count": null, "period": null}},
+        "error_after": {{"count": null, "period": null}},
+        "filter": null
+      }},
+      "quoting": {{
+        "database": null,
+        "schema": null,
+        "identifier": null,
+        "column": null
+      }},
+      "loaded_at_field": null,
+      "external": null
+    }}"#
+    )
+}
+
+fn source_test_node(test_unique_id: &str, test_name: &str, depends_on_source: &str) -> String {
+    format!(
+        r#""{test_unique_id}": {{
+      "database": "analytics",
+      "schema": "dbt_test__audit",
+      "name": "{test_name}",
+      "resource_type": "test",
+      "package_name": "test_project",
+      "path": "{test_name}.sql",
+      "original_file_path": "models/sources.yml",
+      "unique_id": "{test_unique_id}",
+      "fqn": ["test_project", "{test_name}"],
+      "alias": "{test_name}",
+      "checksum": {{"name": "sha256", "checksum": "def456"}},
+      "config": {{"enabled": true}},
+      "tags": [],
+      "description": "",
+      "columns": {{}},
+      "meta": {{}},
+      "group": null,
+      "docs": {{"show": true}},
+      "patch_path": null,
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {{}},
+      "created_at": 1704067200.0,
+      "config_call_dict": {{}},
+      "relation_name": null,
+      "raw_code": "",
+      "language": "sql",
+      "refs": [],
+      "sources": [],
+      "metrics": [],
+      "depends_on": {{"macros": [], "nodes": ["{depends_on_source}"]}},
+      "compiled_code": null,
+      "extra_ctes_injected": false,
+      "extra_ctes": [],
+      "contract": {{"enforced": false, "checksum": null}},
+      "test_metadata": {{
+        "name": "{test_name}"
+      }}
+    }}"#
+    )
+}
+
 fn build_manifest(nodes: &[String]) -> String {
+    build_manifest_with_sources(nodes, &[])
+}
+
+fn build_manifest_with_sources(nodes: &[String], sources: &[String]) -> String {
     format!(
         r#"{{
 {MANIFEST_METADATA},
   "nodes": {{
     {}
   }},
-{MANIFEST_EMPTY_COLLECTIONS}
+  "sources": {{
+    {}
+  }},
+  "macros": {{}},
+  "exposures": {{}},
+  "metrics": {{}},
+  "groups": {{}},
+  "selectors": {{}},
+  "disabled": {{}},
+  "parent_map": {{}},
+  "child_map": {{}},
+  "group_map": {{}},
+  "saved_queries": {{}},
+  "semantic_models": {{}},
+  "unit_tests": {{}}
 }}"#,
-        nodes.join(",\n    ")
+        nodes.join(",\n    "),
+        sources.join(",\n    ")
     )
 }
 
@@ -436,4 +529,74 @@ manifest_tests:
     // customers is missing not_null, orders has it
     assert_eq!(findings.len(), 1);
     assert!(findings[0].0.message.contains("customers"));
+}
+
+// ---------------------------------------------------------------------------
+// Test: source missing required test → violation
+// ---------------------------------------------------------------------------
+#[test]
+fn test_source_missing_required_test() {
+    let manifest = build_manifest_with_sources(
+        &[],
+        &[source_node(
+            "source.test_project.raw_data.raw_customers",
+            "raw_customers",
+            "raw_data",
+        )],
+    );
+
+    let config = r#"
+manifest_tests:
+  - name: "sources_need_not_null"
+    type: "has_required_tests"
+    severity: "error"
+    applies_to: ["sources"]
+    required_tests:
+      - "not_null"
+"#;
+
+    let env = TestEnvironment::new(&manifest, config);
+    let findings = env.run_manifest_rules(false);
+
+    assert_eq!(findings.len(), 1);
+    assert!(findings[0].0.message.contains("raw_customers"));
+    assert!(findings[0].0.message.contains("not_null"));
+}
+
+// ---------------------------------------------------------------------------
+// Test: source with required test present → passes
+// ---------------------------------------------------------------------------
+#[test]
+fn test_source_with_required_test_passes() {
+    let manifest = build_manifest_with_sources(
+        &[source_test_node(
+            "test.test_project.not_null_raw_customers",
+            "not_null",
+            "source.test_project.raw_data.raw_customers",
+        )],
+        &[source_node(
+            "source.test_project.raw_data.raw_customers",
+            "raw_customers",
+            "raw_data",
+        )],
+    );
+
+    let config = r#"
+manifest_tests:
+  - name: "sources_need_not_null"
+    type: "has_required_tests"
+    severity: "error"
+    applies_to: ["sources"]
+    required_tests:
+      - "not_null"
+"#;
+
+    let env = TestEnvironment::new(&manifest, config);
+    let findings = env.run_manifest_rules(false);
+
+    assert_eq!(
+        findings.len(),
+        0,
+        "Source has the required test, should pass"
+    );
 }
