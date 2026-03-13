@@ -103,6 +103,9 @@ impl Init for ManifestSpecificRuleConfig {
             Self::HasTags { .. } => "has_tags - Require specific tags",
             Self::IsNotOrphaned { .. } => "is_not_orphaned - Check for orphaned sources",
             Self::HasUniqueTest { .. } => "has_unique_test - Require uniqueness tests",
+            Self::HasRequiredTests { .. } => {
+                "has_required_tests - Require a configurable set of tests"
+            }
             Self::HasContractEnforced { .. } => {
                 "has_contract_enforced - Require enforced contracts"
             }
@@ -619,7 +622,7 @@ mod tests {
 
     #[test]
     fn test_manifest_rule_iter_count() {
-        assert_eq!(ManifestSpecificRuleConfig::iter().count(), 18);
+        assert_eq!(ManifestSpecificRuleConfig::iter().count(), 19);
     }
 
     #[test]

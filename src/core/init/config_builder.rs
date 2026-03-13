@@ -169,6 +169,11 @@ impl InitConfig {
                     allowed_test_names: vec![],
                 }
             }
+            ManifestSpecificRuleConfig::HasRequiredTests { .. } => {
+                ManifestSpecificRuleConfig::HasRequiredTests {
+                    required_tests: vec![],
+                }
+            }
             ManifestSpecificRuleConfig::IsNotOrphaned { .. } => {
                 ManifestSpecificRuleConfig::IsNotOrphaned {
                     allowed_references: vec![],
@@ -1019,8 +1024,18 @@ description = "Information mart fact models must start with {fact_display}""#
                 )
             }
             ManifestSpecificRuleConfig::HasUniqueTest { .. } => r#"  - name: "has_unique_test"
-    type: "has_unique_test""#
+    type: "has_unique_test"
+    description: "Special case of has_required_tests that only checks for uniqueness tests""#
                 .to_string(),
+            ManifestSpecificRuleConfig::HasRequiredTests { .. } => {
+                r#"  - name: "has_required_tests"
+    type: "has_required_tests"
+    required_tests:
+      - "not_null"
+      - name: "uniqueness"
+        allowed_names: ["unique", "dbt_utils.unique_combination_of_columns"]"#
+                    .to_string()
+            }
             ManifestSpecificRuleConfig::IsNotOrphaned { .. } => {
                 let (final_layer, _) = self.layer_names();
                 let include_path = match (&self.layering_strategy, &self.methodology) {
@@ -1366,7 +1381,16 @@ description = "Resources need to have at least one of the required tags. To deci
                 format!(
                     r#"[[{section}]]
 name = "has_unique_test"
-type = "has_unique_test""#
+type = "has_unique_test"
+description = "Special case of has_required_tests that only checks for uniqueness tests""#
+                )
+            }
+            ManifestSpecificRuleConfig::HasRequiredTests { .. } => {
+                format!(
+                    r#"[[{section}]]
+name = "has_required_tests"
+type = "has_required_tests"
+required_tests = [{{"name" = "not_null"}}, {{"name" = "uniqueness", "allowed_names" = ["unique", "dbt_utils.unique_combination_of_columns"]}}]"#
                 )
             }
             ManifestSpecificRuleConfig::IsNotOrphaned { .. } => {
@@ -3082,7 +3106,7 @@ mod tests {
         );
 
         let config = InitConfig::from_questionnaire(&result);
-        assert_eq!(config.manifest_rules.len(), 18); // All 18 manifest rules
+        assert_eq!(config.manifest_rules.len(), 19); // All 19 manifest rules
     }
 
     #[test]
