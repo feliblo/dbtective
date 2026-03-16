@@ -9,8 +9,8 @@ use crate::core::config::applies_to::RuleTarget;
 use crate::core::config::check_config_options::{
     default_allowed_references, default_allowed_test_names, default_code_max_joins,
     default_code_max_lines, default_excluded_dependency_types, default_max_downstream,
-    default_max_upstream, AccessLevel, DependencyType, HasTagsCriteria, OrphanedReferenceType,
-    RequiredTest,
+    default_max_upstream, AccessLevel, ColocationMode, DependencyType, HasTagsCriteria,
+    OrphanedReferenceType, RequiredTest,
 };
 use crate::core::config::naming_convention::NamingConvention;
 use crate::core::config::rule_category::RuleCategory;
@@ -93,6 +93,12 @@ pub enum ManifestSpecificRuleConfig {
         #[serde(rename = "pattern")]
         convention: NamingConvention,
     },
+    PropertyFileColocation {
+        #[serde(default)]
+        mode: ColocationMode,
+        #[serde(default)]
+        allowed_subdirectories: Option<Vec<String>>,
+    },
     SourcesHaveFreshness {},
     SourcesHaveLoader {},
 }
@@ -135,7 +141,8 @@ impl ManifestSpecificRuleConfig {
             | Self::SourcesHaveFreshness {} => RuleCategory::Governance,
             Self::IsNotOrphaned { .. }
             | Self::MaxUpstreamDependencies { .. }
-            | Self::MaxDownstreamDependencies { .. } => RuleCategory::Structure,
+            | Self::MaxDownstreamDependencies { .. }
+            | Self::PropertyFileColocation { .. } => RuleCategory::Structure,
             Self::CodeMaxLines { .. }
             | Self::CodeForbiddenPatterns { .. }
             | Self::CodeMaxJoins { .. }
@@ -411,6 +418,17 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             function_objects: vec![],
             custom_objects: vec![],
         },
+        // property_file_colocation
+        ManifestSpecificRuleConfig::PropertyFileColocation { .. } => AppliesTo {
+            node_objects: vec![RuleTarget::Models, RuleTarget::Seeds, RuleTarget::Snapshots],
+            source_objects: vec![RuleTarget::Sources],
+            unit_test_objects: vec![],
+            macro_objects: vec![RuleTarget::Macros],
+            exposure_objects: vec![RuleTarget::Exposures],
+            semantic_model_objects: vec![],
+            function_objects: vec![],
+            custom_objects: vec![],
+        },
     }
 }
 
@@ -559,6 +577,16 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
             unit_test_objects: vec![],
             macro_objects: vec![],
             exposure_objects: vec![],
+            semantic_model_objects: vec![],
+            function_objects: vec![],
+            custom_objects: vec![],
+        },
+        ManifestSpecificRuleConfig::PropertyFileColocation { .. } => AppliesTo {
+            node_objects: vec![RuleTarget::Models, RuleTarget::Seeds, RuleTarget::Snapshots],
+            source_objects: vec![RuleTarget::Sources],
+            unit_test_objects: vec![],
+            macro_objects: vec![RuleTarget::Macros],
+            exposure_objects: vec![RuleTarget::Exposures],
             semantic_model_objects: vec![],
             function_objects: vec![],
             custom_objects: vec![],

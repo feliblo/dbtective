@@ -6,7 +6,7 @@ use crate::core::rules::rule_config::{
     code_contains_refs, code_forbidden_patterns, code_max_joins, code_max_lines,
     code_no_hardcoded_refs, has_contract_enforced, has_description, has_metadata_keys, has_refs,
     has_required_tests, has_tags, has_unique_test, max_downstream_dependencies,
-    max_upstream_dependencies,
+    max_upstream_dependencies, property_file_colocation,
 };
 
 use crate::core::config::severity::Severity;
@@ -130,6 +130,12 @@ pub fn apply_manifest_node_rules<'a>(
                         exclude_types,
                         manifest,
                     ),
+                    ManifestSpecificRuleConfig::PropertyFileColocation {
+                        mode,
+                        allowed_subdirectories,
+                    } => {
+                        property_file_colocation(node, rule, mode, allowed_subdirectories.as_ref())
+                    }
                     // These only apply to sources
                     ManifestSpecificRuleConfig::SourcesHaveLoader {}
                     | ManifestSpecificRuleConfig::SourcesHaveFreshness {} => return Ok(acc),

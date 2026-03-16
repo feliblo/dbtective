@@ -3,6 +3,17 @@ use serde::de::{self, Deserializer};
 use serde::{Deserialize, Serialize, Serializer};
 use strum_macros::{AsRefStr, EnumString};
 
+// PropertyFileColocation
+#[derive(EnumString, Debug, Clone, PartialEq, Eq, Default)]
+#[strum(serialize_all = "snake_case")]
+#[derive(serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ColocationMode {
+    #[default]
+    SameDirectory,
+    RelativeSubdirectory,
+}
+
 // HasTags
 #[derive(EnumString, Debug, Clone, PartialEq, Eq, Default)]
 #[strum(serialize_all = "snake_case")]

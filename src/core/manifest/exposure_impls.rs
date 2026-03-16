@@ -8,6 +8,7 @@ use crate::core::rules::rule_config::has_metadata_keys::HasMetadata;
 use crate::core::rules::rule_config::has_refs::CanReference;
 use crate::core::rules::rule_config::has_tags::Tagable;
 use crate::core::rules::rule_config::name_convention::NameAble;
+use crate::core::rules::rule_config::property_file_colocation::HasPatchPath;
 use dbt_artifact_parser::manifest::dbt_objects::{Meta, Tags};
 use dbt_artifact_parser::manifest::Exposure;
 
@@ -62,6 +63,15 @@ impl Tagable for Exposure {
 impl HasMetadata for Exposure {
     fn get_metadata(&self) -> Option<&Meta> {
         self.meta.as_ref()
+    }
+}
+
+impl HasPatchPath for Exposure {
+    fn original_file_path(&self) -> &str {
+        self.get_original_file_path()
+    }
+    fn patch_path(&self) -> Option<&str> {
+        self.get_patch_path()
     }
 }
 

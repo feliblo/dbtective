@@ -1,6 +1,6 @@
 use dbtective::cli::commands::InitOptions;
 use dbtective::core::config::catalog_rule::CatalogSpecificRuleConfig;
-use dbtective::core::config::check_config_options::HasTagsCriteria;
+use dbtective::core::config::check_config_options::{ColocationMode, HasTagsCriteria};
 use dbtective::core::config::manifest_rule::ManifestSpecificRuleConfig;
 use dbtective::core::config::naming_convention::NamingConvention;
 use dbtective::core::config::parse_config::Config;
@@ -49,6 +49,10 @@ fn create_default_init_config_with_format(
                 allowed_subfolders: vec![],
                 path_prefix: None,
                 path_postfix: None,
+            },
+            ManifestSpecificRuleConfig::PropertyFileColocation {
+                mode: ColocationMode::SameDirectory,
+                allowed_subdirectories: None,
             },
         ],
         catalog_rules: vec![
@@ -99,6 +103,7 @@ fn test_init_yaml_contains_required_rules() {
     assert!(content.contains("snake_case"));
     assert!(content.contains("has_metadata_keys"));
     assert!(content.contains("owner"));
+    assert!(content.contains("property_file_colocation"));
 }
 
 #[test]
@@ -128,7 +133,7 @@ fn test_init_yaml_is_valid_config() {
 
     let config = config.unwrap();
     let manifest_tests = config.manifest_tests.expect("manifest_tests should exist");
-    assert_eq!(manifest_tests.len(), 6, "Should have 6 default rules");
+    assert_eq!(manifest_tests.len(), 7, "Should have 7 default rules");
 }
 
 // ===== TOML CONFIG TESTS =====
@@ -164,7 +169,7 @@ fn test_init_toml_is_valid_config() {
 
     let config = config.unwrap();
     let manifest_tests = config.manifest_tests.expect("manifest_tests should exist");
-    assert_eq!(manifest_tests.len(), 6, "Should have 6 default rules");
+    assert_eq!(manifest_tests.len(), 7, "Should have 7 default rules");
 }
 
 // ===== PYPROJECT.TOML TESTS =====
@@ -377,6 +382,12 @@ fn get_manifest_rules(
         });
     }
 
+    // Always add property_file_colocation
+    rules.push(ManifestSpecificRuleConfig::PropertyFileColocation {
+        mode: ColocationMode::SameDirectory,
+        allowed_subdirectories: None,
+    });
+
     // Add layering-specific rules if a layering strategy is specified
     if !matches!(layering_strategy, LayeringStrategy::None) {
         rules.push(ManifestSpecificRuleConfig::AllowedSubfolders {
@@ -556,6 +567,7 @@ fn test_basic_strictness_has_correct_rules() {
 
     assert!(content.contains("has_description"));
     assert!(content.contains("name_convention"));
+    assert!(content.contains("property_file_colocation"));
 }
 
 #[test]
