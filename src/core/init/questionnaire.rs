@@ -1,5 +1,5 @@
 use crate::core::config::catalog_rule::CatalogSpecificRuleConfig;
-use crate::core::config::check_config_options::HasTagsCriteria;
+use crate::core::config::check_config_options::{ColocationMode, HasTagsCriteria};
 use crate::core::config::manifest_rule::ManifestSpecificRuleConfig;
 use crate::core::config::naming_convention::NamingConvention;
 use inquire::{MultiSelect, Select};
@@ -136,6 +136,9 @@ impl Init for ManifestSpecificRuleConfig {
             }
             Self::SourcesHaveFreshness { .. } => {
                 "sources_have_freshness - Require freshness for sources"
+            }
+            Self::PropertyFileColocation { .. } => {
+                "property_file_colocation - Ensure property files are colocated with their SQL files"
             }
         }
     }
@@ -363,6 +366,12 @@ pub fn run_questionnaire() -> Result<QuestionnaireResult, String> {
     // Always add the is_not_orphaned rule
     manifest_rules.push(ManifestSpecificRuleConfig::IsNotOrphaned {
         allowed_references: vec![],
+    });
+
+    // Always add property_file_colocation rule
+    manifest_rules.push(ManifestSpecificRuleConfig::PropertyFileColocation {
+        mode: ColocationMode::SameDirectory,
+        allowed_subdirectories: None,
     });
 
     // Add layering-specific rules if a layering strategy was selected
@@ -622,7 +631,7 @@ mod tests {
 
     #[test]
     fn test_manifest_rule_iter_count() {
-        assert_eq!(ManifestSpecificRuleConfig::iter().count(), 19);
+        assert_eq!(ManifestSpecificRuleConfig::iter().count(), 20);
     }
 
     #[test]

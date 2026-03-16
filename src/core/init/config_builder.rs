@@ -4,7 +4,7 @@ use super::questionnaire::{
     ConfigFormat, DataModelMethodology, LayeringStrategy, QuestionnaireResult,
 };
 use crate::core::config::catalog_rule::CatalogSpecificRuleConfig;
-use crate::core::config::check_config_options::HasTagsCriteria;
+use crate::core::config::check_config_options::{ColocationMode, HasTagsCriteria};
 use crate::core::config::manifest_rule::ManifestSpecificRuleConfig;
 use crate::core::config::naming_convention::NamingConvention;
 use crate::core::config::rule_category::RuleCategory;
@@ -210,6 +210,12 @@ impl InitConfig {
             }
             ManifestSpecificRuleConfig::SourcesHaveLoader { .. } => {
                 ManifestSpecificRuleConfig::SourcesHaveLoader {}
+            }
+            ManifestSpecificRuleConfig::PropertyFileColocation { .. } => {
+                ManifestSpecificRuleConfig::PropertyFileColocation {
+                    mode: ColocationMode::SameDirectory,
+                    allowed_subdirectories: None,
+                }
             }
         }
     }
@@ -1124,6 +1130,11 @@ description = "Information mart fact models must start with {fact_display}""#
     type: "sources_have_loader"
 "#
             .to_string(),
+            ManifestSpecificRuleConfig::PropertyFileColocation { .. } => {
+                r#"  - name: "property_file_colocation"
+    type: "property_file_colocation""#
+                    .to_string()
+            }
         }
     }
 
@@ -1496,6 +1507,13 @@ type = "sources_have_freshness"
 name = "sources_have_loader"
 type = "sources_have_loader"
 "#
+                )
+            }
+            ManifestSpecificRuleConfig::PropertyFileColocation { .. } => {
+                format!(
+                    r#"[[{section}]]
+name = "property_file_colocation"
+type = "property_file_colocation""#
                 )
             }
         }
@@ -3106,7 +3124,7 @@ mod tests {
         );
 
         let config = InitConfig::from_questionnaire(&result);
-        assert_eq!(config.manifest_rules.len(), 19); // All 19 manifest rules
+        assert_eq!(config.manifest_rules.len(), 20); // All 20 manifest rules
     }
 
     #[test]

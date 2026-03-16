@@ -16,6 +16,7 @@ pub mod has_required_tests;
 pub mod has_tags;
 pub mod has_unique_test;
 pub mod name_convention;
+pub mod property_file_colocation;
 pub mod utils;
 
 pub use allowed_subfolders::check_allowed_subfolders;
@@ -36,3 +37,4 @@ pub use has_required_tests::has_required_tests;
 pub use has_tags::has_tags;
 pub use has_unique_test::has_unique_test;
 pub use name_convention::check_name_convention;
+pub use property_file_colocation::property_file_colocation;

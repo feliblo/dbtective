@@ -154,6 +154,12 @@ You can override the default category for any rule by setting `category: "your_c
       <td>Limit <b>fan-out</b>. How many other models can ref() a single model.</td>
       <td style="font-size: 12px; color: #666;">downstream, fan-out, bottleneck, blast radius, lineage</td>
     </tr>
+    <tr class="rule-item" data-keywords="property yaml yml colocation colocate same directory subdirectory schema file structure organization" data-category="structure">
+      <td><a href="property_file_colocation" class="rule-name">property_file_colocation</a></td>
+      <td><span class="rule-category-badge badge-structure">Structure</span></td>
+      <td>Ensure property (YAML) files are colocated with their primary file (SQL, CSV).</td>
+      <td style="font-size: 12px; color: #666;">property, yaml, colocation, directory, structure</td>
+    </tr>
   </tbody>
 </table>
 

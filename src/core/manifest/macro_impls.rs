@@ -8,6 +8,7 @@ use crate::core::rules::rule_config::has_description::Descriptable;
 use crate::core::rules::rule_config::has_metadata_keys::HasMetadata;
 use crate::core::rules::rule_config::has_tags::Tagable;
 use crate::core::rules::rule_config::name_convention::NameAble;
+use crate::core::rules::rule_config::property_file_colocation::HasPatchPath;
 use dbt_artifact_parser::manifest::dbt_objects::{Meta, Tags};
 use dbt_artifact_parser::manifest::Macro;
 
@@ -57,6 +58,15 @@ impl Descriptable for Macro {
 impl NameAble for Macro {
     fn name(&self) -> &str {
         self.get_name()
+    }
+}
+
+impl HasPatchPath for Macro {
+    fn original_file_path(&self) -> &str {
+        self.get_original_file_path()
+    }
+    fn patch_path(&self) -> Option<&str> {
+        self.get_patch_path()
     }
 }
 

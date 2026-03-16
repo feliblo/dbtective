@@ -4,6 +4,7 @@ use crate::core::rules::rule_config::{
     code_max_joins, code_max_lines, code_no_hardcoded_refs, has_description, has_freshness,
     has_loader, has_metadata_keys, has_refs, has_required_tests, has_tags, has_unique_test,
     is_not_orphaned, max_downstream_dependencies, max_upstream_dependencies,
+    property_file_colocation,
 };
 use crate::{
     cli::table::RuleResult,
@@ -46,6 +47,7 @@ pub fn apply_manifest_object_rules<'a>(
 ///
 /// # Errors
 /// Returns an error if a rule has invalid configuration (e.g., invalid regex pattern).
+#[allow(clippy::too_many_lines)]
 fn apply_source_rules<'a>(
     manifest: &'a Manifest,
     config: &'a Config,
@@ -135,6 +137,16 @@ fn apply_source_rules<'a>(
                         *max_downstream,
                         exclude_types,
                         manifest,
+                    ),
+
+                    ManifestSpecificRuleConfig::PropertyFileColocation {
+                        mode,
+                        allowed_subdirectories,
+                    } => property_file_colocation(
+                        source,
+                        rule,
+                        mode,
+                        allowed_subdirectories.as_ref(),
                     ),
 
                     // These can't be implemented for sources
@@ -241,6 +253,15 @@ fn apply_macro_rules<'a>(
                             path_prefix.as_ref(),
                             path_postfix.as_ref(),
                         ),
+                        ManifestSpecificRuleConfig::PropertyFileColocation {
+                            mode,
+                            allowed_subdirectories,
+                        } => property_file_colocation(
+                            macro_obj,
+                            rule,
+                            mode,
+                            allowed_subdirectories.as_ref(),
+                        ),
                         // These can't be implemented for macros
                         ManifestSpecificRuleConfig::HasTags { .. }
                         | ManifestSpecificRuleConfig::IsNotOrphaned { .. }
@@ -331,6 +352,15 @@ fn apply_exposure_rules<'a>(
                             allowed_subfolders,
                             path_prefix.as_ref(),
                             path_postfix.as_ref(),
+                        ),
+                        ManifestSpecificRuleConfig::PropertyFileColocation {
+                            mode,
+                            allowed_subdirectories,
+                        } => property_file_colocation(
+                            exposure,
+                            rule,
+                            mode,
+                            allowed_subdirectories.as_ref(),
                         ),
                         // These can't be implemented for exposures
                         ManifestSpecificRuleConfig::IsNotOrphaned { .. }
@@ -425,7 +455,8 @@ fn apply_semantic_model_rules<'a>(
                     | ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. }
                     | ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. }
                     | ManifestSpecificRuleConfig::SourcesHaveLoader {}
-                    | ManifestSpecificRuleConfig::SourcesHaveFreshness {} => return Ok(acc),
+                    | ManifestSpecificRuleConfig::SourcesHaveFreshness {}
+                    | ManifestSpecificRuleConfig::PropertyFileColocation { .. } => return Ok(acc),
                 };
 
                 if let Some(mut rule_row) = rule_row_result {
@@ -502,7 +533,8 @@ fn apply_unit_test_rules<'a>(
                     | ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. }
                     | ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. }
                     | ManifestSpecificRuleConfig::SourcesHaveLoader {}
-                    | ManifestSpecificRuleConfig::SourcesHaveFreshness {} => return Ok(acc),
+                    | ManifestSpecificRuleConfig::SourcesHaveFreshness {}
+                    | ManifestSpecificRuleConfig::PropertyFileColocation { .. } => return Ok(acc),
                 };
 
                 if let Some(mut rule_row) = rule_row_result {
@@ -595,7 +627,8 @@ fn apply_function_rules<'a>(
                     | ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. }
                     | ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. }
                     | ManifestSpecificRuleConfig::SourcesHaveLoader {}
-                    | ManifestSpecificRuleConfig::SourcesHaveFreshness {} => return Ok(acc),
+                    | ManifestSpecificRuleConfig::SourcesHaveFreshness {}
+                    | ManifestSpecificRuleConfig::PropertyFileColocation { .. } => return Ok(acc),
                 };
 
                 if let Some(mut rule_row) = rule_row_result {

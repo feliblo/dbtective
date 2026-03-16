@@ -15,6 +15,7 @@ use crate::core::rules::rule_config::has_refs::CanReference;
 use crate::core::rules::rule_config::has_tags::Tagable;
 use crate::core::rules::rule_config::has_unique_test::TestAble;
 use crate::core::rules::rule_config::name_convention::NameAble;
+use crate::core::rules::rule_config::property_file_colocation::HasPatchPath;
 use dbt_artifact_parser::manifest::dbt_objects::{Meta, Tags};
 use dbt_artifact_parser::manifest::{Manifest, Node};
 
@@ -172,6 +173,15 @@ impl ContractAble for Node {
 impl HasMetadata for Node {
     fn get_metadata(&self) -> Option<&Meta> {
         self.get_base().meta.as_ref()
+    }
+}
+
+impl HasPatchPath for Node {
+    fn original_file_path(&self) -> &str {
+        self.get_original_file_path()
+    }
+    fn patch_path(&self) -> Option<&str> {
+        self.get_patch_path()
     }
 }
 

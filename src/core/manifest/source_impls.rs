@@ -12,6 +12,7 @@ use crate::core::rules::rule_config::has_metadata_keys::HasMetadata;
 use crate::core::rules::rule_config::has_tags::Tagable;
 use crate::core::rules::rule_config::has_unique_test::TestAble;
 use crate::core::rules::rule_config::name_convention::NameAble;
+use crate::core::rules::rule_config::property_file_colocation::HasPatchPath;
 use dbt_artifact_parser::manifest::dbt_objects::{Meta, Tags};
 use dbt_artifact_parser::manifest::{Manifest, Source, SourceFreshness};
 
@@ -117,6 +118,15 @@ impl ParentMappable for Source {
 impl TestAble for Source {
     fn get_unique_id(&self) -> &String {
         self.get_unique_id()
+    }
+}
+
+impl HasPatchPath for Source {
+    fn original_file_path(&self) -> &str {
+        self.get_original_file_path()
+    }
+    fn patch_path(&self) -> Option<&str> {
+        self.get_patch_path()
     }
 }
 
