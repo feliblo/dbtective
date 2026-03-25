@@ -1,3 +1,14 @@
+## v0.3.1 (2026-03-25)
+
+### Feat
+
+- **rules**: add property_file_colocation rule - ([ae7c4f6](https://github.com/feliblo/dbtective/commit/ae7c4f64eb8caf0a761cb25406e8ffb0f792430a)) - feliblo
+- **rules**: add has_required_tests - ([45b5886](https://github.com/feliblo/dbtective/commit/45b588645b4a06ed91f72c9d92e447dcfcb53dab)) - feliblo
+
+### Contributors
+
+[@feliblo](https://github.com/feliblo)
+
 ## v0.3.0 (2026-03-01)
 
 ### Feat

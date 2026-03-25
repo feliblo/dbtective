@@ -16,7 +16,7 @@ We recommend running with `--auto-parse`, `--only-manifest`, and `--hide-warning
 # .pre-commit-config.yaml
 repos:
   - repo: https://github.com/feliblo/dbtective
-    rev: v0.3.0
+    rev: v0.3.1
     hooks:
       - id: dbtective-run
         entry: dbtective run
