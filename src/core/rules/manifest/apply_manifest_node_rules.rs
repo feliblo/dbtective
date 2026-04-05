@@ -6,7 +6,7 @@ use crate::core::rules::rule_config::{
     code_contains_refs, code_forbidden_patterns, code_max_joins, code_max_lines,
     code_no_hardcoded_refs, has_contract_enforced, has_description, has_metadata_keys, has_refs,
     has_required_tests, has_tags, has_unique_test, max_downstream_dependencies,
-    max_upstream_dependencies, property_file_colocation,
+    max_materialization_lineage, max_upstream_dependencies, property_file_colocation,
 };
 
 use crate::core::config::severity::Severity;
@@ -136,9 +136,22 @@ pub fn apply_manifest_node_rules<'a>(
                     } => {
                         property_file_colocation(node, rule, mode, allowed_subdirectories.as_ref())
                     }
-                    // These only apply to sources
+                    ManifestSpecificRuleConfig::MaxMaterializationLineage {
+                        max,
+                        ref included_materializations,
+                    } => max_materialization_lineage(
+                        node,
+                        rule,
+                        *max,
+                        included_materializations,
+                        manifest,
+                    ),
+                    // These only apply to sources or exposures
                     ManifestSpecificRuleConfig::SourcesHaveLoader {}
-                    | ManifestSpecificRuleConfig::SourcesHaveFreshness {} => return Ok(acc),
+                    | ManifestSpecificRuleConfig::SourcesHaveFreshness {}
+                    | ManifestSpecificRuleConfig::ExposureParentsMaterialized { .. } => {
+                        return Ok(acc)
+                    }
                 };
 
                 if let Some(mut rule_row) = rule_row_result {

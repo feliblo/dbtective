@@ -118,9 +118,21 @@ severity = "error"
 {{< /tabs >}}
 
 <details closed>
-<summary>Example parent_map</summary>
+<summary>Example</summary>
 
 The rule inspects the `parent_map` from `manifest.json`. For example:
+
+```mermaid
+graph LR
+  stg_orders --> orders
+  stg_payments --> orders
+  stg_customers --> orders
+  stg_products --> orders
+  stg_shipping --> orders
+  dim_dates --> orders
+```
+
+ 
 
 ```json
 "parent_map": {
@@ -250,9 +262,17 @@ applies_to = ["sources"]
 {{< /tabs >}}
 
 <details closed>
-<summary>Example child_map</summary>
+<summary>Example</summary>
 
 The rule inspects the `child_map` from `manifest.json`. For example:
+
+```mermaid
+graph LR
+  stg_customers --> orders
+  stg_customers --> customers
+  stg_customers --> marketing_report
+  stg_customers -. "test (excluded)" .-> not_null_stg_customers_id["not_null_stg_customers_id (test)"]
+```
 
 ```json
 "child_map": {

@@ -3,6 +3,8 @@ use serde::de::{self, Deserializer};
 use serde::{Deserialize, Serialize, Serializer};
 use strum_macros::{AsRefStr, EnumString};
 
+use super::Materialization;
+
 // PropertyFileColocation
 #[derive(EnumString, Debug, Clone, PartialEq, Eq, Default)]
 #[strum(serialize_all = "snake_case")]
@@ -154,6 +156,24 @@ pub const fn default_max_upstream() -> usize {
 
 pub const fn default_max_downstream() -> usize {
     5
+}
+
+// MaxMaterializationLineage
+pub fn default_included_materializations() -> Vec<Materialization> {
+    vec![Materialization::View, Materialization::Ephemeral]
+}
+
+pub const fn default_max_materialization_lineage() -> usize {
+    4
+}
+
+// ExposureParentsMaterialized
+pub fn default_allowed_materializations() -> Vec<Materialization> {
+    vec![
+        Materialization::Table,
+        Materialization::Incremental,
+        Materialization::MaterializedView,
+    ]
 }
 
 /// `ColumnNamePattern` for `columns_canonical_name` rule
