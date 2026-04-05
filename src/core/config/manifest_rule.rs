@@ -7,8 +7,9 @@ use serde::{Deserialize, Serialize};
 use crate::core::config::applies_to::AppliesTo;
 use crate::core::config::applies_to::RuleTarget;
 use crate::core::config::check_config_options::{
-    default_allowed_references, default_allowed_test_names, default_code_max_joins,
-    default_code_max_lines, default_excluded_dependency_types, default_max_downstream,
+    default_allowed_materializations, default_allowed_references, default_allowed_test_names,
+    default_code_max_joins, default_code_max_lines, default_excluded_dependency_types,
+    default_included_materializations, default_max_downstream, default_max_materialization_lineage,
     default_max_upstream, AccessLevel, ColocationMode, DependencyType, HasTagsCriteria,
     OrphanedReferenceType, RequiredTest,
 };
@@ -45,6 +46,10 @@ pub enum ManifestSpecificRuleConfig {
         max_lines: usize,
     },
     CodeNoHardcodedRefs {},
+    ExposureParentsMaterialized {
+        #[serde(default = "default_allowed_materializations")]
+        allowed_materializations: Vec<Materialization>,
+    },
     HasContractEnforced {
         #[serde(default)]
         access_level: Option<AccessLevel>,
@@ -82,6 +87,12 @@ pub enum ManifestSpecificRuleConfig {
         max_downstream: usize,
         #[serde(default = "default_excluded_dependency_types")]
         exclude_types: Vec<DependencyType>,
+    },
+    MaxMaterializationLineage {
+        #[serde(default = "default_max_materialization_lineage")]
+        max: usize,
+        #[serde(default = "default_included_materializations")]
+        included_materializations: Vec<Materialization>,
     },
     MaxUpstreamDependencies {
         #[serde(default = "default_max_upstream")]
@@ -142,6 +153,8 @@ impl ManifestSpecificRuleConfig {
             Self::IsNotOrphaned { .. }
             | Self::MaxUpstreamDependencies { .. }
             | Self::MaxDownstreamDependencies { .. }
+            | Self::MaxMaterializationLineage { .. }
+            | Self::ExposureParentsMaterialized { .. }
             | Self::PropertyFileColocation { .. } => RuleCategory::Structure,
             Self::CodeMaxLines { .. }
             | Self::CodeForbiddenPatterns { .. }
@@ -407,13 +420,25 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             function_objects: vec![],
             custom_objects: vec![],
         },
-        // allowed_subfolders
-        ManifestSpecificRuleConfig::AllowedSubfolders { .. } => AppliesTo {
+        // allowed_subfolders & max_materialization_lineage
+        ManifestSpecificRuleConfig::AllowedSubfolders { .. }
+        | ManifestSpecificRuleConfig::MaxMaterializationLineage { .. } => AppliesTo {
             node_objects: vec![RuleTarget::Models],
             source_objects: vec![],
             unit_test_objects: vec![],
             macro_objects: vec![],
             exposure_objects: vec![],
+            semantic_model_objects: vec![],
+            function_objects: vec![],
+            custom_objects: vec![],
+        },
+        // exposure_parents_materialized
+        ManifestSpecificRuleConfig::ExposureParentsMaterialized { .. } => AppliesTo {
+            node_objects: vec![],
+            source_objects: vec![],
+            unit_test_objects: vec![],
+            macro_objects: vec![],
+            exposure_objects: vec![RuleTarget::Exposures],
             semantic_model_objects: vec![],
             function_objects: vec![],
             custom_objects: vec![],
@@ -577,6 +602,26 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
             unit_test_objects: vec![],
             macro_objects: vec![],
             exposure_objects: vec![],
+            semantic_model_objects: vec![],
+            function_objects: vec![],
+            custom_objects: vec![],
+        },
+        ManifestSpecificRuleConfig::MaxMaterializationLineage { .. } => AppliesTo {
+            node_objects: vec![RuleTarget::Models],
+            source_objects: vec![],
+            unit_test_objects: vec![],
+            macro_objects: vec![],
+            exposure_objects: vec![],
+            semantic_model_objects: vec![],
+            function_objects: vec![],
+            custom_objects: vec![],
+        },
+        ManifestSpecificRuleConfig::ExposureParentsMaterialized { .. } => AppliesTo {
+            node_objects: vec![],
+            source_objects: vec![],
+            unit_test_objects: vec![],
+            macro_objects: vec![],
+            exposure_objects: vec![RuleTarget::Exposures],
             semantic_model_objects: vec![],
             function_objects: vec![],
             custom_objects: vec![],

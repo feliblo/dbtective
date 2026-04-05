@@ -140,6 +140,12 @@ impl Init for ManifestSpecificRuleConfig {
             Self::PropertyFileColocation { .. } => {
                 "property_file_colocation - Ensure property files are colocated with their SQL files"
             }
+            Self::MaxMaterializationLineage { .. } => {
+                "max_materialization_lineage - Limit consecutive non-persisted materializations in lineage"
+            }
+            Self::ExposureParentsMaterialized { .. } => {
+                "exposure_parents_materialized - Require exposure parents to use persisted materializations"
+            }
         }
     }
 }
@@ -631,7 +637,7 @@ mod tests {
 
     #[test]
     fn test_manifest_rule_iter_count() {
-        assert_eq!(ManifestSpecificRuleConfig::iter().count(), 20);
+        assert_eq!(ManifestSpecificRuleConfig::iter().count(), 22);
     }
 
     #[test]

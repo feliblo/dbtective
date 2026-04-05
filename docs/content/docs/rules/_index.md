@@ -160,6 +160,18 @@ You can override the default category for any rule by setting `category: "your_c
       <td>Ensure property (YAML) files are colocated with their primary file (SQL, CSV).</td>
       <td style="font-size: 12px; color: #666;">property, yaml, colocation, directory, structure</td>
     </tr>
+    <tr class="rule-item" data-keywords="materialization lineage chain view ephemeral non-persisted consecutive dag depth performance" data-category="structure">
+      <td><a href="materialization_lineage#rule-max_materialization_lineage" class="rule-name">max_materialization_lineage</a></td>
+      <td><span class="rule-category-badge badge-structure">Structure</span></td>
+      <td>Limit consecutive non-persisted materializations (view/ephemeral) in model lineage.</td>
+      <td style="font-size: 12px; color: #666;">materialization, lineage, chain, view, ephemeral</td>
+    </tr>
+    <tr class="rule-item" data-keywords="exposure parents materialized persisted table incremental dashboard ml application performance" data-category="structure">
+      <td><a href="materialization_lineage#rule-exposure_parents_materialized" class="rule-name">exposure_parents_materialized</a></td>
+      <td><span class="rule-category-badge badge-structure">Structure</span></td>
+      <td>Require exposure parents to use persisted materializations (table, incremental, materialized_view).</td>
+      <td style="font-size: 12px; color: #666;">exposure, parents, materialized, persisted, table</td>
+    </tr>
   </tbody>
 </table>
 

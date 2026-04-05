@@ -1,10 +1,10 @@
 use crate::core::config::applies_to::RuleTargetable;
 use crate::core::rules::rule_config::{
     check_allowed_subfolders, check_name_convention, code_contains_refs, code_forbidden_patterns,
-    code_max_joins, code_max_lines, code_no_hardcoded_refs, has_description, has_freshness,
-    has_loader, has_metadata_keys, has_refs, has_required_tests, has_tags, has_unique_test,
-    is_not_orphaned, max_downstream_dependencies, max_upstream_dependencies,
-    property_file_colocation,
+    code_max_joins, code_max_lines, code_no_hardcoded_refs, exposure_parents_materialized,
+    has_description, has_freshness, has_loader, has_metadata_keys, has_refs, has_required_tests,
+    has_tags, has_unique_test, is_not_orphaned, max_downstream_dependencies,
+    max_upstream_dependencies, property_file_colocation,
 };
 use crate::{
     cli::table::RuleResult,
@@ -156,7 +156,11 @@ fn apply_source_rules<'a>(
                     | ManifestSpecificRuleConfig::HasContractEnforced { .. }
                     | ManifestSpecificRuleConfig::CodeContainsRefs {}
                     | ManifestSpecificRuleConfig::CodeMaxJoins { .. }
-                    | ManifestSpecificRuleConfig::CodeNoHardcodedRefs {} => return Ok(acc),
+                    | ManifestSpecificRuleConfig::CodeNoHardcodedRefs {}
+                    | ManifestSpecificRuleConfig::MaxMaterializationLineage { .. }
+                    | ManifestSpecificRuleConfig::ExposureParentsMaterialized { .. } => {
+                        return Ok(acc)
+                    }
                 };
 
                 if let Some(mut rule_row) = rule_row_result {
@@ -176,6 +180,7 @@ fn apply_source_rules<'a>(
 /// Applies unit test rules to the manifest.
 /// # Errors
 /// Returns an error if a rule has invalid configuration (e.g., invalid regex pattern).
+#[allow(clippy::too_many_lines)]
 fn apply_macro_rules<'a>(
     manifest: &'a Manifest,
     config: &'a Config,
@@ -271,6 +276,8 @@ fn apply_macro_rules<'a>(
                         | ManifestSpecificRuleConfig::HasContractEnforced { .. }
                         | ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. }
                         | ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. }
+                        | ManifestSpecificRuleConfig::MaxMaterializationLineage { .. }
+                        | ManifestSpecificRuleConfig::ExposureParentsMaterialized { .. }
                         | ManifestSpecificRuleConfig::SourcesHaveLoader {}
                         | ManifestSpecificRuleConfig::SourcesHaveFreshness {} => return Ok(acc),
                     };
@@ -292,6 +299,7 @@ fn apply_macro_rules<'a>(
 /// Applies exposure rules to the manifest.
 /// # Errors
 /// Returns an error if a rule has invalid configuration (e.g., invalid regex pattern).
+#[allow(clippy::too_many_lines)]
 fn apply_exposure_rules<'a>(
     manifest: &'a Manifest,
     config: &'a Config,
@@ -362,6 +370,20 @@ fn apply_exposure_rules<'a>(
                             mode,
                             allowed_subdirectories.as_ref(),
                         ),
+                        ManifestSpecificRuleConfig::ExposureParentsMaterialized {
+                            ref allowed_materializations,
+                        } => {
+                            for mut rule_row in exposure_parents_materialized(
+                                exposure,
+                                rule,
+                                allowed_materializations,
+                                manifest,
+                            ) {
+                                rule_row.category = rule.get_category().to_string();
+                                acc.push((rule_row, &rule.severity));
+                            }
+                            None
+                        }
                         // These can't be implemented for exposures
                         ManifestSpecificRuleConfig::IsNotOrphaned { .. }
                         | ManifestSpecificRuleConfig::CodeMaxLines { .. }
@@ -374,6 +396,7 @@ fn apply_exposure_rules<'a>(
                         | ManifestSpecificRuleConfig::CodeNoHardcodedRefs {}
                         | ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. }
                         | ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. }
+                        | ManifestSpecificRuleConfig::MaxMaterializationLineage { .. }
                         | ManifestSpecificRuleConfig::SourcesHaveLoader {}
                         | ManifestSpecificRuleConfig::SourcesHaveFreshness {} => return Ok(acc),
                     };
@@ -454,6 +477,8 @@ fn apply_semantic_model_rules<'a>(
                     | ManifestSpecificRuleConfig::CodeNoHardcodedRefs {}
                     | ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. }
                     | ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. }
+                    | ManifestSpecificRuleConfig::MaxMaterializationLineage { .. }
+                    | ManifestSpecificRuleConfig::ExposureParentsMaterialized { .. }
                     | ManifestSpecificRuleConfig::SourcesHaveLoader {}
                     | ManifestSpecificRuleConfig::SourcesHaveFreshness {}
                     | ManifestSpecificRuleConfig::PropertyFileColocation { .. } => return Ok(acc),
@@ -532,6 +557,8 @@ fn apply_unit_test_rules<'a>(
                     | ManifestSpecificRuleConfig::CodeNoHardcodedRefs {}
                     | ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. }
                     | ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. }
+                    | ManifestSpecificRuleConfig::MaxMaterializationLineage { .. }
+                    | ManifestSpecificRuleConfig::ExposureParentsMaterialized { .. }
                     | ManifestSpecificRuleConfig::SourcesHaveLoader {}
                     | ManifestSpecificRuleConfig::SourcesHaveFreshness {}
                     | ManifestSpecificRuleConfig::PropertyFileColocation { .. } => return Ok(acc),
@@ -626,6 +653,8 @@ fn apply_function_rules<'a>(
                     | ManifestSpecificRuleConfig::HasContractEnforced { .. }
                     | ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. }
                     | ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. }
+                    | ManifestSpecificRuleConfig::MaxMaterializationLineage { .. }
+                    | ManifestSpecificRuleConfig::ExposureParentsMaterialized { .. }
                     | ManifestSpecificRuleConfig::SourcesHaveLoader {}
                     | ManifestSpecificRuleConfig::SourcesHaveFreshness {}
                     | ManifestSpecificRuleConfig::PropertyFileColocation { .. } => return Ok(acc),

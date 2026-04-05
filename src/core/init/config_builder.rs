@@ -217,6 +217,17 @@ impl InitConfig {
                     allowed_subdirectories: None,
                 }
             }
+            ManifestSpecificRuleConfig::MaxMaterializationLineage { .. } => {
+                ManifestSpecificRuleConfig::MaxMaterializationLineage {
+                    max: 4,
+                    included_materializations: vec![],
+                }
+            }
+            ManifestSpecificRuleConfig::ExposureParentsMaterialized { .. } => {
+                ManifestSpecificRuleConfig::ExposureParentsMaterialized {
+                    allowed_materializations: vec![],
+                }
+            }
         }
     }
 
@@ -1135,6 +1146,18 @@ description = "Information mart fact models must start with {fact_display}""#
     type: "property_file_colocation""#
                     .to_string()
             }
+            ManifestSpecificRuleConfig::MaxMaterializationLineage { max, .. } => {
+                format!(
+                    r#"  - name: "max_materialization_lineage"
+    type: "max_materialization_lineage"
+    max: {max}"#
+                )
+            }
+            ManifestSpecificRuleConfig::ExposureParentsMaterialized { .. } => {
+                r#"  - name: "exposure_parents_materialized"
+    type: "exposure_parents_materialized""#
+                    .to_string()
+            }
         }
     }
 
@@ -1514,6 +1537,21 @@ type = "sources_have_loader"
                     r#"[[{section}]]
 name = "property_file_colocation"
 type = "property_file_colocation""#
+                )
+            }
+            ManifestSpecificRuleConfig::MaxMaterializationLineage { max, .. } => {
+                format!(
+                    r#"[[{section}]]
+name = "max_materialization_lineage"
+type = "max_materialization_lineage"
+max = {max}"#
+                )
+            }
+            ManifestSpecificRuleConfig::ExposureParentsMaterialized { .. } => {
+                format!(
+                    r#"[[{section}]]
+name = "exposure_parents_materialized"
+type = "exposure_parents_materialized""#
                 )
             }
         }
@@ -3124,7 +3162,7 @@ mod tests {
         );
 
         let config = InitConfig::from_questionnaire(&result);
-        assert_eq!(config.manifest_rules.len(), 20); // All 20 manifest rules
+        assert_eq!(config.manifest_rules.len(), 22); // All 22 manifest rules
     }
 
     #[test]
