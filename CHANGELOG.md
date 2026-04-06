@@ -1,3 +1,13 @@
+## v0.3.2 (2026-04-06)
+
+### Feat
+
+- **rules**: add 2 dag position materialization rules - ([b8014ca](https://github.com/feliblo/dbtective/commit/b8014ca32cd56e4ba1db2edb4d43a86c9cddbc11)) - feliblo
+
+### Contributors
+
+[@feliblo](https://github.com/feliblo)
+
 ## v0.3.1 (2026-03-25)
 
 ### Feat
