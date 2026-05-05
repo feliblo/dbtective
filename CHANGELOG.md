@@ -1,3 +1,13 @@
+## v0.3.3 (2026-05-05)
+
+### Feat
+
+- **rules**: add node_dependency rule - ([8d32dc9](https://github.com/feliblo/dbtective/commit/8d32dc9f38e45bdf881e95f05c620fc2508e260a)) - feliblo
+
+### Contributors
+
+[@feliblo](https://github.com/feliblo)
+
 ## v0.3.2 (2026-04-06)
 
 ### Feat
