@@ -160,6 +160,12 @@ You can override the default category for any rule by setting `category: "your_c
       <td>Ensure property (YAML) files are colocated with their primary file (SQL, CSV).</td>
       <td style="font-size: 12px; color: #666;">property, yaml, colocation, directory, structure</td>
     </tr>
+    <tr class="rule-item" data-keywords="dag dependency layering staging intermediate mart source forbidden pattern regex anti-pattern" data-category="structure">
+      <td><a href="node_dependency" class="rule-name">node_dependency</a></td>
+      <td><span class="rule-category-badge badge-structure">Structure</span></td>
+      <td>Forbid dependency relationships between nodes matching configurable name, path, or type patterns.</td>
+      <td style="font-size: 12px; color: #666;">dag, dependency, layering, staging, intermediate, mart, forbidden, pattern</td>
+    </tr>
     <tr class="rule-item" data-keywords="materialization lineage chain view ephemeral non-persisted consecutive dag depth performance" data-category="structure">
       <td><a href="materialization_lineage#rule-max_materialization_lineage" class="rule-name">max_materialization_lineage</a></td>
       <td><span class="rule-category-badge badge-structure">Structure</span></td>

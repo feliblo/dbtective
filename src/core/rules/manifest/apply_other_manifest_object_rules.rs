@@ -158,6 +158,7 @@ fn apply_source_rules<'a>(
                     | ManifestSpecificRuleConfig::CodeMaxJoins { .. }
                     | ManifestSpecificRuleConfig::CodeNoHardcodedRefs {}
                     | ManifestSpecificRuleConfig::MaxMaterializationLineage { .. }
+                    | ManifestSpecificRuleConfig::NodeDependency { .. }
                     | ManifestSpecificRuleConfig::ExposureParentsMaterialized { .. } => {
                         return Ok(acc)
                     }
@@ -277,6 +278,7 @@ fn apply_macro_rules<'a>(
                         | ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. }
                         | ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. }
                         | ManifestSpecificRuleConfig::MaxMaterializationLineage { .. }
+                        | ManifestSpecificRuleConfig::NodeDependency { .. }
                         | ManifestSpecificRuleConfig::ExposureParentsMaterialized { .. }
                         | ManifestSpecificRuleConfig::SourcesHaveLoader {}
                         | ManifestSpecificRuleConfig::SourcesHaveFreshness {} => return Ok(acc),
@@ -397,6 +399,7 @@ fn apply_exposure_rules<'a>(
                         | ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. }
                         | ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. }
                         | ManifestSpecificRuleConfig::MaxMaterializationLineage { .. }
+                        | ManifestSpecificRuleConfig::NodeDependency { .. }
                         | ManifestSpecificRuleConfig::SourcesHaveLoader {}
                         | ManifestSpecificRuleConfig::SourcesHaveFreshness {} => return Ok(acc),
                     };
@@ -478,6 +481,7 @@ fn apply_semantic_model_rules<'a>(
                     | ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. }
                     | ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. }
                     | ManifestSpecificRuleConfig::MaxMaterializationLineage { .. }
+                    | ManifestSpecificRuleConfig::NodeDependency { .. }
                     | ManifestSpecificRuleConfig::ExposureParentsMaterialized { .. }
                     | ManifestSpecificRuleConfig::SourcesHaveLoader {}
                     | ManifestSpecificRuleConfig::SourcesHaveFreshness {}
@@ -558,6 +562,7 @@ fn apply_unit_test_rules<'a>(
                     | ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. }
                     | ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. }
                     | ManifestSpecificRuleConfig::MaxMaterializationLineage { .. }
+                    | ManifestSpecificRuleConfig::NodeDependency { .. }
                     | ManifestSpecificRuleConfig::ExposureParentsMaterialized { .. }
                     | ManifestSpecificRuleConfig::SourcesHaveLoader {}
                     | ManifestSpecificRuleConfig::SourcesHaveFreshness {}
@@ -654,6 +659,7 @@ fn apply_function_rules<'a>(
                     | ManifestSpecificRuleConfig::MaxUpstreamDependencies { .. }
                     | ManifestSpecificRuleConfig::MaxDownstreamDependencies { .. }
                     | ManifestSpecificRuleConfig::MaxMaterializationLineage { .. }
+                    | ManifestSpecificRuleConfig::NodeDependency { .. }
                     | ManifestSpecificRuleConfig::ExposureParentsMaterialized { .. }
                     | ManifestSpecificRuleConfig::SourcesHaveLoader {}
                     | ManifestSpecificRuleConfig::SourcesHaveFreshness {}

@@ -6,7 +6,8 @@ use crate::core::rules::rule_config::{
     code_contains_refs, code_forbidden_patterns, code_max_joins, code_max_lines,
     code_no_hardcoded_refs, has_contract_enforced, has_description, has_metadata_keys, has_refs,
     has_required_tests, has_tags, has_unique_test, max_downstream_dependencies,
-    max_materialization_lineage, max_upstream_dependencies, property_file_colocation,
+    max_materialization_lineage, max_upstream_dependencies, node_dependency,
+    property_file_colocation,
 };
 
 use crate::core::config::severity::Severity;
@@ -146,6 +147,26 @@ pub fn apply_manifest_node_rules<'a>(
                         included_materializations,
                         manifest,
                     ),
+                    ManifestSpecificRuleConfig::NodeDependency {
+                        from_name_pattern,
+                        parent_name_pattern,
+                        parent_path_pattern,
+                        parent_type,
+                    } => {
+                        for mut rule_row in node_dependency(
+                            node,
+                            rule,
+                            from_name_pattern.as_deref(),
+                            parent_name_pattern.as_deref(),
+                            parent_path_pattern.as_deref(),
+                            parent_type.as_ref(),
+                            manifest,
+                        )? {
+                            rule_row.category = rule.get_category().to_string();
+                            acc.push((rule_row, &rule.severity));
+                        }
+                        None
+                    }
                     // These only apply to sources or exposures
                     ManifestSpecificRuleConfig::SourcesHaveLoader {}
                     | ManifestSpecificRuleConfig::SourcesHaveFreshness {}

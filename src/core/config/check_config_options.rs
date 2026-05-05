@@ -57,6 +57,27 @@ impl OrphanedReferenceType {
     }
 }
 
+// NodeDependency
+#[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ParentNodeType {
+    Model,
+    Source,
+    Seed,
+    Snapshot,
+}
+
+impl ParentNodeType {
+    pub fn matches(&self, type_str: &str) -> bool {
+        match self {
+            Self::Model => type_str == "model",
+            Self::Source => type_str == "source",
+            Self::Seed => type_str == "seed",
+            Self::Snapshot => type_str == "snapshot",
+        }
+    }
+}
+
 // HasContractEnforced
 #[derive(EnumString, Debug, Clone, PartialEq, Eq)]
 #[strum(serialize_all = "snake_case")]
@@ -224,6 +245,19 @@ impl Serialize for ColumnNamePattern {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // ParentNodeType tests
+    #[test]
+    fn test_parent_node_type_matches() {
+        assert!(ParentNodeType::Model.matches("model"));
+        assert!(!ParentNodeType::Model.matches("source"));
+        assert!(ParentNodeType::Source.matches("source"));
+        assert!(!ParentNodeType::Source.matches("model"));
+        assert!(ParentNodeType::Seed.matches("seed"));
+        assert!(!ParentNodeType::Seed.matches("model"));
+        assert!(ParentNodeType::Snapshot.matches("snapshot"));
+        assert!(!ParentNodeType::Snapshot.matches("model"));
+    }
 
     // OrphanedReferenceType tests
     #[test]

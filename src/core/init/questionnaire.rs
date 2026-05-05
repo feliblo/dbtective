@@ -143,6 +143,9 @@ impl Init for ManifestSpecificRuleConfig {
             Self::MaxMaterializationLineage { .. } => {
                 "max_materialization_lineage - Limit consecutive non-persisted materializations in lineage"
             }
+            Self::NodeDependency { .. } => {
+                "node_dependency - Forbid dependency relationships between nodes matching name/path/type patterns"
+            }
             Self::ExposureParentsMaterialized { .. } => {
                 "exposure_parents_materialized - Require exposure parents to use persisted materializations"
             }
@@ -637,7 +640,7 @@ mod tests {
 
     #[test]
     fn test_manifest_rule_iter_count() {
-        assert_eq!(ManifestSpecificRuleConfig::iter().count(), 22);
+        assert_eq!(ManifestSpecificRuleConfig::iter().count(), 23);
     }
 
     #[test]

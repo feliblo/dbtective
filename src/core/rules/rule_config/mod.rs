@@ -17,6 +17,7 @@ pub mod has_tags;
 pub mod has_unique_test;
 pub mod materialization_lineage;
 pub mod name_convention;
+pub mod node_dependency;
 pub mod property_file_colocation;
 pub mod utils;
 
@@ -39,4 +40,5 @@ pub use has_tags::has_tags;
 pub use has_unique_test::has_unique_test;
 pub use materialization_lineage::{exposure_parents_materialized, max_materialization_lineage};
 pub use name_convention::check_name_convention;
+pub use node_dependency::node_dependency;
 pub use property_file_colocation::property_file_colocation;
