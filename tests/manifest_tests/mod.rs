@@ -16,3 +16,4 @@ mod test_has_unique_tests;
 mod test_is_not_orphaned;
 mod test_materialization_lineage;
 mod test_naming_convention;
+mod test_node_dependency;

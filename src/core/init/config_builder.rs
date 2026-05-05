@@ -223,6 +223,14 @@ impl InitConfig {
                     included_materializations: vec![],
                 }
             }
+            ManifestSpecificRuleConfig::NodeDependency { .. } => {
+                ManifestSpecificRuleConfig::NodeDependency {
+                    from_name_pattern: None,
+                    parent_name_pattern: Some("^stg_".to_string()),
+                    parent_path_pattern: None,
+                    parent_type: None,
+                }
+            }
             ManifestSpecificRuleConfig::ExposureParentsMaterialized { .. } => {
                 ManifestSpecificRuleConfig::ExposureParentsMaterialized {
                     allowed_materializations: vec![],
@@ -1153,6 +1161,39 @@ description = "Information mart fact models must start with {fact_display}""#
     max: {max}"#
                 )
             }
+            ManifestSpecificRuleConfig::NodeDependency {
+                from_name_pattern,
+                parent_name_pattern,
+                parent_path_pattern,
+                parent_type,
+            } => {
+                let mut s = r#"  - name: "node_dependency"
+    type: "node_dependency""#
+                    .to_string();
+                if let Some(p) = from_name_pattern {
+                    let _ = write!(s, "\n    from_name_pattern: \"{p}\"");
+                }
+                if let Some(p) = parent_name_pattern {
+                    let _ = write!(s, "\n    parent_name_pattern: \"{p}\"");
+                }
+                if let Some(p) = parent_path_pattern {
+                    let _ = write!(s, "\n    parent_path_pattern: \"{p}\"");
+                }
+                if let Some(t) = parent_type {
+                    let type_str = match t {
+                        crate::core::config::check_config_options::ParentNodeType::Model => "model",
+                        crate::core::config::check_config_options::ParentNodeType::Source => {
+                            "source"
+                        }
+                        crate::core::config::check_config_options::ParentNodeType::Seed => "seed",
+                        crate::core::config::check_config_options::ParentNodeType::Snapshot => {
+                            "snapshot"
+                        }
+                    };
+                    let _ = write!(s, "\n    parent_type: \"{type_str}\"");
+                }
+                s
+            }
             ManifestSpecificRuleConfig::ExposureParentsMaterialized { .. } => {
                 r#"  - name: "exposure_parents_materialized"
     type: "exposure_parents_materialized""#
@@ -1546,6 +1587,41 @@ name = "max_materialization_lineage"
 type = "max_materialization_lineage"
 max = {max}"#
                 )
+            }
+            ManifestSpecificRuleConfig::NodeDependency {
+                from_name_pattern,
+                parent_name_pattern,
+                parent_path_pattern,
+                parent_type,
+            } => {
+                let mut s = format!(
+                    r#"[[{section}]]
+name = "node_dependency"
+type = "node_dependency""#
+                );
+                if let Some(p) = from_name_pattern {
+                    let _ = write!(s, "\nfrom_name_pattern = \"{p}\"");
+                }
+                if let Some(p) = parent_name_pattern {
+                    let _ = write!(s, "\nparent_name_pattern = \"{p}\"");
+                }
+                if let Some(p) = parent_path_pattern {
+                    let _ = write!(s, "\nparent_path_pattern = \"{p}\"");
+                }
+                if let Some(t) = parent_type {
+                    let type_str = match t {
+                        crate::core::config::check_config_options::ParentNodeType::Model => "model",
+                        crate::core::config::check_config_options::ParentNodeType::Source => {
+                            "source"
+                        }
+                        crate::core::config::check_config_options::ParentNodeType::Seed => "seed",
+                        crate::core::config::check_config_options::ParentNodeType::Snapshot => {
+                            "snapshot"
+                        }
+                    };
+                    let _ = write!(s, "\nparent_type = \"{type_str}\"");
+                }
+                s
             }
             ManifestSpecificRuleConfig::ExposureParentsMaterialized { .. } => {
                 format!(
@@ -3162,7 +3238,7 @@ mod tests {
         );
 
         let config = InitConfig::from_questionnaire(&result);
-        assert_eq!(config.manifest_rules.len(), 22); // All 22 manifest rules
+        assert_eq!(config.manifest_rules.len(), 23); // All 23 manifest rules
     }
 
     #[test]
@@ -3951,5 +4027,232 @@ mod tests {
         assert!(toml.contains("^lnk-"));
         assert!(toml.contains("^sat-"));
         assert!(toml.contains("^t-lnk-"));
+    }
+
+    // ========================================================================
+    // NodeDependency Rule Tests
+    // ========================================================================
+
+    #[test]
+    fn test_create_manifest_rule_node_dependency_defaults() {
+        let result = create_questionnaire_result(
+            LayeringStrategy::None,
+            vec![ManifestSpecificRuleConfig::NodeDependency {
+                from_name_pattern: None,
+                parent_name_pattern: None,
+                parent_path_pattern: None,
+                parent_type: None,
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+
+        let config = InitConfig::from_questionnaire(&result);
+        assert_eq!(config.manifest_rules.len(), 1);
+        match &config.manifest_rules[0] {
+            ManifestSpecificRuleConfig::NodeDependency {
+                from_name_pattern,
+                parent_name_pattern,
+                parent_path_pattern,
+                parent_type,
+            } => {
+                assert!(from_name_pattern.is_none());
+                assert_eq!(parent_name_pattern.as_deref(), Some("^stg_"));
+                assert!(parent_path_pattern.is_none());
+                assert!(parent_type.is_none());
+            }
+            _ => panic!("Expected NodeDependency rule"),
+        }
+    }
+
+    #[test]
+    fn test_node_dependency_yaml_with_parent_name_pattern() {
+        let result = create_questionnaire_result(
+            LayeringStrategy::None,
+            vec![ManifestSpecificRuleConfig::NodeDependency {
+                from_name_pattern: None,
+                parent_name_pattern: None,
+                parent_path_pattern: None,
+                parent_type: None,
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+
+        let config = InitConfig::from_questionnaire(&result);
+        let yaml = config.to_yaml();
+
+        assert!(yaml.contains(r#"type: "node_dependency""#));
+        assert!(yaml.contains(r#"parent_name_pattern: "^stg_""#));
+        assert!(!yaml.contains("from_name_pattern"));
+        assert!(!yaml.contains("parent_path_pattern"));
+        assert!(!yaml.contains("parent_type"));
+    }
+
+    #[test]
+    fn test_node_dependency_yaml_with_all_options() {
+        use crate::core::config::check_config_options::ParentNodeType;
+
+        let result = create_questionnaire_result(
+            LayeringStrategy::None,
+            vec![ManifestSpecificRuleConfig::NodeDependency {
+                from_name_pattern: Some("^fct_".to_string()),
+                parent_name_pattern: Some("^stg_".to_string()),
+                parent_path_pattern: Some("staging".to_string()),
+                parent_type: Some(ParentNodeType::Source),
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+
+        // We bypass create_manifest_rule and call manifest_rule_to_yaml directly via to_yaml
+        // Since create_manifest_rule will overwrite the values, build InitConfig manually.
+        let config = InitConfig {
+            format: super::super::questionnaire::ConfigFormat::Yaml,
+            manifest_rules: result.manifest_rules.clone(),
+            catalog_rules: vec![],
+            layering_strategy: result.layering_strategy,
+            methodology: result.methodology,
+            naming_convention: result.naming_convention,
+            auto_parse_command: None,
+        };
+        let yaml = config.to_yaml();
+
+        assert!(yaml.contains(r#"type: "node_dependency""#));
+        assert!(yaml.contains(r#"from_name_pattern: "^fct_""#));
+        assert!(yaml.contains(r#"parent_name_pattern: "^stg_""#));
+        assert!(yaml.contains(r#"parent_path_pattern: "staging""#));
+        assert!(yaml.contains(r#"parent_type: "source""#));
+    }
+
+    #[test]
+    fn test_node_dependency_yaml_parent_type_variants() {
+        use crate::core::config::check_config_options::ParentNodeType;
+
+        let make_config = |pt: ParentNodeType| {
+            let result = create_questionnaire_result(
+                LayeringStrategy::None,
+                vec![ManifestSpecificRuleConfig::NodeDependency {
+                    from_name_pattern: None,
+                    parent_name_pattern: None,
+                    parent_path_pattern: None,
+                    parent_type: Some(pt),
+                }],
+                Vec::new(),
+                NamingConvention::default(),
+            );
+            InitConfig {
+                format: super::super::questionnaire::ConfigFormat::Yaml,
+                manifest_rules: result.manifest_rules.clone(),
+                catalog_rules: vec![],
+                layering_strategy: result.layering_strategy,
+                methodology: result.methodology,
+                naming_convention: result.naming_convention,
+                auto_parse_command: None,
+            }
+        };
+
+        assert!(make_config(ParentNodeType::Model)
+            .to_yaml()
+            .contains(r#"parent_type: "model""#));
+        assert!(make_config(ParentNodeType::Seed)
+            .to_yaml()
+            .contains(r#"parent_type: "seed""#));
+        assert!(make_config(ParentNodeType::Snapshot)
+            .to_yaml()
+            .contains(r#"parent_type: "snapshot""#));
+    }
+
+    #[test]
+    fn test_node_dependency_toml_with_parent_name_pattern() {
+        let result = create_questionnaire_result(
+            LayeringStrategy::None,
+            vec![ManifestSpecificRuleConfig::NodeDependency {
+                from_name_pattern: None,
+                parent_name_pattern: None,
+                parent_path_pattern: None,
+                parent_type: None,
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+
+        let config = InitConfig::from_questionnaire(&result);
+        let toml = config.to_toml();
+
+        assert!(toml.contains(r#"type = "node_dependency""#));
+        assert!(toml.contains(r#"parent_name_pattern = "^stg_""#));
+        assert!(!toml.contains("from_name_pattern"));
+        assert!(!toml.contains("parent_path_pattern"));
+        assert!(!toml.contains("parent_type"));
+    }
+
+    #[test]
+    fn test_node_dependency_toml_with_all_options() {
+        use crate::core::config::check_config_options::ParentNodeType;
+
+        let result = create_questionnaire_result(
+            LayeringStrategy::None,
+            vec![ManifestSpecificRuleConfig::NodeDependency {
+                from_name_pattern: Some("^fct_".to_string()),
+                parent_name_pattern: Some("^stg_".to_string()),
+                parent_path_pattern: Some("staging".to_string()),
+                parent_type: Some(ParentNodeType::Model),
+            }],
+            Vec::new(),
+            NamingConvention::default(),
+        );
+
+        let config = InitConfig {
+            format: super::super::questionnaire::ConfigFormat::Toml,
+            manifest_rules: result.manifest_rules.clone(),
+            catalog_rules: vec![],
+            layering_strategy: result.layering_strategy,
+            methodology: result.methodology,
+            naming_convention: result.naming_convention,
+            auto_parse_command: None,
+        };
+        let toml = config.to_toml();
+
+        assert!(toml.contains(r#"type = "node_dependency""#));
+        assert!(toml.contains(r#"from_name_pattern = "^fct_""#));
+        assert!(toml.contains(r#"parent_name_pattern = "^stg_""#));
+        assert!(toml.contains(r#"parent_path_pattern = "staging""#));
+        assert!(toml.contains(r#"parent_type = "model""#));
+    }
+
+    #[test]
+    fn test_node_dependency_toml_parent_type_seed_and_snapshot() {
+        use crate::core::config::check_config_options::ParentNodeType;
+
+        let make_config = |pt: ParentNodeType| {
+            let result = create_questionnaire_result(
+                LayeringStrategy::None,
+                vec![ManifestSpecificRuleConfig::NodeDependency {
+                    from_name_pattern: None,
+                    parent_name_pattern: None,
+                    parent_path_pattern: None,
+                    parent_type: Some(pt),
+                }],
+                Vec::new(),
+                NamingConvention::default(),
+            );
+            InitConfig {
+                format: super::super::questionnaire::ConfigFormat::Toml,
+                manifest_rules: result.manifest_rules.clone(),
+                catalog_rules: vec![],
+                layering_strategy: result.layering_strategy,
+                methodology: result.methodology,
+                naming_convention: result.naming_convention,
+                auto_parse_command: None,
+            }
+        };
+
+        assert!(make_config(ParentNodeType::Seed)
+            .to_toml()
+            .contains(r#"parent_type = "seed""#));
+        assert!(make_config(ParentNodeType::Snapshot)
+            .to_toml()
+            .contains(r#"parent_type = "snapshot""#));
     }
 }

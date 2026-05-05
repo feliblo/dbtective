@@ -11,7 +11,7 @@ use crate::core::config::check_config_options::{
     default_code_max_joins, default_code_max_lines, default_excluded_dependency_types,
     default_included_materializations, default_max_downstream, default_max_materialization_lineage,
     default_max_upstream, AccessLevel, ColocationMode, DependencyType, HasTagsCriteria,
-    OrphanedReferenceType, RequiredTest,
+    OrphanedReferenceType, ParentNodeType, RequiredTest,
 };
 use crate::core::config::naming_convention::NamingConvention;
 use crate::core::config::rule_category::RuleCategory;
@@ -104,6 +104,16 @@ pub enum ManifestSpecificRuleConfig {
         #[serde(rename = "pattern")]
         convention: NamingConvention,
     },
+    NodeDependency {
+        #[serde(default)]
+        from_name_pattern: Option<String>,
+        #[serde(default)]
+        parent_name_pattern: Option<String>,
+        #[serde(default)]
+        parent_path_pattern: Option<String>,
+        #[serde(default)]
+        parent_type: Option<ParentNodeType>,
+    },
     PropertyFileColocation {
         #[serde(default)]
         mode: ColocationMode,
@@ -155,6 +165,7 @@ impl ManifestSpecificRuleConfig {
             | Self::MaxDownstreamDependencies { .. }
             | Self::MaxMaterializationLineage { .. }
             | Self::ExposureParentsMaterialized { .. }
+            | Self::NodeDependency { .. }
             | Self::PropertyFileColocation { .. } => RuleCategory::Structure,
             Self::CodeMaxLines { .. }
             | Self::CodeForbiddenPatterns { .. }
@@ -420,9 +431,10 @@ pub fn default_applies_to_for_manifest_rule(rule_type: &ManifestSpecificRuleConf
             function_objects: vec![],
             custom_objects: vec![],
         },
-        // allowed_subfolders & max_materialization_lineage
+        // allowed_subfolders, max_materialization_lineage & node_dependency
         ManifestSpecificRuleConfig::AllowedSubfolders { .. }
-        | ManifestSpecificRuleConfig::MaxMaterializationLineage { .. } => AppliesTo {
+        | ManifestSpecificRuleConfig::MaxMaterializationLineage { .. }
+        | ManifestSpecificRuleConfig::NodeDependency { .. } => AppliesTo {
             node_objects: vec![RuleTarget::Models],
             source_objects: vec![],
             unit_test_objects: vec![],
@@ -622,6 +634,16 @@ fn applies_to_options_for_manifest_rule(rule_type: &ManifestSpecificRuleConfig) 
             unit_test_objects: vec![],
             macro_objects: vec![],
             exposure_objects: vec![RuleTarget::Exposures],
+            semantic_model_objects: vec![],
+            function_objects: vec![],
+            custom_objects: vec![],
+        },
+        ManifestSpecificRuleConfig::NodeDependency { .. } => AppliesTo {
+            node_objects: vec![RuleTarget::Models, RuleTarget::Snapshots],
+            source_objects: vec![],
+            unit_test_objects: vec![],
+            macro_objects: vec![],
+            exposure_objects: vec![],
             semantic_model_objects: vec![],
             function_objects: vec![],
             custom_objects: vec![],
