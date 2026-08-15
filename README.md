@@ -1,6 +1,7 @@
 # 🕵️ dbtective
 
 ![dbt Core](https://img.shields.io/badge/dbt%20Core-v1.8%2B-FF694B?logo=dbt&logoColor=white)
+![dbt Core v2](https://img.shields.io/badge/dbt%20Core-v2%20Parquet%20index-FF694B?logo=dbt&logoColor=white)
 ![dbt Fusion](https://img.shields.io/badge/dbt%20Fusion-dbt%20Cloud-FF694B?logo=dbt&logoColor=white)
 [![codecov](https://codecov.io/gh/feliblo/dbtective/graph/badge.svg?token=MW6M3QPX8P)](https://codecov.io/gh/feliblo/dbtective)
 
@@ -18,6 +19,8 @@ Explore the [full documentation](https://feliblo.github.io/dbtective/docs) or th
 - **Naming conventions:** Are all marts following your team's naming standards?
 
 We detect and enforce these rules in your `cli`, `prek`/`pre-commit` and `CI/CD` pipeline, so fast you will barely notice🕵️.
+
+Supports dbt Core v1 and v2, including v2's new [Parquet artifacts](https://feliblo.github.io/dbtective/docs/running/artifact-formats).
 
 ## Installation
 
@@ -137,11 +140,17 @@ All possible rules can be found in the [rules documentation](https://feliblo.git
 2. (Optional) Generate the dbt manifest and catalog files if you haven't done so already. Most dbt commands automatically generate the `manifest.json`, but if you want to ensure both files are up to date, run:
 
    ```bash
+   # dbt v1
    dbt compile
    dbt docs generate
+
+   # dbt v2 — one command produces everything dbtective needs
+   dbt build --write-index --static-analysis strict
    ```
 
    > **Tip:** For local development and pre-commit, use `--only-manifest` to skip `catalog.json`. Eligible catalog rules will [fall back to manifest data](https://feliblo.github.io/dbtective/docs/running/manifest-only) automatically.
+   >
+   > On dbt v2 the Parquet index carries column types itself, so `--only-manifest` is not needed. Note `dbt docs generate` was removed in v2; use `dbt compile --write-catalog` if you still want a `catalog.json`.
 
 3. Run `dbtective` in the root of your current directory or specify an entry point if your dbt_project is not located in the root/current drectory.
 

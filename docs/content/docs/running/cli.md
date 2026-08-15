@@ -28,6 +28,7 @@ Run dbtective analysis on your dbt project.
 
 - Before running manifest-based rules, run `dbt compile`, `dbt build`, `dbt run` or any of the [documented commands](https://docs.getdbt.com/reference/artifacts/manifest-json) to ensure `manifest.json` is up to date. Alternatively, use `--auto-parse` to let dbtective handle this automatically (recommended for pre-commit/prek).
 - Before running catalog-based rules, run `dbt docs generate` to ensure `catalog.json` is available.
+- On dbt v2, use `dbt build --write-index`. See [Artifact formats](../artifact-formats).
 
 #### Options
 
@@ -37,6 +38,8 @@ Run dbtective analysis on your dbt project.
 | `--config-file <PATH>`     | `-c`  | Auto-detected          | Path to dbtective configuration from the entry-point (overrides auto-detection)                        |
 | `--manifest-file <PATH>`   | `-m`  | `target/manifest.json` | Path to dbt manifest.json                                                                              |
 | `--catalog-file <PATH>`    | `-g`  | `target/catalog.json`  | Path to dbt catalog.json                                                                               |
+| `--index-dir <PATH>`       |       | `target/index`         | Path to the dbt v2 Parquet index                                                                       |
+| `--artifact-format <FMT>`  |       | `auto`                 | Which artifacts to read: `auto`, `json`, or `parquet`                                                  |
 | `--only-manifest`          |       | `false`                | Run only manifest rules (recommended for local & pre-commit/prek)                                      |
 | `--disable-hyperlinks`     |       | `false`                | Disable file hyperlinks in the output                                                                  |
 | `--hide-warnings`          |       | `false`                | Hide warnings from output (only show errors)                                                           |

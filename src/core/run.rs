@@ -1,11 +1,10 @@
 use crate::cli::commands::{OutputFormat, RunOptions};
 use crate::cli::structured_output::{write_output, StructuredOutput};
 use crate::cli::table::{show_results_and_exitcode, RuleResult};
-use crate::core::catalog::Catalog;
+use crate::core::artifacts::{self, ArtifactPaths};
 use crate::core::config::parse_config::resolve_config_path;
 use crate::core::config::severity::Severity;
 use crate::core::config::Config;
-use crate::core::manifest::Manifest;
 use crate::core::rules::catalog::{
     apply_catalog_fallback_node_rules::apply_catalog_fallback_node_rules,
     apply_catalog_fallback_source_rules::apply_catalog_fallback_source_rules,
@@ -96,10 +95,23 @@ pub fn run(options: &RunOptions, verbose: bool) -> i32 {
 
     let mut findings: Vec<(RuleResult, &Severity)> = Vec::new();
 
+    let paths = ArtifactPaths::new(
+        &options.entry_point,
+        &options.manifest_file,
+        &options.catalog_file,
+        &options.index_dir,
+    );
+    let source = unwrap_or_exit(artifacts::resolve(&paths, options.artifact_format));
+    if verbose {
+        eprintln!(
+            "{} Reading {}",
+            "ℹ".bright_blue().bold(),
+            source.label().bright_magenta()
+        );
+    }
+
     // Manifest-based rules
-    let manifest_path =
-        std::path::PathBuf::from(format!("{}/{}", options.entry_point, options.manifest_file));
-    let manifest = unwrap_or_exit(Manifest::from_file(&manifest_path));
+    let manifest = unwrap_or_exit(artifacts::load_manifest(&paths, source));
 
     findings.extend(unwrap_or_exit(apply_manifest_node_rules(
         &manifest, &config, verbose,
@@ -109,13 +121,10 @@ pub fn run(options: &RunOptions, verbose: bool) -> i32 {
     )));
 
     // Catalog-based rules
-    let catalog_path =
-        std::path::PathBuf::from(format!("{}/{}", options.entry_point, options.catalog_file));
-
     let catalog = if options.only_manifest {
         None
     } else {
-        Some(unwrap_or_exit(Catalog::from_file(&catalog_path)))
+        Some(unwrap_or_exit(artifacts::load_catalog(&paths, source)))
     };
 
     // Track if any catalog tests failed and whether we used fallback mode

@@ -95,8 +95,8 @@ impl Manifest {
     // For sources, `attached_node` is null and the parent is in `depends_on.nodes`.
     pub fn get_tests_by_parent(&self, parent_unique_id: &str) -> Vec<&Test> {
         self.nodes
-            .iter()
-            .filter_map(|(_, node)| {
+            .values()
+            .filter_map(|node| {
                 if let Node::Test(test) = node {
                     // Check attached_node first (set for tests on nodes like models)
                     if let Some(attached_node) = &test.attached_node {
@@ -146,34 +146,57 @@ impl Manifest {
             ))?;
 
         check_manifest_version(&manifest.metadata.dbt_schema_version)?;
-
-        // Filter all objects to only include those from the current project
-        if let Some(project_name) = manifest.metadata.project_name.as_ref() {
-            manifest
-                .nodes
-                .retain(|_, node| node.get_package_name() == project_name.as_str());
-            manifest
-                .sources
-                .retain(|_, source| source.get_package_name() == project_name.as_str());
-            manifest
-                .macros
-                .retain(|_, macro_obj| macro_obj.get_package_name() == project_name.as_str());
-            manifest
-                .exposures
-                .retain(|_, exposure| exposure.get_package_name() == project_name.as_str());
-
-            manifest
-                .semantic_models
-                .retain(|_, sm| sm.get_package_name() == project_name.as_str());
-            manifest
-                .unit_tests
-                .retain(|_, ut| ut.get_package_name() == project_name.as_str());
-            manifest
-                .functions
-                .retain(|_, udf| udf.package_name == project_name.as_str());
-        }
+        manifest.filter_to_project();
 
         Ok(manifest)
+    }
+
+    /// Reads only `metadata.dbt_version`. Skips the body rather than building it.
+    ///
+    /// # Errors
+    /// If the file cannot be opened or is not valid JSON.
+    pub fn peek_dbt_version<P: AsRef<Path>>(manifest_path: P) -> Result<String> {
+        #[derive(Deserialize)]
+        struct VersionOnly {
+            metadata: MetadataVersion,
+        }
+        #[derive(Deserialize)]
+        struct MetadataVersion {
+            #[serde(default)]
+            dbt_version: String,
+        }
+
+        let path = manifest_path.as_ref();
+        let file = File::open(path).context(format!(
+            "Unable to open manifest file at {}",
+            path.display()
+        ))?;
+        let peeked: VersionOnly = serde_json::from_reader(BufReader::new(file))
+            .context(format!("Unable to read metadata from {}", path.display()))?;
+        Ok(peeked.metadata.dbt_version)
+    }
+
+    /// Drops everything that came from an installed package.
+    pub fn filter_to_project(&mut self) {
+        let Some(project_name) = self.metadata.project_name.clone() else {
+            return;
+        };
+        let project_name = project_name.as_str();
+
+        self.nodes
+            .retain(|_, node| node.get_package_name() == project_name);
+        self.sources
+            .retain(|_, source| source.get_package_name() == project_name);
+        self.macros
+            .retain(|_, macro_obj| macro_obj.get_package_name() == project_name);
+        self.exposures
+            .retain(|_, exposure| exposure.get_package_name() == project_name);
+        self.semantic_models
+            .retain(|_, sm| sm.get_package_name() == project_name);
+        self.unit_tests
+            .retain(|_, ut| ut.get_package_name() == project_name);
+        self.functions
+            .retain(|_, udf| udf.package_name == project_name);
     }
 }
 

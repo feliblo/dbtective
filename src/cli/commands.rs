@@ -1,3 +1,4 @@
+use crate::core::artifacts::ArtifactFormat;
 use clap::{Args, Parser, Subcommand, ValueEnum};
 
 #[derive(Parser)]
@@ -66,6 +67,14 @@ pub struct RunOptions {
     #[arg(long, short = 'g', default_value = "target/catalog.json")]
     pub catalog_file: String,
 
+    /// Path to the dbt v2 Parquet index relative to entry point
+    #[arg(long, default_value = "target/index")]
+    pub index_dir: String,
+
+    /// Which artifacts to read: auto (default), json, or parquet
+    #[arg(long, value_enum, default_value_t = ArtifactFormat::Auto)]
+    pub artifact_format: ArtifactFormat,
+
     /// Run only manifest-based rules, skip catalog rules (or try manifest-fallback)
     #[arg(long, default_value_t = false)]
     pub only_manifest: bool,
@@ -101,6 +110,7 @@ pub struct RunOptions {
 #[cfg(test)]
 mod tests {
     use crate::cli::commands::{Cli, Commands, InitOptions, OutputFormat, RunOptions};
+    use crate::core::artifacts::ArtifactFormat;
 
     fn default_init_options() -> InitOptions {
         InitOptions {
@@ -131,6 +141,8 @@ mod tests {
             entry_point: "./".to_string(),
             config_file: Some("dbtective.toml".to_string()),
             catalog_file: "target/catalog.json".to_string(),
+            index_dir: "target/index".to_string(),
+            artifact_format: ArtifactFormat::Auto,
             only_manifest: false,
             disable_hyperlinks: false,
             hide_warnings: false,
@@ -152,6 +164,8 @@ mod tests {
             entry_point: "./".to_string(),
             config_file: Some("dbtective.toml".to_string()),
             catalog_file: "target/catalog.json".to_string(),
+            index_dir: "target/index".to_string(),
+            artifact_format: ArtifactFormat::Auto,
             only_manifest: false,
             disable_hyperlinks: false,
             hide_warnings: false,
@@ -173,6 +187,8 @@ mod tests {
             entry_point: "/path/to/project".to_string(),
             config_file: Some("custom_config.toml".to_string()),
             catalog_file: "custom_catalog.json".to_string(),
+            index_dir: "target/index".to_string(),
+            artifact_format: ArtifactFormat::Auto,
             only_manifest: true,
             disable_hyperlinks: false,
             hide_warnings: false,
@@ -204,6 +220,8 @@ mod tests {
                 entry_point: "./".to_string(),
                 config_file: None,
                 catalog_file: "target/catalog.json".to_string(),
+                index_dir: "target/index".to_string(),
+                artifact_format: ArtifactFormat::Auto,
                 only_manifest: false,
                 disable_hyperlinks: false,
                 hide_warnings: false,
@@ -250,6 +268,8 @@ mod tests {
                     manifest_file: "custom_manifest.json".to_string(),
                     entry_point: "./src".to_string(),
                     catalog_file: "target/catalog.json".to_string(),
+                    index_dir: "target/index".to_string(),
+                    artifact_format: ArtifactFormat::Auto,
                     config_file: Some("config.toml".to_string()),
                     only_manifest: false,
                     disable_hyperlinks: false,
@@ -287,6 +307,8 @@ mod tests {
                 entry_point: "./".to_string(),
                 config_file: Some("dbtective.toml".to_string()),
                 catalog_file: "target/catalog.json".to_string(),
+                index_dir: "target/index".to_string(),
+                artifact_format: ArtifactFormat::Auto,
                 only_manifest: false,
                 disable_hyperlinks: false,
                 hide_warnings: false,

@@ -46,7 +46,7 @@ pub fn apply_catalog_node_rules<'a>(
                     format!(
                         "Warning: No matching manifest node found for catalog node '{}'.\n\
                         This may be due to differences in execution runs, renamed or moved files.\n\
-                        Consider removing 'catalog.json' and regenerating it using 'dbt docs generate'.",
+                        Regenerate catalog.json: 'dbt docs generate' (v1), 'dbt compile --write-catalog' (v2).",
                         catalog_node.get_name()
                     )
                     .yellow()

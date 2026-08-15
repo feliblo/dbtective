@@ -47,7 +47,7 @@ pub fn apply_catalog_source_rules<'a>(
                     format!(
                         "Warning: No matching manifest source found for catalog source '{}'.\n\
                         This may be due to differences in execution runs, renamed or moved files.\n\
-                        Consider removing 'catalog.json' and regenerating it using 'dbt docs generate'.",
+                        Regenerate catalog.json: 'dbt docs generate' (v1), 'dbt compile --write-catalog' (v2).",
                         catalog_source.get_name()
                     )
                     .yellow()

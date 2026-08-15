@@ -8,9 +8,7 @@ use log::debug;
 use owo_colors::OwoColorize;
 
 fn main() {
-    if cfg!(debug_assertions) {
-        std::env::set_var("RUST_LOG", "debug");
-    } else {
+    if std::env::var_os("RUST_LOG").is_none() {
         std::env::set_var("RUST_LOG", "info");
     }
     env_logger::init();

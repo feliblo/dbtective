@@ -124,6 +124,7 @@ manifest_tests:
 #[test]
 fn test_run_with_auto_parse_and_configured_command() {
     use dbtective::cli::commands::{OutputFormat, RunOptions};
+    use dbtective::core::artifacts::ArtifactFormat;
     use std::io::Write;
     use tempfile::TempDir;
 
@@ -184,6 +185,8 @@ manifest_tests:
         config_file: None,
         manifest_file: "target/manifest.json".to_string(),
         catalog_file: "target/catalog.json".to_string(),
+        index_dir: "target/index".to_string(),
+        artifact_format: ArtifactFormat::Auto,
         only_manifest: true,
         disable_hyperlinks: true,
         hide_warnings: false,
@@ -201,6 +204,7 @@ manifest_tests:
 #[test]
 fn test_run_without_auto_parse_does_not_run_command() {
     use dbtective::cli::commands::{OutputFormat, RunOptions};
+    use dbtective::core::artifacts::ArtifactFormat;
     use std::io::Write;
     use tempfile::TempDir;
 
@@ -261,6 +265,8 @@ manifest_tests:
         config_file: None,
         manifest_file: "target/manifest.json".to_string(),
         catalog_file: "target/catalog.json".to_string(),
+        index_dir: "target/index".to_string(),
+        artifact_format: ArtifactFormat::Auto,
         only_manifest: true,
         disable_hyperlinks: true,
         hide_warnings: false,

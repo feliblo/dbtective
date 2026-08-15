@@ -50,7 +50,7 @@ pub fn columns_have_description<C: Columnable, M: Columnable>(
 
     // 1. Is there a column for each catalog column in the manifest columns?
     // 2. Does that column have a description?
-    let missing_column_descriptions: Vec<&str> = manifest_columns
+    let mut missing_column_descriptions: Vec<&str> = manifest_columns
         .iter()
         .filter(|(name, description)| {
             description.trim().is_empty() || !catalog_columns.contains(name)
@@ -61,6 +61,8 @@ pub fn columns_have_description<C: Columnable, M: Columnable>(
     if missing_column_descriptions.is_empty() {
         return None;
     }
+    // Columns come from a HashMap, so sort for a stable message.
+    missing_column_descriptions.sort_unstable();
 
     Some(RuleResult::new(
         &rule.severity,
