@@ -1,5 +1,7 @@
 [workspace]
 members = [".", "dbt_artifact_parser"]
+# Keeps dev-dependency features (test-helpers) out of release builds.
+resolver = "2"
 
 [package]
 name = "dbtective"
@@ -32,7 +34,7 @@ unused_imports = "deny"
 warnings = "deny"
 
 [dependencies]
-dbt_artifact_parser = { path = "dbt_artifact_parser" }
+dbt_artifact_parser = { path = "dbt_artifact_parser", features = ["parquet"] }
 anyhow = "1.0.100"
 clap = { version = "4.5.48", features = ["derive"] }
 env_logger = "0.11.8"

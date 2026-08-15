@@ -52,7 +52,7 @@ pub fn print_catalog_warning(fallback_rules: &[String], skipped_rules: &[String]
 
         println!(
             "  {}",
-            "Use --only-manifest everywhere except for CI/CD (recommended), or regenerate with `dbt docs generate`"
+            "Use --only-manifest locally, or regenerate: `dbt docs generate` (v1), `dbt compile --write-catalog` (v2)"
                 .cyan()
                 .dimmed()
         );

@@ -1,3 +1,4 @@
+pub mod artifacts;
 pub mod catalog;
 pub mod config;
 pub mod init;

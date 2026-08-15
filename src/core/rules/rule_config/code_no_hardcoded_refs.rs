@@ -29,7 +29,7 @@ static HARDCODED_REF_RE: LazyLock<Regex> = LazyLock::new(|| {
     // Supports 2-part (schema.table) or 3-part (db.schema.table) references
     // (?i) = case-insensitive
     // \b = word boundary to avoid matching inside other words
-    let pattern = format!(r"(?i)\b(?:FROM|JOIN)\s+{ident}\.{ident}(?:\.{ident})?",);
+    let pattern = format!(r"(?i)\b(?:FROM|JOIN)\s+{ident}\.{ident}(?:\.{ident})?");
 
     Regex::new(&pattern).expect("hardcoded ref regex must compile")
 });

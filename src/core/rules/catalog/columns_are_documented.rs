@@ -54,12 +54,14 @@ pub fn columns_are_documented<C: Columnable, M: Columnable>(
         .as_ref()
         .is_some_and(|adapter| adapter.eq_ignore_ascii_case("snowflake"));
 
-    let undocumented_columns =
+    let mut undocumented_columns =
         compare_column_names(&catalog_columns, &manifest_columns, case_insensitive);
 
     if undocumented_columns.is_empty() {
         return None;
     }
+    // Columns come from a HashMap, so sort for a stable message.
+    undocumented_columns.sort_unstable();
 
     let message = if undocumented_columns.len() > 3 {
         format!(
@@ -293,7 +295,7 @@ mod tests {
         let rule_result = result.unwrap();
         assert_eq!(
             rule_result.message,
-            "Columns in 'my_model' not documented: [\"name\", \"age\"]"
+            "Columns in 'my_model' not documented: [\"age\", \"name\"]"
         );
     }
 }

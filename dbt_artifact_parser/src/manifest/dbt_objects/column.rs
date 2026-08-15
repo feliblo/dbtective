@@ -2,7 +2,7 @@ use super::meta::Meta;
 use super::tags::Tags;
 use serde::Deserialize;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 #[allow(dead_code)]
 pub struct ColumnLevelConstraint {
     #[serde(rename = "type")]
@@ -15,7 +15,7 @@ pub struct ColumnLevelConstraint {
     to_columns: Option<Vec<String>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 #[allow(dead_code)]
 pub struct ColumnConfig {
     _extra: Option<serde_json::Value>,
@@ -25,7 +25,7 @@ pub struct ColumnConfig {
     additional_properties: Option<serde_json::Value>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 #[allow(dead_code)]
 pub struct Column {
     pub name: String,

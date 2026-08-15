@@ -27,11 +27,8 @@ pub fn property_file_colocation<T: HasPatchPath>(
     mode: &ColocationMode,
     allowed_subdirectories: Option<&Vec<String>>,
 ) -> Option<RuleResult> {
-    let patch = match obj.patch_path() {
-        Some(p) => normalize_path(p),
-        // No patch path means the object has no property file – nothing to check.
-        None => return None,
-    };
+    // No patch path means the object has no property file – nothing to check.
+    let patch = normalize_path(obj.patch_path()?);
 
     let original = normalize_path(obj.original_file_path());
 

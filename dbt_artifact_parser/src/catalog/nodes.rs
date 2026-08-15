@@ -32,7 +32,7 @@ impl CatalogNode {
         &self.get_base().metadata.name
     }
 
-    fn from_base(base: CatalogNodeBase) -> Result<Self, String> {
+    pub(crate) fn from_base(base: CatalogNodeBase) -> Result<Self, String> {
         let resource_type = base
             .unique_id
             .split('.')

@@ -12,6 +12,8 @@ categories = ["parsing", "data-structures"]
 [features]
 default = []
 test-helpers = []
+# Reading dbt v2 Parquet index artifacts (target/index/*.parquet).
+parquet = ["dep:parquet"]
 
 [lints.clippy]
 all = { level = "deny", priority = -1 }
@@ -27,8 +29,18 @@ must_use_candidate = "allow"
 unused_imports = "deny"
 warnings = "deny"
 
+[dev-dependencies]
+tempfile = "3.23.0"
+
 [dependencies]
 anyhow = "1.0.100"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.145"
 serde_path_to_error = "0.1.20"
+
+# No arrow: the record API is enough, and it keeps the binary small.
+[dependencies.parquet]
+version = "55"
+optional = true
+default-features = false
+features = ["snap", "zstd"]

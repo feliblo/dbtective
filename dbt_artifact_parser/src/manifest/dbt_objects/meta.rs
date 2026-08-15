@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use serde_json::Value;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Meta(pub Value);
 
 impl Meta {
