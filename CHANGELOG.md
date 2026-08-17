@@ -1,3 +1,13 @@
+## v0.3.4 (2026-08-17)
+
+### Feat
+
+- **dbtv2**: add support for parquet artifacts - ([4a4f87e](https://github.com/feliblo/dbtective/commit/4a4f87e8bd09203c82fd1d646ea9ac3582d73a28)) - feliblo
+
+### Contributors
+
+[@feliblo](https://github.com/feliblo)
+
 ## v0.3.3 (2026-05-05)
 
 ### Feat
