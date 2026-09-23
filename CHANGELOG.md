@@ -1,3 +1,13 @@
+## v0.3.5 (2026-09-23)
+
+### Fix
+
+- **check**: make columns_have_descriptions case-insensitive - ([adf0b86](https://github.com/feliblo/dbtective/commit/adf0b86729c4930b62505adb547f584723bf77a0)) - feliblo
+
+### Contributors
+
+[@feliblo](https://github.com/feliblo)
+
 ## v0.3.4 (2026-08-17)
 
 ### Feat
