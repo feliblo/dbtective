@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use crate::{
     cli::table::RuleResult,
     core::{config::catalog_rule::CatalogRule, rules::common_traits::Columnable},
@@ -48,12 +50,18 @@ pub fn columns_have_description<C: Columnable, M: Columnable>(
         }
     };
 
+    // Case-insensitive: Snowflake returns unquoted identifiers as UPPERCASE in the catalog.
+    let catalog_column_set: HashSet<String> = catalog_columns
+        .iter()
+        .map(|name| name.to_lowercase())
+        .collect();
+
     // 1. Is there a column for each catalog column in the manifest columns?
     // 2. Does that column have a description?
     let mut missing_column_descriptions: Vec<&str> = manifest_columns
         .iter()
         .filter(|(name, description)| {
-            description.trim().is_empty() || !catalog_columns.contains(name)
+            description.trim().is_empty() || !catalog_column_set.contains(&name.to_lowercase())
         })
         .map(|(name, _)| name.as_str())
         .collect();
@@ -233,6 +241,168 @@ mod tests {
             rule_result.message,
             "Some columns in 'my_model' do not have descriptions: [\"name\"]"
         );
+    }
+
+    // Regression #217: Snowflake UPPERCASE catalog columns vs lowercase manifest columns.
+    #[test]
+    fn test_uppercase_catalog_columns_match_lowercase_manifest_columns() {
+        let catalog_object = TestColumnable {
+            object_type: "model".to_string(),
+            object_string: "stg_contact_info".to_string(),
+            relative_path: None,
+            column_names: Some(vec![
+                "CONTACT_INFO_ID".to_string(),
+                "EMAIL".to_string(),
+                "CREATED_AT".to_string(),
+            ]),
+            column_descriptions: None,
+        };
+        let manifest_object = TestColumnable {
+            object_type: "model".to_string(),
+            object_string: "stg_contact_info".to_string(),
+            relative_path: Some("models/staging/stg_contact_info.sql".to_string()),
+            column_names: Some(vec![
+                "contact_info_id".to_string(),
+                "email".to_string(),
+                "created_at".to_string(),
+            ]),
+            column_descriptions: Some(vec![
+                "Contact info identifier".to_string(),
+                "Email address".to_string(),
+                "Creation timestamp".to_string(),
+            ]),
+        };
+
+        let rule = create_test_catalog_rule();
+        let result = columns_have_description(&catalog_object, &manifest_object, &rule, false);
+        assert!(
+            result.is_none(),
+            "Expected no finding, got: {:?}",
+            result.map(|r| r.message)
+        );
+    }
+
+    // Reverse casing must match too.
+    #[test]
+    fn test_lowercase_catalog_columns_match_uppercase_manifest_columns() {
+        let catalog_object = TestColumnable {
+            object_type: "model".to_string(),
+            object_string: "my_model".to_string(),
+            relative_path: None,
+            column_names: Some(vec!["id".to_string(), "email".to_string()]),
+            column_descriptions: None,
+        };
+        let manifest_object = TestColumnable {
+            object_type: "model".to_string(),
+            object_string: "my_model".to_string(),
+            relative_path: Some("models/my_model.sql".to_string()),
+            column_names: Some(vec!["ID".to_string(), "Email".to_string()]),
+            column_descriptions: Some(vec!["Identifier".to_string(), "Email address".to_string()]),
+        };
+
+        let rule = create_test_catalog_rule();
+        let result = columns_have_description(&catalog_object, &manifest_object, &rule, false);
+        assert!(result.is_none());
+    }
+
+    // Case-insensitive matching must not hide genuinely empty descriptions.
+    #[test]
+    fn test_uppercase_catalog_still_reports_empty_descriptions() {
+        let catalog_object = TestColumnable {
+            object_type: "model".to_string(),
+            object_string: "my_model".to_string(),
+            relative_path: None,
+            column_names: Some(vec![
+                "ID".to_string(),
+                "NAME".to_string(),
+                "EMAIL".to_string(),
+            ]),
+            column_descriptions: None,
+        };
+        let manifest_object = TestColumnable {
+            object_type: "model".to_string(),
+            object_string: "my_model".to_string(),
+            relative_path: Some("models/my_model.sql".to_string()),
+            column_names: Some(vec![
+                "id".to_string(),
+                "name".to_string(),
+                "email".to_string(),
+            ]),
+            column_descriptions: Some(vec![
+                "Identifier".to_string(),
+                "   ".to_string(),
+                "Email address".to_string(),
+            ]),
+        };
+
+        let rule = create_test_catalog_rule();
+        let result = columns_have_description(&catalog_object, &manifest_object, &rule, false);
+        assert!(result.is_some());
+        assert_eq!(
+            result.unwrap().message,
+            "Some columns in 'my_model' do not have descriptions: [\"name\"]"
+        );
+    }
+
+    // A documented column absent from the warehouse is still reported.
+    #[test]
+    fn test_manifest_column_absent_from_catalog_is_reported() {
+        let catalog_object = TestColumnable {
+            object_type: "model".to_string(),
+            object_string: "my_model".to_string(),
+            relative_path: None,
+            column_names: Some(vec!["ID".to_string(), "NAME".to_string()]),
+            column_descriptions: None,
+        };
+        let manifest_object = TestColumnable {
+            object_type: "model".to_string(),
+            object_string: "my_model".to_string(),
+            relative_path: Some("models/my_model.sql".to_string()),
+            column_names: Some(vec![
+                "id".to_string(),
+                "name".to_string(),
+                "dropped_column".to_string(),
+            ]),
+            column_descriptions: Some(vec![
+                "Identifier".to_string(),
+                "Name".to_string(),
+                "No longer materialized".to_string(),
+            ]),
+        };
+
+        let rule = create_test_catalog_rule();
+        let result = columns_have_description(&catalog_object, &manifest_object, &rule, false);
+        assert!(result.is_some());
+        assert_eq!(
+            result.unwrap().message,
+            "Some columns in 'my_model' do not have descriptions: [\"dropped_column\"]"
+        );
+    }
+
+    // Mixed casing on both sides must still match.
+    #[test]
+    fn test_mixed_case_columns_match() {
+        let catalog_object = TestColumnable {
+            object_type: "model".to_string(),
+            object_string: "my_model".to_string(),
+            relative_path: None,
+            column_names: Some(vec!["CustomerId".to_string(), "OrderDate".to_string()]),
+            column_descriptions: None,
+        };
+        let manifest_object = TestColumnable {
+            object_type: "model".to_string(),
+            object_string: "my_model".to_string(),
+            relative_path: Some("models/my_model.sql".to_string()),
+            column_names: Some(vec!["customerid".to_string(), "ORDERDATE".to_string()]),
+            column_descriptions: Some(vec![
+                "Customer identifier".to_string(),
+                "Date of the order".to_string(),
+            ]),
+        };
+
+        let rule = create_test_catalog_rule();
+        let result = columns_have_description(&catalog_object, &manifest_object, &rule, false);
+        assert!(result.is_none());
     }
 
     #[test]
