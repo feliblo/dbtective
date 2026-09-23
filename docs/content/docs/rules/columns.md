@@ -270,6 +270,8 @@ FROM users
 <br>
 This rule ensures that every documented column has a non-empty description. Unlike `columns_all_documented` which checks that columns are mentioned in YAML files, this rule verifies that those columns actually have meaningful descriptions.
 
+Column names are matched against the catalog case-insensitively, so warehouses that return unquoted identifiers in uppercase (e.g. Snowflake) are handled correctly.
+
 ---
 
 **Configuration**

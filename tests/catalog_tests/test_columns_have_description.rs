@@ -799,3 +799,392 @@ catalog_tests:
     assert!(findings[0].0.message.contains("orders"));
     assert!(findings[0].0.message.contains("id"));
 }
+
+// Regression #217: Snowflake catalogs report UPPERCASE column names while the manifest keeps
+// the lowercase casing from the dbt project. Fully documented models must not be flagged.
+#[test]
+#[allow(clippy::too_many_lines)]
+fn test_columns_have_description_snowflake_uppercase_catalog_columns() {
+    let manifest = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "invocation_id": "test-invocation",
+    "env": {},
+    "project_name": "test_project",
+    "adapter_type": "snowflake",
+    "quoting": {
+      "database": true,
+      "schema": true,
+      "identifier": true,
+      "column": null
+    }
+  },
+  "nodes": {
+    "model.test_project.stg_contact_info": {
+      "database": "ANALYTICS",
+      "schema": "STAGING",
+      "name": "stg_contact_info",
+      "resource_type": "model",
+      "package_name": "test_project",
+      "path": "staging/stg_contact_info.sql",
+      "original_file_path": "models/staging/stg_contact_info.sql",
+      "unique_id": "model.test_project.stg_contact_info",
+      "fqn": ["test_project", "staging", "stg_contact_info"],
+      "alias": "stg_contact_info",
+      "checksum": {"name": "sha256", "checksum": "abc123"},
+      "tags": [],
+      "config": {
+        "enabled": true,
+        "materialized": "view",
+        "tags": []
+      },
+      "description": "Contact info staging model",
+      "columns": {
+        "contact_info_id": {"name": "contact_info_id", "description": "Contact info identifier", "tags": []},
+        "email": {"name": "email", "description": "Email address", "tags": []},
+        "created_at": {"name": "created_at", "description": "Creation timestamp", "tags": []}
+      },
+      "meta": {},
+      "group": null,
+      "docs": {"show": true},
+      "patch_path": "test_project://models/staging/_staging__models.yml",
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {},
+      "created_at": 1704067200.0,
+      "config_call_dict": {},
+      "relation_name": "ANALYTICS.STAGING.STG_CONTACT_INFO",
+      "raw_code": "select * from source_contact_info",
+      "language": "sql",
+      "refs": [],
+      "sources": [],
+      "metrics": [],
+      "depends_on": {"macros": [], "nodes": []},
+      "compiled_code": null,
+      "extra_ctes_injected": false,
+      "extra_ctes": [],
+      "contract": {"enforced": false, "checksum": null}
+    }
+  },
+  "sources": {},
+  "macros": {},
+  "exposures": {},
+  "metrics": {},
+  "groups": {},
+  "selectors": {},
+  "disabled": {},
+  "parent_map": {},
+  "child_map": {},
+  "group_map": {},
+  "saved_queries": {},
+  "semantic_models": {},
+  "unit_tests": {}
+}"#;
+
+    let catalog = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/catalog/v1.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "env": {}
+  },
+  "nodes": {
+    "model.test_project.stg_contact_info": {
+      "unique_id": "model.test_project.stg_contact_info",
+      "metadata": {
+        "type": "BASE TABLE",
+        "schema": "STAGING",
+        "name": "STG_CONTACT_INFO",
+        "database": "ANALYTICS"
+      },
+      "columns": {
+        "CONTACT_INFO_ID": {"type": "NUMBER", "name": "CONTACT_INFO_ID", "index": 1},
+        "EMAIL": {"type": "TEXT", "name": "EMAIL", "index": 2},
+        "CREATED_AT": {"type": "TIMESTAMP_NTZ", "name": "CREATED_AT", "index": 3}
+      },
+      "stats": {}
+    }
+  },
+  "sources": {}
+}"#;
+
+    let config = r#"
+catalog_tests:
+  - name: "columns_have_description"
+    type: "columns_have_description"
+    description: "All columns must have a description"
+    severity: "error"
+    applies_to:
+      - "models"
+"#;
+
+    let env = TestEnvironment::new_with_catalog(manifest, catalog, config);
+    let findings = env.run_catalog_rules(false).expect("should not error");
+
+    assert_eq!(
+        findings.len(),
+        0,
+        "Expected no findings, but got: {findings:?}"
+    );
+}
+
+// Case-insensitive matching must not mask an actually empty description.
+#[test]
+#[allow(clippy::too_many_lines)]
+fn test_columns_have_description_snowflake_uppercase_catalog_empty_description() {
+    let manifest = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "invocation_id": "test-invocation",
+    "env": {},
+    "project_name": "test_project",
+    "adapter_type": "snowflake",
+    "quoting": {
+      "database": true,
+      "schema": true,
+      "identifier": true,
+      "column": null
+    }
+  },
+  "nodes": {
+    "model.test_project.stg_contact_info": {
+      "database": "ANALYTICS",
+      "schema": "STAGING",
+      "name": "stg_contact_info",
+      "resource_type": "model",
+      "package_name": "test_project",
+      "path": "staging/stg_contact_info.sql",
+      "original_file_path": "models/staging/stg_contact_info.sql",
+      "unique_id": "model.test_project.stg_contact_info",
+      "fqn": ["test_project", "staging", "stg_contact_info"],
+      "alias": "stg_contact_info",
+      "checksum": {"name": "sha256", "checksum": "abc123"},
+      "tags": [],
+      "config": {
+        "enabled": true,
+        "materialized": "view",
+        "tags": []
+      },
+      "description": "Contact info staging model",
+      "columns": {
+        "contact_info_id": {"name": "contact_info_id", "description": "Contact info identifier", "tags": []},
+        "email": {"name": "email", "description": "", "tags": []},
+        "created_at": {"name": "created_at", "description": "Creation timestamp", "tags": []}
+      },
+      "meta": {},
+      "group": null,
+      "docs": {"show": true},
+      "patch_path": "test_project://models/staging/_staging__models.yml",
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {},
+      "created_at": 1704067200.0,
+      "config_call_dict": {},
+      "relation_name": "ANALYTICS.STAGING.STG_CONTACT_INFO",
+      "raw_code": "select * from source_contact_info",
+      "language": "sql",
+      "refs": [],
+      "sources": [],
+      "metrics": [],
+      "depends_on": {"macros": [], "nodes": []},
+      "compiled_code": null,
+      "extra_ctes_injected": false,
+      "extra_ctes": [],
+      "contract": {"enforced": false, "checksum": null}
+    }
+  },
+  "sources": {},
+  "macros": {},
+  "exposures": {},
+  "metrics": {},
+  "groups": {},
+  "selectors": {},
+  "disabled": {},
+  "parent_map": {},
+  "child_map": {},
+  "group_map": {},
+  "saved_queries": {},
+  "semantic_models": {},
+  "unit_tests": {}
+}"#;
+
+    let catalog = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/catalog/v1.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "env": {}
+  },
+  "nodes": {
+    "model.test_project.stg_contact_info": {
+      "unique_id": "model.test_project.stg_contact_info",
+      "metadata": {
+        "type": "BASE TABLE",
+        "schema": "STAGING",
+        "name": "STG_CONTACT_INFO",
+        "database": "ANALYTICS"
+      },
+      "columns": {
+        "CONTACT_INFO_ID": {"type": "NUMBER", "name": "CONTACT_INFO_ID", "index": 1},
+        "EMAIL": {"type": "TEXT", "name": "EMAIL", "index": 2},
+        "CREATED_AT": {"type": "TIMESTAMP_NTZ", "name": "CREATED_AT", "index": 3}
+      },
+      "stats": {}
+    }
+  },
+  "sources": {}
+}"#;
+
+    let config = r#"
+catalog_tests:
+  - name: "columns_have_description"
+    type: "columns_have_description"
+    description: "All columns must have a description"
+    severity: "error"
+    applies_to:
+      - "models"
+"#;
+
+    let env = TestEnvironment::new_with_catalog(manifest, catalog, config);
+    let findings = env.run_catalog_rules(false).expect("should not error");
+
+    assert_eq!(findings.len(), 1);
+    assert_eq!(findings[0].0.severity, "FAIL");
+    assert_eq!(findings[0].0.rule_name, "columns_have_description");
+    assert!(findings[0].0.message.contains("email"));
+    assert!(!findings[0].0.message.contains("contact_info_id"));
+}
+
+// A documented column missing from the warehouse is still reported on Snowflake.
+#[test]
+#[allow(clippy::too_many_lines)]
+fn test_columns_have_description_snowflake_column_missing_from_catalog() {
+    let manifest = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "invocation_id": "test-invocation",
+    "env": {},
+    "project_name": "test_project",
+    "adapter_type": "snowflake",
+    "quoting": {
+      "database": true,
+      "schema": true,
+      "identifier": true,
+      "column": null
+    }
+  },
+  "nodes": {
+    "model.test_project.stg_contact_info": {
+      "database": "ANALYTICS",
+      "schema": "STAGING",
+      "name": "stg_contact_info",
+      "resource_type": "model",
+      "package_name": "test_project",
+      "path": "staging/stg_contact_info.sql",
+      "original_file_path": "models/staging/stg_contact_info.sql",
+      "unique_id": "model.test_project.stg_contact_info",
+      "fqn": ["test_project", "staging", "stg_contact_info"],
+      "alias": "stg_contact_info",
+      "checksum": {"name": "sha256", "checksum": "abc123"},
+      "tags": [],
+      "config": {
+        "enabled": true,
+        "materialized": "view",
+        "tags": []
+      },
+      "description": "Contact info staging model",
+      "columns": {
+        "contact_info_id": {"name": "contact_info_id", "description": "Contact info identifier", "tags": []},
+        "email": {"name": "email", "description": "Email address", "tags": []},
+        "created_at": {"name": "created_at", "description": "Creation timestamp", "tags": []}
+      },
+      "meta": {},
+      "group": null,
+      "docs": {"show": true},
+      "patch_path": "test_project://models/staging/_staging__models.yml",
+      "compiled_path": null,
+      "build_path": null,
+      "deferred": false,
+      "unrendered_config": {},
+      "created_at": 1704067200.0,
+      "config_call_dict": {},
+      "relation_name": "ANALYTICS.STAGING.STG_CONTACT_INFO",
+      "raw_code": "select * from source_contact_info",
+      "language": "sql",
+      "refs": [],
+      "sources": [],
+      "metrics": [],
+      "depends_on": {"macros": [], "nodes": []},
+      "compiled_code": null,
+      "extra_ctes_injected": false,
+      "extra_ctes": [],
+      "contract": {"enforced": false, "checksum": null}
+    }
+  },
+  "sources": {},
+  "macros": {},
+  "exposures": {},
+  "metrics": {},
+  "groups": {},
+  "selectors": {},
+  "disabled": {},
+  "parent_map": {},
+  "child_map": {},
+  "group_map": {},
+  "saved_queries": {},
+  "semantic_models": {},
+  "unit_tests": {}
+}"#;
+
+    let catalog = r#"{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/catalog/v1.json",
+    "dbt_version": "1.10.0",
+    "generated_at": "2025-01-01T00:00:00.000000Z",
+    "env": {}
+  },
+  "nodes": {
+    "model.test_project.stg_contact_info": {
+      "unique_id": "model.test_project.stg_contact_info",
+      "metadata": {
+        "type": "BASE TABLE",
+        "schema": "STAGING",
+        "name": "STG_CONTACT_INFO",
+        "database": "ANALYTICS"
+      },
+      "columns": {
+        "CONTACT_INFO_ID": {"type": "NUMBER", "name": "CONTACT_INFO_ID", "index": 1},
+        "EMAIL": {"type": "TEXT", "name": "EMAIL", "index": 2}
+      },
+      "stats": {}
+    }
+  },
+  "sources": {}
+}"#;
+
+    let config = r#"
+catalog_tests:
+  - name: "columns_have_description"
+    type: "columns_have_description"
+    description: "All columns must have a description"
+    severity: "error"
+    applies_to:
+      - "models"
+"#;
+
+    let env = TestEnvironment::new_with_catalog(manifest, catalog, config);
+    let findings = env.run_catalog_rules(false).expect("should not error");
+
+    assert_eq!(findings.len(), 1);
+    assert_eq!(findings[0].0.severity, "FAIL");
+    assert!(findings[0].0.message.contains("created_at"));
+    assert!(!findings[0].0.message.contains("email"));
+}
