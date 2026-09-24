@@ -88,6 +88,12 @@ You can override the default category for any rule by setting `category: "your_c
       <td>Check if dbt objects has the provided keys in the metadata</td>
       <td style="font-size: 12px; color: #666;">tests, uniqueness, unique, validation, custom</td>
     </tr>
+    <tr class="rule-item" data-keywords="contract enforced schema data types constraints access public protected private mesh" data-category="governance">
+      <td><a href="has_contract_enforced" class="rule-name">has_contract_enforced</a></td>
+      <td><span class="rule-category-badge badge-governance">Governance</span></td>
+      <td>Ensure models have a contract enforced, optionally only for a given access level.</td>
+      <td style="font-size: 12px; color: #666;">contract, enforced, schema, access, mesh</td>
+    </tr>
     <tr class="rule-item" data-keywords="references upstream dependencies ref source hardcoded sql" data-category="governance">
       <td><a href="has_refs" class="rule-name">has_refs</a></td>
       <td><span class="rule-category-badge badge-governance">Governance</span></td>
